@@ -3,89 +3,259 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\HrPayroll;
-use Illuminate\Http\JsonResponse;
+use App\Models\HrPayrollRun;
+use App\Services\HrFieldResolver;
+use App\Services\PayrollEngine;
+use App\Services\WpsFileService;
 use Illuminate\Http\Request;
-use App\Models\HrEmployee;
-use App\Models\HrEmployeeContract;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
+/**
+ * تشغيل الرواتب — معاد كتابته على جدولك المسطّح hr_payrolls.
+ *
+ * المسارات:
+ *   GET  /hr/payroll-runs
+ *   POST /hr/payroll-runs
+ *   GET  /hr/payroll-runs/{payrollRun}
+ *   POST /hr/payroll-runs/{payrollRun}/recalculate
+ *   POST /hr/payroll-runs/{payrollRun}/approve
+ *   POST /hr/payroll-runs/{payrollRun}/post
+ *   POST /hr/payroll-runs/{payrollRun}/wps/validate
+ *   POST /hr/payroll-runs/{payrollRun}/wps/generate
+ *   GET  /hr/payroll-runs/{payrollRun}/wps/download
+ */
 class HrPayrollController extends Controller
 {
-    public function generate(Request $request): JsonResponse
+    public function __construct(
+        private readonly PayrollEngine $engine,
+        private readonly WpsFileService $wps
+    ) {}
+
+    public function index(Request $request)
     {
-        $data = $request->validate([
-            'year' => ['required', 'integer', 'min:2000', 'max:2200'],
-            'month' => ['required', 'integer', 'between:1,12'],
+        $runs = HrPayrollRun::query()
+            ->with('branch:id,code,name')
+            ->when($request->filled('year'), fn ($q) => $q->where('period_year', $request->year))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
+            ->orderByDesc('period_year')
+            ->orderByDesc('period_month')
+            ->get();
+
+        $thisYear = $runs->where('period_year', now()->year);
+
+        return response()->json([
+            'success' => true,
+            'summary' => [
+                'runs_count' => $runs->count(),
+                'posted_count' => $runs->where('status', 'posted')->count(),
+                'pending_wps' => $runs
+                    ->whereIn('status', ['approved', 'posted'])
+                    ->whereNull('wps_submitted_at')
+                    ->count(),
+                'ytd_gross' => round((float) $thisYear->sum('total_gross'), 2),
+                'ytd_gosi_employer' => round((float) $thisYear->sum('total_gosi_employer'), 2),
+                'ytd_employer_cost' => round((float) $thisYear->sum(
+                    fn ($r) => $r->employer_cost
+                ), 2),
+            ],
+            'data' => $runs,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'year' => ['required', 'integer', 'min:2020', 'max:2100'],
+            'month' => ['required', 'integer', 'min:1', 'max:12'],
+            'branch_id' => ['nullable', 'integer', 'exists:hr_branches,id'],
         ]);
 
-        $start = Carbon::create($data['year'], $data['month'], 1)->startOfMonth();
-        $end = $start->copy()->endOfMonth();
-        $created = 0;
+        $run = $this->engine->run(
+            (int) $validated['year'],
+            (int) $validated['month'],
+            $validated['branch_id'] ?? null,
+            $request->user()?->id
+        );
 
-        HrEmployee::query()->where('status', 'active')->each(function (HrEmployee $employee) use ($data, $start, $end, &$created) {
-            $contract = HrEmployeeContract::query()
-                ->where('employee_id', $employee->id)
-                ->where('status', 'active')
-                ->whereDate('start_date', '<=', $end)
-                ->where(function ($q) use ($start) {
-                    $q->whereNull('end_date')->orWhereDate('end_date', '>=', $start);
-                })
-                ->latest('start_date')->first();
-
-            if (!$contract || HrPayroll::where(['employee_id' => $employee->id, 'year' => $data['year'], 'month' => $data['month']])->exists()) {
-                return;
-            }
-
-            $allowances = (float) $contract->housing_allowance + (float) $contract->transport_allowance + (float) $contract->other_allowances;
-            $basic = (float) $contract->basic_salary;
-            HrPayroll::create([
-                'employee_id' => $employee->id, 'year' => $data['year'], 'month' => $data['month'],
-                'period_start' => $start, 'period_end' => $end, 'basic_salary' => $basic,
-                'allowances' => $allowances, 'gross_salary' => $basic + $allowances,
-                'net_salary' => $basic + $allowances, 'status' => 'draft',
-            ]);
-            $created++;
-        });
-
-        return response()->json(['created' => $created, 'year' => $data['year'], 'month' => $data['month']]);
+        return response()->json([
+            'success' => true,
+            'message' => sprintf(
+                'تم حساب رواتب %d موظف بإجمالي صافي %s ريال.',
+                $run->employees_count,
+                number_format((float) $run->total_net, 2)
+            ),
+            'data' => $run,
+        ], 201);
     }
 
-    public function index(Request $request): JsonResponse
+    public function show(HrPayrollRun $payrollRun)
     {
-        $query = HrPayroll::with('employee:id,full_name,first_name,last_name')
-            ->when($request->year, fn ($q, $v) => $q->where('year', $v))
-            ->when($request->month, fn ($q, $v) => $q->where('month', $v))
-            ->latest();
+        $payrollRun->load([
+            'branch:id,code,name',
+            'journalEntry:id,entry_number,entry_date,status',
+        ]);
 
-        return response()->json($query->paginate($request->integer('per_page', 25)));
+        return response()->json([
+            'success' => true,
+            'data' => [
+                ...$payrollRun->toArray(),
+                'employer_cost' => $payrollRun->employer_cost,
+                'lines' => $this->lines($payrollRun),
+            ],
+        ]);
     }
 
-    public function show(HrPayroll $hrPayroll): JsonResponse
+    public function recalculate(Request $request, HrPayrollRun $payrollRun)
     {
-        return response()->json($hrPayroll->load('employee'));
-    }
-
-    public function update(Request $request, HrPayroll $hrPayroll): JsonResponse
-    {
-        if (in_array($hrPayroll->status, ['paid', 'closed'], true)) {
-            return response()->json(['message' => 'لا يمكن تعديل مسير مغلق أو مدفوع.'], 422);
+        if (in_array($payrollRun->status, ['posted', 'paid'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لا يمكن إعادة حساب تشغيل مُرحَّل.',
+            ], 422);
         }
 
-        $data = $request->validate([
-            'bonuses' => ['nullable', 'numeric', 'min:0'],
-            'loans_deductions' => ['nullable', 'numeric', 'min:0'],
-            'other_deductions' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['nullable', 'in:draft,review,approved'],
-            'notes' => ['nullable', 'string'],
+        $payrollRun->update(['status' => 'draft']);
+
+        $run = $this->engine->run(
+            (int) $payrollRun->period_year,
+            (int) $payrollRun->period_month,
+            $payrollRun->branch_id,
+            $request->user()?->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم إعادة الحساب.',
+            'data' => $run,
+        ]);
+    }
+
+    public function approve(Request $request, HrPayrollRun $payrollRun)
+    {
+        if ($payrollRun->status !== 'calculated') {
+            return response()->json([
+                'success' => false,
+                'message' => 'يجب حساب التشغيل أولًا قبل الاعتماد.',
+            ], 422);
+        }
+
+        $payrollRun->update([
+            'status' => 'approved',
+            'approved_by' => $request->user()?->id,
+            'approved_at' => now(),
         ]);
 
-        $hrPayroll->fill($data);
-        $hrPayroll->gross_salary = $hrPayroll->basic_salary + $hrPayroll->allowances + $hrPayroll->overtime_amount + $hrPayroll->bonuses;
-        $hrPayroll->total_deductions = $hrPayroll->absence_deductions + $hrPayroll->late_deductions + $hrPayroll->loans_deductions + $hrPayroll->other_deductions;
-        $hrPayroll->net_salary = max(0, $hrPayroll->gross_salary - $hrPayroll->total_deductions);
-        $hrPayroll->save();
+        DB::table('hr_payrolls')
+            ->where('payroll_run_id', $payrollRun->id)
+            ->update([
+                'status' => 'approved',
+                'approved_by' => $request->user()?->id,
+                'approved_at' => now(),
+            ]);
 
-        return response()->json($hrPayroll->fresh()->load('employee'));
+        return response()->json([
+            'success' => true,
+            'message' => 'تم اعتماد تشغيل الرواتب.',
+            'data' => $payrollRun->fresh(),
+        ]);
+    }
+
+    public function post(Request $request, HrPayrollRun $payrollRun)
+    {
+        $run = $this->engine->post($payrollRun, $request->user()?->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم ترحيل قيد الرواتب.',
+            'data' => $run->load('journalEntry'),
+        ]);
+    }
+
+    public function validateWps(HrPayrollRun $payrollRun)
+    {
+        $result = $this->wps->validate($payrollRun);
+
+        return response()->json([
+            'success' => true,
+            'message' => $result['is_valid']
+                ? 'الملف جاهز للرفع — مافيش أخطاء.'
+                : sprintf('فيه %d خطأ يمنع الرفع.', count($result['errors'])),
+            'data' => $result,
+        ]);
+    }
+
+    public function generateWps(HrPayrollRun $payrollRun)
+    {
+        $result = $this->wps->generate($payrollRun);
+
+        if (!$result['generated']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الفحص المسبق فشل — صحّح الأخطاء قبل التوليد.',
+                'data' => $result['validation'],
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => sprintf(
+                'تم توليد ملف حماية الأجور — %d موظف بإجمالي %s ريال.',
+                $result['rows'],
+                number_format($result['total_net'], 2)
+            ),
+            'data' => $result,
+        ]);
+    }
+
+    public function downloadWps(HrPayrollRun $payrollRun)
+    {
+        if (!$payrollRun->wps_file_path
+            || !Storage::disk('local')->exists($payrollRun->wps_file_path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الملف غير موجود — ولّده أولًا.',
+            ], 404);
+        }
+
+        return Storage::disk('local')->download(
+            $payrollRun->wps_file_path,
+            sprintf('WPS-%d-%02d.csv', $payrollRun->period_year, $payrollRun->period_month)
+        );
+    }
+
+    /** بنود التشغيل من جدولك المسطّح مع بيانات الموظف. */
+    private function lines(HrPayrollRun $run): array
+    {
+        $key = HrFieldResolver::employeeKey('hr_payrolls');
+
+        return DB::table('hr_payrolls as p')
+            ->join('hr_employees as e', 'e.id', '=', "p.{$key}")
+            ->leftJoin('cost_centers as cc', 'cc.id', '=', 'p.cost_center_id')
+            ->where('p.payroll_run_id', $run->id)
+            ->orderBy('e.employee_number')
+            ->select([
+                'p.*',
+                'e.employee_number',
+                'e.first_name',
+                'e.last_name',
+                'e.iban',
+                'cc.name as cost_center_name',
+            ])
+            ->get()
+            ->map(fn ($row) => [
+                ...(array) $row,
+                'employee_name' => trim($row->first_name . ' ' . $row->last_name),
+                'scheme_label' => match ($row->gosi_scheme ?? null) {
+                    'expat' => 'وافد · أخطار مهنية',
+                    'existing' => 'سعودي · النظام القديم',
+                    'new' => 'سعودي · النظام الجديد',
+                    default => '—',
+                },
+                'project_allocations' => $row->project_allocations
+                    ? json_decode($row->project_allocations, true)
+                    : null,
+            ])
+            ->all();
     }
 }

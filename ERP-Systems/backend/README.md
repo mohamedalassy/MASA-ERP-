@@ -1,58 +1,179 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MASA ERP — حزمة HR الموفَّقة (v2)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> **هذه الحزمة تحل محل كل ملفات HR في `masa-package` القديمة.**
+> احذف من القديمة: `2026_08_05_000001` · `2026_08_05_000002` ·
+> `2026_09_19_000001` · الخدمات الخمسة · الكنترولرات الثلاثة ·
+> الشاشات الستة · `GoodsReceiptService.php`
 
-## About Laravel
+مبنية على قراءة جداولك الفعلية من `MASA-ERP@f389704`:
+`HrEmployee` · `HrEmployeeContract` · `HrPayroll` · `HrAttendanceDaily` ·
+`HrShift` · `HrDepartment` · `HrBranch`
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ⚠️ تعارض داخلي في جداولك — لازم يتحسم أولاً
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+نفس العلاقة مسمّاة باسمين مختلفين:
 
-## Learning Laravel
+| الجدول | اسم المفتاح |
+|---|---|
+| `hr_attendance_daily` | `employee_id` |
+| `hr_employee_contracts` | `hr_employee_id` |
+| `hr_payrolls` | `hr_employee_id` |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+**ده مش اختلاف معايا — ده تعارض في تصميمك.** أي كود بيوصل الحضور
+بالرواتب هيحتاج يفتكر الاسمين، وأي مطوّر جديد هيغلط فيها.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### التوصية
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+وحّدهم على `employee_id` (الأقصر والأشيع في Laravel). الهجرة المرفقة
+`...unify_hr_employee_foreign_keys` بتعمل كده — وهي **اختيارية**:
+لو فضّلت تسيبهم، قول لي وأكتب الخدمات على الاسمين.
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## حاجات في تصميمك **أفضل من تصميمي** — اتبنّيتها
+
+| الحقل | الجدول | ليه أفضل |
+|---|---|---|
+| `crosses_midnight` | hr_shifts | الوردية الليلية بتعدّي منتصف الليل — **أنا مكنتش حاططها** |
+| `late_grace_minutes` + `early_leave_grace_minutes` | hr_shifts | سماحيتان منفصلتان بدل واحدة |
+| `overtime_allowed` + `overtime_after_minutes` | hr_shifts | التحكم في بدء احتساب الإضافي |
+| `working_days` (array) | hr_shifts | أوضح من `weekend_days` — إثبات بدل نفي |
+| `latitude` + `longitude` + `attendance_radius` | hr_branches | **بصمة بالموقع على مستوى الفرع** |
+| `timezone` | hr_branches | ضروري للفروع في دول مختلفة |
+| `source` + `calculated_at` | hr_attendance_daily | مصدر السجل ووقت إعادة الحساب |
+| `getGrossSalaryAttribute()` | HrEmployeeContract | تجميع الأجر في مكان واحد |
+| `early_leave_minutes` + `break_minutes` | hr_attendance_daily | تفصيل أدق |
+
+---
+
+## اختلافات أسماء — **الخدمات اتعدّلت لتتبعك**
+
+| عندك | كودي القديم |
+|---|---|
+| `attendance_date` | `work_date` |
+| `required_minutes` | `work_minutes` |
+| `contract_type` | `type` |
+| `other_allowances` | `phone_ + food_ + other_allowance` |
+| `gosi_deduction` | `gosi_employee` |
+| `cost_center_code` (نص) | `cost_center_id` (مفتاح) |
+
+### ملاحظة على `cost_center_code`
+
+عندك نص، وعندي مفتاح أجنبي لجدول `cost_centers`. النص أسهل في
+الإدخال لكنه **مش مضمون** — غلطة حرف واحد تكسر تقرير المصروفات
+بالقسم. الهجرة بتضيف `cost_center_id` **بجانب** النص، والخدمة
+بتجرّب المفتاح أولًا ثم النص.
+
+---
+
+## ⚠️ فقدان مقصود؟ — توقيت رمضان
+
+جدول `hr_shifts` عندك **مافيهوش حقول رمضان**:
+`ramadan_start_time` · `ramadan_end_time` · `ramadan_required_minutes`
+
+تقليل ساعات العمل في رمضان **مطلوب نظامًا للمسلمين**، وجسر بيميّز
+نفسه بيه. الهجرة بتضيفهم — لو مش عايزهم قول لي.
+
+---
+
+## الملفات
+
+### هجرات (٣)
+
+| الملف | الغرض | إلزامي؟ |
+|---|---|---|
+| `2026_09_20_000001_add_missing_hr_fields.php` | ١٩ عمود ناقص على ٤ جداول | ✅ نعم |
+| `2026_09_20_000002_create_hr_payroll_runs_table.php` | رأس تشغيل فوق `hr_payrolls` | ✅ نعم |
+| `2026_09_20_000003_unify_hr_employee_foreign_keys.php` | توحيد `employee_id` | ⬜ اختيارية |
+
+### خدمات (٥ معاد كتابتها)
+
+`GosiCalculator` · `EosbCalculator` · `PayrollEngine` ·
+`ComplianceMonitorService` · `WpsFileService`
+
+### كنترولرات
+
+| الملف | الحالة |
+|---|---|
+| `HrPayrollController.php` | ✅ معاد كتابته — في الحزمة دي |
+| `HrComplianceController.php` | يعمل كما هو — من الحزمة الأولى |
+| `HrLeaveController.php` | يعمل كما هو — من الحزمة الأولى |
+
+### مسارات
+
+`routes/hr-routes.php` — **يحل محل** نسخة الحزمة الأولى.
+
+### شاشات
+
+الستة من الحزمة الأولى تعمل كما هي — ما عدا `HrPayroll.jsx`
+(٤ تعديلات) و`HrShifts.jsx` (٣ إضافات). التفاصيل في
+`FRONTEND-PATCH.md` بصيغة diff جاهزة للنسخ.
+
+---
+
+## ترتيب التنفيذ
 
 ```bash
-composer require laravel/boost --dev
+# ١. الهجرات
+php artisan migrate
 
-php artisan boost:install
+# ٢. نسب التأمينات — إلزامي قبل أول مسيّر
+php artisan db:seed --class=GosiRatesSeeder
+
+# ٣. أنواع الإجازات
+php artisan db:seed --class=HrLeaveTypesSeeder
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## ما بعد التنفيذ — الاختبار
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+بعد الهجرات والـseeders، جرّب بالترتيب:
 
-## Code of Conduct
+```bash
+# ١. موظف واحد بعقد ساري
+POST /api/hr/payroll-runs  { "year": 2026, "month": 9 }
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# ٢. راجع الأرقام
+GET  /api/hr/payroll-runs/1
 
-## Security Vulnerabilities
+# ٣. الفحص المسبق لمدد — قبل الاعتماد
+POST /api/hr/payroll-runs/1/wps/validate
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# ٤. اعتماد ثم ترحيل
+POST /api/hr/payroll-runs/1/approve
+POST /api/hr/payroll-runs/1/post
+```
 
-## License
+### ما يجب أن تتحقق منه
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| الفحص | المتوقع |
+|---|---|
+| `gosi_scheme` على كل بند | `existing` أو `new` أو `expat` — مش فاضي |
+| `gosi_employer` | أكبر من `gosi_deduction` (حصة الشركة أعلى) |
+| `gosi_base` | = الأساسي + السكن، وبحد أقصى ٤٥٬٠٠٠ |
+| القيد المحاسبي | متوازن — المدين = الدائن |
+| `project_allocations` | يظهر فقط لموظف له بصمات موقع مقفولة |
+
+### لو الترحيل فشل
+
+الرسالة هتقول أي حساب ناقص. الحسابات الخمسة المطلوبة:
+
+`5210` الرواتب والأجور · `5230` التأمينات الاجتماعية ·
+`2130` رواتب مستحقة · `2150` التأمينات المستحقة ·
+`2220` مكافأة نهاية الخدمة
+
+كلها في `ChartOfAccountsSeeder` من الحزمة الأولى.
+
+---
+
+## ⚠️ قبل التشغيل على بيانات حقيقية
+
+**راجع نسب التأمينات** في `GosiRatesSeeder` على موقع المؤسسة
+الرسمي. النسب فيه من مصادر منشورة بتواريخ ٢٠٢٦، وصفوف ٢٠٢٧
+و٢٠٢٨ **تقديرية ومعلَّمة كذلك في `notes`**.
+
+نسبة التقاعد في النظام الجديد ترتفع ٠.٥٪ على كل طرف كل يوليو
+حتى ٢٠٢٨ — ولهذا الجدول موجود أصلاً: إضافة صف أرخص من تعديل كود.
