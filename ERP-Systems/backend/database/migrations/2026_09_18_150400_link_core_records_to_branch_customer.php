@@ -9,6 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Projects
+        |--------------------------------------------------------------------------
+        */
+
         Schema::table('projects', function (Blueprint $table) {
             if (!Schema::hasColumn('projects', 'branch_id')) {
                 $table->foreignId('branch_id')
@@ -27,6 +33,12 @@ return new class extends Migration
             }
         });
 
+        /*
+        |--------------------------------------------------------------------------
+        | Project Quotations
+        |--------------------------------------------------------------------------
+        */
+
         Schema::table('project_quotations', function (Blueprint $table) {
             if (!Schema::hasColumn('project_quotations', 'branch_id')) {
                 $table->foreignId('branch_id')
@@ -36,6 +48,12 @@ return new class extends Migration
                     ->nullOnDelete();
             }
         });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Purchase Orders
+        |--------------------------------------------------------------------------
+        */
 
         Schema::table('purchase_orders', function (Blueprint $table) {
             if (!Schema::hasColumn('purchase_orders', 'branch_id')) {
@@ -47,6 +65,12 @@ return new class extends Migration
             }
         });
 
+        /*
+        |--------------------------------------------------------------------------
+        | Inventory Transactions
+        |--------------------------------------------------------------------------
+        */
+
         Schema::table('inventory_transactions', function (Blueprint $table) {
             if (!Schema::hasColumn('inventory_transactions', 'branch_id')) {
                 $table->foreignId('branch_id')
@@ -57,6 +81,12 @@ return new class extends Migration
             }
         });
 
+        /*
+        |--------------------------------------------------------------------------
+        | Project Financial Transactions
+        |--------------------------------------------------------------------------
+        */
+
         Schema::table('project_financial_transactions', function (Blueprint $table) {
             if (!Schema::hasColumn('project_financial_transactions', 'branch_id')) {
                 $table->foreignId('branch_id')
@@ -66,6 +96,12 @@ return new class extends Migration
                     ->nullOnDelete();
             }
         });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Project Expenses
+        |--------------------------------------------------------------------------
+        */
 
         Schema::table('project_expenses', function (Blueprint $table) {
             if (!Schema::hasColumn('project_expenses', 'branch_id')) {
@@ -78,48 +114,79 @@ return new class extends Migration
         });
 
         /*
-         * Backfill branch_id from the parent project wherever possible.
-         * Existing rows remain safe because the columns are nullable.
-         */
-        DB::statement('
-            UPDATE project_quotations pq
-            JOIN projects p ON p.id = pq.project_id
-            SET pq.branch_id = p.branch_id
-            WHERE pq.branch_id IS NULL
-        ');
+        |--------------------------------------------------------------------------
+        | Backfill Branch IDs
+        |--------------------------------------------------------------------------
+        |
+        | استخدام correlated subqueries بدل UPDATE ... JOIN
+        | حتى يكون الـ migration متوافقًا مع SQLite و MySQL.
+        |
+        */
 
-        DB::statement('
-            UPDATE purchase_orders po
-            JOIN projects p ON p.id = po.project_id
-            SET po.branch_id = p.branch_id
-            WHERE po.branch_id IS NULL
-        ');
+        DB::table('project_quotations')
+            ->whereNull('branch_id')
+            ->whereNotNull('project_id')
+            ->update([
+                'branch_id' => DB::raw(
+                    '(SELECT projects.branch_id
+                      FROM projects
+                      WHERE projects.id = project_quotations.project_id)'
+                ),
+            ]);
 
-        DB::statement('
-            UPDATE inventory_transactions it
-            JOIN projects p ON p.id = it.project_id
-            SET it.branch_id = p.branch_id
-            WHERE it.branch_id IS NULL
-              AND it.project_id IS NOT NULL
-        ');
+        DB::table('purchase_orders')
+            ->whereNull('branch_id')
+            ->whereNotNull('project_id')
+            ->update([
+                'branch_id' => DB::raw(
+                    '(SELECT projects.branch_id
+                      FROM projects
+                      WHERE projects.id = purchase_orders.project_id)'
+                ),
+            ]);
 
-        DB::statement('
-            UPDATE project_financial_transactions ft
-            JOIN projects p ON p.id = ft.project_id
-            SET ft.branch_id = p.branch_id
-            WHERE ft.branch_id IS NULL
-        ');
+        DB::table('inventory_transactions')
+            ->whereNull('branch_id')
+            ->whereNotNull('project_id')
+            ->update([
+                'branch_id' => DB::raw(
+                    '(SELECT projects.branch_id
+                      FROM projects
+                      WHERE projects.id = inventory_transactions.project_id)'
+                ),
+            ]);
 
-        DB::statement('
-            UPDATE project_expenses pe
-            JOIN projects p ON p.id = pe.project_id
-            SET pe.branch_id = p.branch_id
-            WHERE pe.branch_id IS NULL
-        ');
+        DB::table('project_financial_transactions')
+            ->whereNull('branch_id')
+            ->whereNotNull('project_id')
+            ->update([
+                'branch_id' => DB::raw(
+                    '(SELECT projects.branch_id
+                      FROM projects
+                      WHERE projects.id = project_financial_transactions.project_id)'
+                ),
+            ]);
+
+        DB::table('project_expenses')
+            ->whereNull('branch_id')
+            ->whereNotNull('project_id')
+            ->update([
+                'branch_id' => DB::raw(
+                    '(SELECT projects.branch_id
+                      FROM projects
+                      WHERE projects.id = project_expenses.project_id)'
+                ),
+            ]);
     }
 
     public function down(): void
     {
-        // Non-destructive foundation migration.
+        /*
+         * Intentionally non-destructive.
+         *
+         * This migration links existing ERP records to the new
+         * branch/customer foundation. We do not remove these columns
+         * automatically on rollback to avoid accidental data loss.
+         */
     }
 };

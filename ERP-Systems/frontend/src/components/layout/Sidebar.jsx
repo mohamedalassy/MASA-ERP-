@@ -133,9 +133,15 @@ const quickApps = [
     stage: "finance",
   },
 
+  /*
+  |--------------------------------------------------------------------------
+  | MASA People V2
+  |--------------------------------------------------------------------------
+  */
+
   {
     id: "employees",
-    name: "الموظفين",
+    name: "الموارد البشرية",
     icon: Users,
     color: "purple",
   },
@@ -158,25 +164,56 @@ export default function Sidebar({
   };
 
   const handleQuickApp = (item) => {
-    // Sales
+    /*
+    |--------------------------------------------------------------------------
+    | Sales
+    |--------------------------------------------------------------------------
+    */
+
     if (item.id === "sales") {
       handleView("sales");
       return;
     }
 
-    // AI Sales
+    /*
+    |--------------------------------------------------------------------------
+    | AI Sales
+    |--------------------------------------------------------------------------
+    */
+
     if (item.id === "ai-sales") {
       handleView("ai-sales");
       return;
     }
 
-    // Pricing
+    /*
+    |--------------------------------------------------------------------------
+    | MASA People V2
+    |--------------------------------------------------------------------------
+    */
+
+    if (item.id === "employees") {
+      handleView("hr-v2-command");
+      return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pricing
+    |--------------------------------------------------------------------------
+    */
+
     if (item.id === "pricing") {
       handleView("pricing");
       return;
     }
 
-    // CRM / Purchasing / Projects / Accounting
+    /*
+    |--------------------------------------------------------------------------
+    | Work Order Based Modules
+    |--------------------------------------------------------------------------
+    */
+
     if (item.stage) {
       handleView("work-orders", {
         stage: item.stage,
@@ -190,7 +227,12 @@ export default function Sidebar({
   };
 
   const isQuickAppActive = (item) => {
-    // Sales + all internal Sales pages
+    /*
+    |--------------------------------------------------------------------------
+    | Sales
+    |--------------------------------------------------------------------------
+    */
+
     if (item.id === "sales") {
       return (
         activeView === "sales" ||
@@ -198,7 +240,12 @@ export default function Sidebar({
       );
     }
 
-    // AI Sales + all internal AI Sales pages
+    /*
+    |--------------------------------------------------------------------------
+    | AI Sales
+    |--------------------------------------------------------------------------
+    */
+
     if (item.id === "ai-sales") {
       return (
         activeView === "ai-sales" ||
@@ -206,7 +253,25 @@ export default function Sidebar({
       );
     }
 
-    // Pricing + all internal Pricing pages
+    /*
+    |--------------------------------------------------------------------------
+    | MASA People V2
+    |--------------------------------------------------------------------------
+    */
+
+    if (item.id === "employees") {
+      return (
+        activeView === "hr-v2" ||
+        activeView.startsWith("hr-v2-")
+      );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pricing
+    |--------------------------------------------------------------------------
+    */
+
     if (item.id === "pricing") {
       return (
         activeView === "pricing" ||
@@ -214,7 +279,12 @@ export default function Sidebar({
       );
     }
 
-    // Existing Work Orders based modules
+    /*
+    |--------------------------------------------------------------------------
+    | Work Order Based Modules
+    |--------------------------------------------------------------------------
+    */
+
     if (item.stage) {
       return (
         activeView === "work-orders" &&
@@ -227,6 +297,11 @@ export default function Sidebar({
 
   return (
     <aside className="sidebar">
+
+      {/* =========================
+          Brand
+      ========================= */}
+
       <div className="brand">
         <div className="brand-logo">
           M
@@ -237,6 +312,10 @@ export default function Sidebar({
           <span>ERP</span>
         </div>
       </div>
+
+      {/* =========================
+          Main Navigation
+      ========================= */}
 
       <nav className="main-navigation">
         {mainMenu.map((item) => {
@@ -276,6 +355,10 @@ export default function Sidebar({
       </nav>
 
       <div className="sidebar-divider" />
+
+      {/* =========================
+          Quick Apps
+      ========================= */}
 
       <section
         className="quick-apps-section"
@@ -324,6 +407,10 @@ export default function Sidebar({
           })}
         </div>
       </section>
+
+      {/* =========================
+          Bottom
+      ========================= */}
 
       <div className="sidebar-bottom">
         <button
