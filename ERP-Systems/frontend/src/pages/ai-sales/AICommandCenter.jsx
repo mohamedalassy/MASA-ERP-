@@ -1,0 +1,2 @@
+import {Shell,Button,Stat,CompanyTable,Score,demoCompanies,icons} from "./shared";
+export default function AICommandCenter({onNavigate,activeView="ai-sales-command"}){return <Shell activeView={activeView} onNavigate={onNavigate} title="AI Command Center" subtitle="أوامر ذكية للبحث والتحليل والتنفيذ."><div className="ais-card command"><icons.Bot size={48}/><h2>ماذا تريد من AI Sales؟</h2><p>مثال: ابحث عن شركات صناعية توسعت في الشرقية وقد تحتاج CCTV وشبكات.</p><div><input placeholder="اكتب أمر AI هنا..."/><Button><icons.Send size={17}/></Button></div></div></Shell>}

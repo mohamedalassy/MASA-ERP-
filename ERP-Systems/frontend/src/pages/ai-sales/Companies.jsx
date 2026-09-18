@@ -1,0 +1,2 @@
+import {Shell,Button,Stat,CompanyTable,Score,demoCompanies,icons} from "./shared";
+export default function Companies({onNavigate,activeView="ai-sales-companies"}){return <Shell activeView={activeView} onNavigate={onNavigate} title="الشركات" subtitle="قاعدة الشركات الموحدة وبيانات الإثراء."><><div className="ais-toolbar"><div className="ais-search"><icons.Search size={17}/><input placeholder="ابحث باسم الشركة، المدينة أو القطاع..."/></div><Button ghost><icons.SlidersHorizontal size={16}/> الفلاتر</Button></div><CompanyTable onNavigate={onNavigate}/></></Shell>}

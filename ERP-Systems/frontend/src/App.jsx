@@ -6,7 +6,7 @@ import PricingRules from "./pages/PricingRules";
 import PriceHistory from "./pages/PriceHistory";
 import CostingEngine from "./pages/CostingEngine";
 import PricingReports from "./pages/PricingReports";
-
+import AISalesRouter, { isAISalesView } from "./pages/ai-sales/AISalesRouter";
 import Sidebar from "./components/layout/Sidebar";
 import Topbar from "./components/layout/Topbar";
 import AppLauncher from "./components/apps/AppLauncher";
@@ -110,7 +110,9 @@ function App() {
         <div className="erp-content">
           {activeView === "dashboard" && (
             <Dashboard onChangeView={handleChangeView} />
-          )}
+          )}'{isAISalesView(activeView) && (
+            <AISalesRouter activeView={activeView} onNavigate={handleChangeView} />
+          )}'
 
           {activeView === "pricing-rules" && (
             <PricingRules onNavigate={handleChangeView} />

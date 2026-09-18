@@ -17,6 +17,7 @@ import {
   BarChart3,
   ReceiptText,
   Tags,
+  BrainCircuit,
 } from "lucide-react";
 
 const mainMenu = [
@@ -41,6 +42,12 @@ const quickApps = [
     icon: TrendingUp,
     color: "purple",
   },
+  {
+  id: "ai-sales",
+  name: "AI Sales",
+  icon: BrainCircuit,
+  color: "purple",
+},
   {
     id: "pricing",
     name: "التسعير",

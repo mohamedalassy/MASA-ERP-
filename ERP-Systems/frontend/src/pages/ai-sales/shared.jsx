@@ -1,0 +1,15 @@
+import {ArrowUpLeft,Building2,Sparkles,TrendingUp,MapPin,Clock3,Search,SlidersHorizontal,Plus,Send,Phone,Mail,MoreHorizontal,Target,Radar,BriefcaseBusiness,MessageSquareText,ListChecks,ChartNoAxesCombined,Bot,Settings,Globe2} from "lucide-react";
+import AISalesNav from "../../components/ai-sales/AISalesNav";
+import "./ai-sales.css";
+export const demoCompanies=[
+{name:"شركة الأفق الصناعية",city:"الدمام",sector:"صناعة",score:94,signal:"افتتاح منشأة جديدة",services:["CCTV","Network","Access Control"],value:"185K"},
+{name:"مجموعة بوابة الخليج",city:"الخبر",sector:"مقاولات",score:89,signal:"توسع وفرع جديد",services:["Network","Fire Alarm"],value:"132K"},
+{name:"مركز رعاية الأعمال",city:"الظهران",sector:"خدمات",score:84,signal:"توظيف فريق IT",services:["CCTV","Network"],value:"96K"},
+{name:"مصانع المدى",city:"الجبيل",sector:"صناعة",score:81,signal:"مشروع توسعة",services:["Fire Alarm","CCTV"],value:"220K"},
+{name:"شركة نقطة رقمية",city:"الدمام",sector:"تقنية",score:78,signal:"مقر جديد",services:["Network","Access Control"],value:"74K"}];
+export function Shell({activeView,onNavigate,title,subtitle,actions,children}){return <div className="ais-page" dir="rtl"><AISalesNav activeView={activeView} onNavigate={onNavigate}/><div className="ais-head"><div><div className="ais-eyebrow"><Sparkles size={14}/> MASA INTELLIGENCE</div><h1>{title}</h1><p>{subtitle}</p></div><div className="ais-actions">{actions}</div></div>{children}</div>}
+export function Button({children,ghost=false,onClick}){return <button type="button" className={"ais-btn "+(ghost?"ghost":"")} onClick={onClick}>{children}</button>}
+export function Stat({icon:Icon,label,value,note}){return <div className="ais-card ais-stat"><div className="ais-stat-icon"><Icon size={21}/></div><div><span>{label}</span><strong>{value}</strong><small>{note}</small></div></div>}
+export function Score({value}){return <span className={"ais-score "+(value>=90?"hot":value>=80?"warm":"")}>{value}</span>}
+export function CompanyTable({onNavigate}){return <div className="ais-card"><div className="ais-card-head"><div><b>أحدث الفرص المكتشفة</b><span>بيانات تجريبية لحين ربط Laravel</span></div><button onClick={()=>onNavigate?.("ai-sales-discovered")}>عرض الكل <ArrowUpLeft size={15}/></button></div><div className="ais-table-wrap"><table className="ais-table"><thead><tr><th>الشركة</th><th>الموقع</th><th>الإشارة</th><th>الخدمات</th><th>AI Score</th><th>القيمة</th></tr></thead><tbody>{demoCompanies.map((c,i)=><tr key={i} onClick={()=>onNavigate?.("ai-sales-company")}><td><div className="company-name"><span><Building2 size={17}/></span><div><b>{c.name}</b><small>{c.sector}</small></div></div></td><td>{c.city}</td><td>{c.signal}</td><td><div className="chips">{c.services.map(s=><em key={s}>{s}</em>)}</div></td><td><Score value={c.score}/></td><td><b>{c.value} SAR</b></td></tr>)}</tbody></table></div></div>}
+export const icons={Building2,TrendingUp,Target,Radar,BriefcaseBusiness,MessageSquareText,ListChecks,ChartNoAxesCombined,Bot,Settings,Globe2,Search,SlidersHorizontal,Plus,Send,Phone,Mail,MoreHorizontal,Clock3,MapPin};

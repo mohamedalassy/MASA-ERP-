@@ -1,0 +1,2 @@
+import {Shell,Button,Stat,CompanyTable,Score,demoCompanies,icons} from "./shared";
+export default function Leads({onNavigate,activeView="ai-sales-leads"}){return <Shell activeView={activeView} onNavigate={onNavigate} title="Leads" subtitle="إدارة العملاء المحتملين المعتمدين."><><div className="ais-toolbar"><div className="ais-search"><icons.Search size={17}/><input placeholder="ابحث باسم الشركة، المدينة أو القطاع..."/></div><Button ghost><icons.SlidersHorizontal size={16}/> الفلاتر</Button></div><CompanyTable onNavigate={onNavigate}/></></Shell>}

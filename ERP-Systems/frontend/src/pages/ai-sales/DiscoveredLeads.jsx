@@ -1,0 +1,2 @@
+import {Shell,Button,Stat,CompanyTable,Score,demoCompanies,icons} from "./shared";
+export default function DiscoveredLeads({onNavigate,activeView="ai-sales-discovered"}){return <Shell activeView={activeView} onNavigate={onNavigate} title="العملاء المكتشفون" subtitle="راجع واعتمد النتائج المكتشفة."><><div className="ais-toolbar"><div className="ais-search"><icons.Search size={17}/><input placeholder="ابحث باسم الشركة، المدينة أو القطاع..."/></div><Button ghost><icons.SlidersHorizontal size={16}/> الفلاتر</Button></div><CompanyTable onNavigate={onNavigate}/></></Shell>}
