@@ -74,49 +74,26 @@ class ProductController extends Controller
                 Rule::unique('products', 'barcode'),
             ],
             'image_path' => ['nullable', 'string', 'max:500'],
-
-            // New: actual uploaded product image.
-            // image_path remains supported, so current integrations are not broken.
-            'image' => [
-                'nullable',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:5120',
-            ],
-
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $uploadedImagePath = null;
+        $imagePath = null;
 
         if ($request->hasFile('image')) {
-            $storedPath = $request->file('image')
-                ->store('product-images', 'public');
-
-            $uploadedImagePath = '/storage/' . $storedPath;
+            $storedPath = $request->file('image')->store('product-images', 'public');
+            $imagePath = '/storage/' . $storedPath;
+        } elseif (!empty($validated['image_path'])) {
+            $imagePath = $validated['image_path'];
         }
 
-        $product = DB::transaction(function () use (
-            $validated,
-            $uploadedImagePath
-        ) {
-            $openingStock = (float) ($validated['opening_stock'] ?? 0);
+        unset($validated['image'], $validated['image_path']);
 
+        $product = DB::transaction(function () use ($validated, $imagePath) {
+            $openingStock = (float) ($validated['opening_stock'] ?? 0);
             unset($validated['opening_stock']);
 
-            // "image" is not a database column.
-            unset($validated['image']);
-
-            // Keep the old image_path workflow, but uploaded image wins
-            // when an actual image file is provided.
-            if ($uploadedImagePath) {
-                $validated['image_path'] = $uploadedImagePath;
-            }
-
-            // المخزون لا يبدأ مباشرة بالكمية.
-            // نبدأ بصفر ثم نسجل حركة دخول افتتاحية لو فيه رصيد.
             $validated['stock_quantity'] = 0;
-
             $validated['unit'] = $validated['unit'] ?? 'قطعة';
             $validated['cost_price'] = $validated['cost_price'] ?? 0;
             $validated['default_sale_price'] =
@@ -124,13 +101,16 @@ class ProductController extends Controller
             $validated['tax_rate'] = $validated['tax_rate'] ?? 0;
             $validated['minimum_stock'] =
                 $validated['minimum_stock'] ?? 0;
-
             $validated['is_active'] =
                 array_key_exists('is_active', $validated)
                     ? $validated['is_active']
                     : true;
 
             $validated['created_by'] = auth()->id();
+
+            if ($imagePath) {
+                $validated['image_path'] = $imagePath;
+            }
 
             $product = Product::create($validated);
 
@@ -147,11 +127,7 @@ class ProductController extends Controller
                     'project_id' => null,
                     'purchase_order_id' => null,
                     'purchase_order_item_id' => null,
-
-                    // نستخدم IN حتى تظل تقارير وحركات المخزون
-                    // الحالية متوافقة، والمرجع يوضح أنها OPENING.
                     'type' => 'IN',
-
                     'quantity' => $openingStock,
                     'unit_cost' => (float) ($product->cost_price ?? 0),
                     'stock_before' => $before,
@@ -200,48 +176,25 @@ class ProductController extends Controller
                 Rule::unique('products', 'barcode')->ignore($product->id),
             ],
             'image_path' => ['nullable', 'string', 'max:500'],
-
-            // New: allow replacing the image while preserving image_path support.
-            'image' => [
-                'nullable',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:5120',
-            ],
-
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        /*
-         * مهم:
-         * لا نعدّل stock_quantity من صفحة الأسعار أو تعديل المنتج.
-         * الكمية تتغير فقط من حركات المخزون:
-         * استلام مشتريات / رصيد افتتاحي / صرف مشروع.
-         */
-        unset($validated['stock_quantity'], $validated['opening_stock']);
-
         if ($request->hasFile('image')) {
-            // Delete only images managed by Laravel public storage.
-            // External/manual image_path values are left untouched.
             if (
                 $product->image_path &&
                 str_starts_with($product->image_path, '/storage/')
             ) {
-                $oldPath = ltrim(
-                    str_replace('/storage/', '', $product->image_path),
-                    '/'
-                );
-
+                $oldPath = ltrim(str_replace('/storage/', '', $product->image_path), '/');
                 Storage::disk('public')->delete($oldPath);
             }
 
-            $storedPath = $request->file('image')
-                ->store('product-images', 'public');
-
+            $storedPath = $request->file('image')->store('product-images', 'public');
             $validated['image_path'] = '/storage/' . $storedPath;
         }
 
         unset($validated['image']);
+        unset($validated['stock_quantity'], $validated['opening_stock']);
 
         $product->update($validated);
 

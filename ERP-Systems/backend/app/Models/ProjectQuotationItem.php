@@ -12,12 +12,6 @@ class ProjectQuotationItem extends Model
     protected $fillable = [
         'quotation_id',
         'product_id',
-        'supplier_id',
-        'supplier_price_id',
-        'supplier_name_snapshot',
-        'supplier_cost_snapshot',
-        'supplier_lead_time_snapshot',
-        'supplier_valid_until_snapshot',
         'product_name',
         'sku',
         'description',
@@ -39,9 +33,6 @@ class ProjectQuotationItem extends Model
     protected $casts = [
         'quantity' => 'decimal:2',
         'cost_price' => 'decimal:2',
-        'supplier_cost_snapshot' => 'decimal:2',
-        'supplier_lead_time_snapshot' => 'integer',
-        'supplier_valid_until_snapshot' => 'date',
         'unit_price' => 'decimal:2',
         'discount' => 'decimal:2',
         'tax_rate' => 'decimal:2',
@@ -64,22 +55,6 @@ class ProjectQuotationItem extends Model
         return $this->belongsTo(
             Product::class,
             'product_id'
-        );
-    }
-
-    public function supplier()
-    {
-        return $this->belongsTo(
-            Supplier::class,
-            'supplier_id'
-        );
-    }
-
-    public function supplierPrice()
-    {
-        return $this->belongsTo(
-            SupplierPrice::class,
-            'supplier_price_id'
         );
     }
 }

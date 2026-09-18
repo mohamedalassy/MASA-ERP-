@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\SupplierPrice;
-use App\Models\SupplierPriceHistory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class SupplierPriceController extends Controller
 {
@@ -88,37 +86,18 @@ class SupplierPriceController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $row = DB::transaction(function () use ($validated, $request) {
-            if (!empty($validated['is_preferred'])) {
-                SupplierPrice::where('product_id', $validated['product_id'])
-                    ->update(['is_preferred' => false]);
-            }
+        if (!empty($validated['is_preferred'])) {
+            SupplierPrice::where('product_id', $validated['product_id'])
+                ->update(['is_preferred' => false]);
+        }
 
-            $row = SupplierPrice::create([
-                ...$validated,
-                'currency' => $validated['currency'] ?? 'SAR',
-                'minimum_order_quantity' => $validated['minimum_order_quantity'] ?? 1,
-                'is_active' => $validated['is_active'] ?? true,
-                'created_by' => $request->user()?->id,
-            ]);
-
-            SupplierPriceHistory::create([
-                'supplier_price_id' => $row->id,
-                'product_id' => $row->product_id,
-                'supplier_id' => $row->supplier_id,
-                'old_price' => null,
-                'new_price' => $row->unit_price,
-                'currency' => $row->currency ?: 'SAR',
-                'old_lead_time_days' => null,
-                'new_lead_time_days' => $row->lead_time_days,
-                'old_valid_until' => null,
-                'new_valid_until' => $row->valid_until,
-                'change_type' => 'created',
-                'changed_by' => $request->user()?->id,
-            ]);
-
-            return $row;
-        });
+        $row = SupplierPrice::create([
+            ...$validated,
+            'currency' => $validated['currency'] ?? 'SAR',
+            'minimum_order_quantity' => $validated['minimum_order_quantity'] ?? 1,
+            'is_active' => $validated['is_active'] ?? true,
+            'created_by' => $request->user()?->id,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -143,45 +122,13 @@ class SupplierPriceController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($validated, $supplierPrice, $request) {
-            $oldPrice = $supplierPrice->unit_price;
-            $oldLeadTime = $supplierPrice->lead_time_days;
-            $oldValidUntil = $supplierPrice->valid_until?->format('Y-m-d');
+        if (!empty($validated['is_preferred'])) {
+            SupplierPrice::where('product_id', $supplierPrice->product_id)
+                ->whereKeyNot($supplierPrice->id)
+                ->update(['is_preferred' => false]);
+        }
 
-            if (!empty($validated['is_preferred'])) {
-                SupplierPrice::where('product_id', $supplierPrice->product_id)
-                    ->whereKeyNot($supplierPrice->id)
-                    ->update(['is_preferred' => false]);
-            }
-
-            $supplierPrice->update($validated);
-            $supplierPrice->refresh();
-
-            $newPrice = $supplierPrice->unit_price;
-            $newLeadTime = $supplierPrice->lead_time_days;
-            $newValidUntil = $supplierPrice->valid_until?->format('Y-m-d');
-
-            $priceChanged = (float) $oldPrice !== (float) $newPrice;
-            $leadTimeChanged = (string) $oldLeadTime !== (string) $newLeadTime;
-            $validUntilChanged = (string) $oldValidUntil !== (string) $newValidUntil;
-
-            if ($priceChanged || $leadTimeChanged || $validUntilChanged) {
-                SupplierPriceHistory::create([
-                    'supplier_price_id' => $supplierPrice->id,
-                    'product_id' => $supplierPrice->product_id,
-                    'supplier_id' => $supplierPrice->supplier_id,
-                    'old_price' => $oldPrice,
-                    'new_price' => $newPrice,
-                    'currency' => $supplierPrice->currency ?: 'SAR',
-                    'old_lead_time_days' => $oldLeadTime,
-                    'new_lead_time_days' => $newLeadTime,
-                    'old_valid_until' => $oldValidUntil,
-                    'new_valid_until' => $newValidUntil,
-                    'change_type' => $priceChanged ? 'price_update' : 'terms_update',
-                    'changed_by' => $request->user()?->id,
-                ]);
-            }
-        });
+        $supplierPrice->update($validated);
 
         return response()->json([
             'success' => true,

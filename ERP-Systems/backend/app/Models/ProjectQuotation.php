@@ -25,12 +25,6 @@ class ProjectQuotation extends Model
         'approved_by',
         'approved_at',
         'notes',
-
-        // Pricing Center / BOQ Builder snapshot
-        'target_margin',
-        'header_tax_rate',
-        'extra_costs',
-        'commercial_terms',
     ];
 
     protected $casts = [
@@ -41,11 +35,6 @@ class ProjectQuotation extends Model
         'version' => 'integer',
         'valid_until' => 'date',
         'approved_at' => 'datetime',
-
-        'target_margin' => 'decimal:2',
-        'header_tax_rate' => 'decimal:2',
-        'extra_costs' => 'array',
-        'commercial_terms' => 'array',
     ];
 
     public function project()
@@ -94,14 +83,4 @@ class ProjectQuotation extends Model
             'parent_quotation_id'
         )->orderByDesc('version');
     }
-    public function approvalHistories()
-{
-    return $this->hasMany(
-        QuotationApprovalHistory::class,
-        'quotation_id'
-    )
-    ->orderByDesc('acted_at')
-    ->orderByDesc('id');
 }
-}
-

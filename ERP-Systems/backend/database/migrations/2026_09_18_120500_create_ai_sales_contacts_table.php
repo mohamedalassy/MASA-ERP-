@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema;
+return new class extends Migration { public function up():void { Schema::create('ai_sales_contacts',function(Blueprint $t){$t->id();$t->foreignId('company_id')->constrained('ai_sales_companies')->cascadeOnDelete();$t->string('name');$t->string('job_title')->nullable();$t->string('email')->nullable();$t->string('phone')->nullable();$t->boolean('is_decision_maker')->default(false);$t->unsignedTinyInteger('confidence')->default(0);$t->string('source')->nullable();$t->timestamps();});} public function down():void{Schema::dropIfExists('ai_sales_contacts');}};

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import ProductAlternatives from "./pages/ProductAlternatives";
 import PricingPackages from "./pages/PricingPackages";
@@ -6,7 +7,7 @@ import PricingRules from "./pages/PricingRules";
 import PriceHistory from "./pages/PriceHistory";
 import CostingEngine from "./pages/CostingEngine";
 import PricingReports from "./pages/PricingReports";
-import AISalesRouter, { isAISalesView } from "./pages/ai-sales/AISalesRouter";
+import AISalesRouter from "./pages/ai-sales/AISalesRouter";
 import Sidebar from "./components/layout/Sidebar";
 import Topbar from "./components/layout/Topbar";
 import AppLauncher from "./components/apps/AppLauncher";
@@ -24,7 +25,21 @@ import QuotationBuilder from "./pages/QuotationBuilder";
 import SupplierPrices from "./pages/SupplierPrices";
 import PricingApprovals from "./pages/PricingApprovals";
 
+import SalesCommandCenter from "./pages/sales/SalesCommandCenter";
+import SalesLeads from "./pages/sales/SalesLeads";
+import SalesOpportunities from "./pages/sales/SalesOpportunities";
+import SalesPipeline from "./pages/sales/SalesPipeline";
+import SalesCustomer360 from "./pages/sales/SalesCustomer360";
+import SalesActivities from "./pages/sales/SalesActivities";
+import SalesQuotations from "./pages/sales/SalesQuotations";
+import SalesCreateQuotation from "./pages/sales/SalesCreateQuotation";
+import SalesNegotiations from "./pages/sales/SalesNegotiations";
+import SalesOrders from "./pages/sales/SalesOrders";
+import SalesContracts from "./pages/sales/SalesContracts";
+import SalesReports from "./pages/sales/SalesReports";
+
 import "./styles/master.css";
+import "./styles/sales-premium.css";
 
 function App() {
   const [activeView, setActiveView] = useState("dashboard");
@@ -70,31 +85,16 @@ function App() {
     setActiveView("project");
   };
 
-  const handleBackToWorkOrders = () => {
-    setActiveView("work-orders");
-  };
-
-  const handleOpenPurchases = () => {
-    setActiveView("purchase-orders");
-  };
-
-  const handleBackToProject = () => {
-    setActiveView("project");
-  };
+  const handleBackToWorkOrders = () => setActiveView("work-orders");
+  const handleOpenPurchases = () => setActiveView("purchase-orders");
+  const handleBackToProject = () => setActiveView("project");
 
   const handleOpenPurchaseOrder = (purchaseOrderId) => {
     setSelectedPurchaseOrderId(purchaseOrderId);
     setActiveView("purchase-order-details");
   };
 
-  const handleBackToPurchaseOrders = () => {
-    setActiveView("purchase-orders");
-  };
-
-  const pricingPlaceholderTitles = {
-    
-    
-  };
+  const handleBackToPurchaseOrders = () => setActiveView("purchase-orders");
 
   return (
     <div className="erp-shell" dir="rtl">
@@ -108,37 +108,35 @@ function App() {
         <Topbar />
 
         <div className="erp-content">
-          {activeView === "dashboard" && (
-            <Dashboard onChangeView={handleChangeView} />
-          )}'{isAISalesView(activeView) && (
-            <AISalesRouter activeView={activeView} onNavigate={handleChangeView} />
-          )}'
+          {activeView === "dashboard" && <Dashboard onChangeView={handleChangeView} />}
 
-          {activeView === "pricing-rules" && (
-            <PricingRules onNavigate={handleChangeView} />
-          )}
+          {activeView === "sales" && <SalesCommandCenter onNavigate={handleChangeView} />}
+          {activeView === "sales-leads" && <SalesLeads onNavigate={handleChangeView} />}
+          {activeView === "sales-opportunities" && <SalesOpportunities onNavigate={handleChangeView} />}
+          {activeView === "sales-pipeline" && <SalesPipeline onNavigate={handleChangeView} />}
+          {activeView === "sales-customers" && <SalesCustomer360 onNavigate={handleChangeView} />}
+          {activeView === "sales-activities" && <SalesActivities onNavigate={handleChangeView} />}
+          {activeView === "sales-quotations" && <SalesQuotations onNavigate={handleChangeView} />}
+          {activeView === "sales-create-quotation" && <SalesCreateQuotation onNavigate={handleChangeView} />}
+          {activeView.startsWith("ai-sales") && (
+  <AISalesRouter
+    activeView={activeView}
+    onChangeView={handleChangeView}
+  />
+)}
+          {activeView === "sales-negotiations" && <SalesNegotiations onNavigate={handleChangeView} />}
+          {activeView === "sales-orders" && <SalesOrders onNavigate={handleChangeView} />}
+          {activeView === "sales-contracts" && <SalesContracts onNavigate={handleChangeView} />}
+          {activeView === "sales-reports" && <SalesReports onNavigate={handleChangeView} />}
 
-          {activeView === "pricing-calculator" && (
-            <SuggestedPriceCalculator onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "pricing-packages" && (
-            <PricingPackages onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "pricing-alternatives" && (
-            <ProductAlternatives onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "apps" && (
-            <AppLauncher onChangeView={handleChangeView} />
-          )}
-
+          {activeView === "pricing-rules" && <PricingRules onNavigate={handleChangeView} />}
+          {activeView === "pricing-calculator" && <SuggestedPriceCalculator onNavigate={handleChangeView} />}
+          {activeView === "pricing-packages" && <PricingPackages onNavigate={handleChangeView} />}
+          {activeView === "pricing-alternatives" && <ProductAlternatives onNavigate={handleChangeView} />}
+          {activeView === "apps" && <AppLauncher onChangeView={handleChangeView} />}
           {activeView === "chat" && <ChatPanel />}
 
-          {activeView === "pricing" && (
-            <PricingDashboard onNavigate={handleChangeView} />
-          )}
+          {activeView === "pricing" && <PricingDashboard onNavigate={handleChangeView} />}
 
           {activeView === "pricing-builder" && (
             <QuotationBuilder
@@ -149,38 +147,19 @@ function App() {
               initialPackageData={pendingPackageData}
             />
           )}
-          {activeView === "pricing-reports" && (
-                <PricingReports onNavigate={handleChangeView} />
-              )}
 
-          {activeView === "pricing-suppliers" && (
-            <SupplierPrices onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "pricing-history" && (
-            <PriceHistory onNavigate={handleChangeView} />
-          )}
-          
-          {activeView === "pricing-costing" && (
-              <CostingEngine onNavigate={handleChangeView} />
-            )}
-            {activeView === "pricing-approvals" && (
-                <PricingApprovals onNavigate={handleChangeView} />
-              )}
+          {activeView === "pricing-reports" && <PricingReports onNavigate={handleChangeView} />}
+          {activeView === "pricing-suppliers" && <SupplierPrices onNavigate={handleChangeView} />}
+          {activeView === "pricing-history" && <PriceHistory onNavigate={handleChangeView} />}
+          {activeView === "pricing-costing" && <CostingEngine onNavigate={handleChangeView} />}
+          {activeView === "pricing-approvals" && <PricingApprovals onNavigate={handleChangeView} />}
 
           {activeView === "inventory" && <Inventory />}
-
           {activeView === "price-list" && <PriceList />}
-
-          {activeView === "quotations" && (
-            <Quotations onOpenProject={handleOpenProject} />
-          )}
+          {activeView === "quotations" && <Quotations onOpenProject={handleOpenProject} />}
 
           {activeView === "work-orders" && (
-            <WorkOrders
-              stage={workOrderStage}
-              onOpenProject={handleOpenProject}
-            />
+            <WorkOrders stage={workOrderStage} onOpenProject={handleOpenProject} />
           )}
 
           {activeView === "project" && (
@@ -208,99 +187,12 @@ function App() {
             />
           )}
 
-          {pricingPlaceholderTitles[activeView] && (
-            <div
-              className="placeholder-page"
-              style={{
-                background: "#fff",
-                border: "1px solid #e9ebf2",
-                borderRadius: 18,
-                padding: 28,
-              }}
-            >
-              <div
-                style={{
-                  color: "#6b5bf5",
-                  fontWeight: 800,
-                  fontSize: 11,
-                  marginBottom: 7,
-                }}
-              >
-                مركز التسعير
-              </div>
-
-              <h2 style={{ marginTop: 0 }}>
-                {pricingPlaceholderTitles[activeView]}
-              </h2>
-
-              <p style={{ color: "#939aaa" }}>
-                تم تجهيز المسار داخل منظومة التسعير، وسيتم بناء تفاصيل هذه
-                الوحدة في المرحلة التالية.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => handleChangeView("pricing")}
-                style={{
-                  border: 0,
-                  background: "#6657f5",
-                  color: "#fff",
-                  padding: "10px 16px",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  fontWeight: 800,
-                }}
-              >
-                العودة للوحة التسعير
-              </button>
-            </div>
-          )}
-
-          {activeView === "notifications" && (
-            <div className="placeholder-page">
-              <h2>الإشعارات</h2>
-              <p>سيتم بناء مركز الإشعارات هنا.</p>
-            </div>
-          )}
-
-          {activeView === "favorites" && (
-            <div className="placeholder-page">
-              <h2>المفضلة</h2>
-              <p>التطبيقات والصفحات المفضلة ستظهر هنا.</p>
-            </div>
-          )}
-
-          {activeView === "sales" && (
-            <div className="placeholder-page">
-              <h2>المبيعات</h2>
-            </div>
-          )}
-
-          {activeView === "invoices" && (
-            <div className="placeholder-page">
-              <h2>الفواتير</h2>
-            </div>
-          )}
-
-          {activeView === "employees" && (
-            <div className="placeholder-page">
-              <h2>الموظفين</h2>
-            </div>
-          )}
-
-          {activeView === "reports" && (
-            <div className="placeholder-page">
-              <h2>التقارير</h2>
-            </div>
-          )}
-
-          {activeView === "settings" && (
-            <div className="placeholder-page">
-              <h2>الإعدادات</h2>
-            </div>
-          )}
-         
+          {activeView === "notifications" && <div className="placeholder-page"><h2>الإشعارات</h2></div>}
+          {activeView === "favorites" && <div className="placeholder-page"><h2>المفضلة</h2></div>}
+          {activeView === "invoices" && <div className="placeholder-page"><h2>الفواتير</h2></div>}
+          {activeView === "employees" && <div className="placeholder-page"><h2>الموظفين</h2></div>}
+          {activeView === "reports" && <div className="placeholder-page"><h2>التقارير</h2></div>}
+          {activeView === "settings" && <div className="placeholder-page"><h2>الإعدادات</h2></div>}
         </div>
       </main>
     </div>

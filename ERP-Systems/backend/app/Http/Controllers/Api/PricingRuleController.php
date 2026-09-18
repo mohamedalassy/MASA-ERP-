@@ -108,7 +108,6 @@ class PricingRuleController extends Controller
         });
 
         $cost = (float) $validated['cost'];
-
         $salePrice = array_key_exists('sale_price', $validated)
             ? (float) $validated['sale_price']
             : 0;
@@ -158,22 +157,16 @@ class PricingRuleController extends Controller
             'data' => [
                 'rule' => $matched,
                 'cost' => round($cost, 2),
-                'minimum_price' => $minimumPrice === null
-                    ? null
-                    : round($minimumPrice, 2),
-                'target_price' => $targetPrice === null
-                    ? null
-                    : round($targetPrice, 2),
+                'minimum_price' => $minimumPrice === null ? null : round($minimumPrice, 2),
+                'target_price' => $targetPrice === null ? null : round($targetPrice, 2),
                 'markup_price' => round($markupPrice, 2),
                 'recommended_price' => round($recommendedPrice, 2),
                 'current_margin_percent' => $currentMargin === null
                     ? null
                     : round($currentMargin, 2),
                 'maximum_discount_percent' => round($maximumDiscount, 2),
-                'block_below_minimum_margin' =>
-                    (bool) ($matched?->block_below_minimum_margin ?? false),
-                'require_approval_below_target' =>
-                    (bool) ($matched?->require_approval_below_target ?? false),
+                'block_below_minimum_margin' => (bool) ($matched?->block_below_minimum_margin ?? false),
+                'require_approval_below_target' => (bool) ($matched?->require_approval_below_target ?? false),
                 'warnings' => $warnings,
             ],
         ]);
@@ -185,30 +178,10 @@ class PricingRuleController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'scope_type' => ['required', 'in:global,product,customer'],
             'scope_id' => ['nullable', 'integer', 'min:1'],
-            'minimum_margin_percent' => [
-                'required',
-                'numeric',
-                'min:0',
-                'max:99.99',
-            ],
-            'target_margin_percent' => [
-                'required',
-                'numeric',
-                'min:0',
-                'max:99.99',
-            ],
-            'default_markup_percent' => [
-                'required',
-                'numeric',
-                'min:0',
-                'max:10000',
-            ],
-            'maximum_discount_percent' => [
-                'required',
-                'numeric',
-                'min:0',
-                'max:100',
-            ],
+            'minimum_margin_percent' => ['required', 'numeric', 'min:0', 'max:99.99'],
+            'target_margin_percent' => ['required', 'numeric', 'min:0', 'max:99.99'],
+            'default_markup_percent' => ['required', 'numeric', 'min:0', 'max:10000'],
+            'maximum_discount_percent' => ['required', 'numeric', 'min:0', 'max:100'],
             'block_below_minimum_margin' => ['nullable', 'boolean'],
             'require_approval_below_target' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],

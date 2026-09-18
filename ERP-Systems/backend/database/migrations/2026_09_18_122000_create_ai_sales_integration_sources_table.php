@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema;
+return new class extends Migration {public function up():void{Schema::create('ai_sales_integration_sources',function(Blueprint $t){$t->id();$t->string('name');$t->string('driver')->index();$t->string('status')->default('inactive')->index();$t->json('config')->nullable();$t->json('capabilities')->nullable();$t->timestamp('last_sync_at')->nullable();$t->text('last_error')->nullable();$t->boolean('is_active')->default(false);$t->timestamps();});}public function down():void{Schema::dropIfExists('ai_sales_integration_sources');}};

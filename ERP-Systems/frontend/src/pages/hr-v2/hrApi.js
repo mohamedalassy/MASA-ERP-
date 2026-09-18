@@ -1,0 +1,2 @@
+const API="http://127.0.0.1:8000/api";
+export async function hrApi(path){const token=localStorage.getItem("token");const r=await fetch(API+path,{headers:{Accept:"application/json",...(token?{Authorization:`Bearer ${token}`}:{})}});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.message||"تعذر تحميل بيانات الموارد البشرية");return b;}

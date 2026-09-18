@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration;use Illuminate\Database\Schema\Blueprint;use Illuminate\Support\Facades\Schema;
+return new class extends Migration{public function up():void{Schema::create('ai_sales_watchlists',function(Blueprint $t){$t->id();$t->string('name');$t->string('type')->default('criteria')->index();$t->json('criteria')->nullable();$t->json('company_ids')->nullable();$t->json('signal_types')->nullable();$t->string('frequency')->default('daily');$t->boolean('notify')->default(true);$t->boolean('is_active')->default(true);$t->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();$t->timestamp('last_checked_at')->nullable();$t->timestamps();});}public function down():void{Schema::dropIfExists('ai_sales_watchlists');}};

@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration;use Illuminate\Database\Schema\Blueprint;use Illuminate\Support\Facades\Schema;
+return new class extends Migration{public function up():void{Schema::create('ai_sales_buying_committee',function(Blueprint $t){$t->id();$t->foreignId('company_id')->constrained('ai_sales_companies')->cascadeOnDelete();$t->foreignId('contact_id')->constrained('ai_sales_contacts')->cascadeOnDelete();$t->string('role')->index();$t->unsignedTinyInteger('influence_score')->default(50);$t->string('sentiment')->default('unknown');$t->json('interests')->nullable();$t->text('notes')->nullable();$t->timestamps();$t->unique(['company_id','contact_id']);});}public function down():void{Schema::dropIfExists('ai_sales_buying_committee');}};

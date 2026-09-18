@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration;use Illuminate\Database\Schema\Blueprint;use Illuminate\Support\Facades\Schema;
+return new class extends Migration{public function up():void{Schema::create('ai_sales_revenue_opportunities',function(Blueprint $t){$t->id();$t->foreignId('company_id')->constrained('ai_sales_companies')->cascadeOnDelete();$t->string('type')->index();$t->string('title');$t->decimal('estimated_value',15,2)->default(0);$t->unsignedTinyInteger('score')->default(0)->index();$t->json('recommended_items')->nullable();$t->json('reasons')->nullable();$t->string('status')->default('open')->index();$t->timestamps();});}public function down():void{Schema::dropIfExists('ai_sales_revenue_opportunities');}};

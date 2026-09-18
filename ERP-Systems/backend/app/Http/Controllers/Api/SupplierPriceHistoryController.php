@@ -12,9 +12,9 @@ class SupplierPriceHistoryController extends Controller
     {
         $query = SupplierPriceHistory::query()
             ->with([
-                'product',
-                'supplier',
-                'changer',
+                'product:id,name,sku,brand,model,category,image_path',
+                'supplier:id,name,code,phone',
+                'changer:id,name,email',
             ])
             ->latest('created_at')
             ->latest('id');
@@ -51,14 +51,13 @@ class SupplierPriceHistoryController extends Controller
                         ->orWhere('model', 'like', "%{$search}%");
                 })->orWhereHas('supplier', function ($supplierQuery) use ($search) {
                     $supplierQuery
-                        ->where('name', 'like', "%{$search}%");
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
                 });
             });
         }
 
-        $rows = $query
-            ->limit(1000)
-            ->get();
+        $rows = $query->limit(1000)->get();
 
         return response()->json([
             'success' => true,

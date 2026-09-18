@@ -1,0 +1,3 @@
+<?php
+namespace App\Services\AiSales;
+class TenderDocumentIntelligenceService{public function analyze(string $text):array{$deadlines=[];preg_match_all('/\b\d{4}-\d{2}-\d{2}\b/',$text,$m);$deadlines=$m[0]??[];return ['summary'=>mb_substr(trim(preg_replace('/\s+/',' ',$text)),0,1200),'dates'=>array_values(array_unique($deadlines)),'requirements_detected'=>preg_match_all('/\b(required|shall|must|requirement)\b/i',$text),'needs_human_review'=>true];}}

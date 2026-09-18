@@ -1,0 +1,3 @@
+<?php
+namespace App\Models; use Illuminate\Database\Eloquent\Model;
+class AiSalesRecommendation extends Model {protected $fillable=['company_id','lead_id','opportunity_id','type','title','reason','recommended_action','priority_score','confidence','status','context','expires_at'];protected $casts=['context'=>'array','expires_at'=>'datetime'];public function company(){return $this->belongsTo(AiSalesCompany::class,'company_id');}}

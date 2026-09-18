@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration;use Illuminate\Database\Schema\Blueprint;use Illuminate\Support\Facades\Schema;
+return new class extends Migration{public function up():void{Schema::table('ai_sales_settings',function(Blueprint $t){$t->string('tenant_key')->nullable()->index();});Schema::table('ai_sales_leads',function(Blueprint $t){$t->string('routing_reason')->nullable();});}public function down():void{Schema::table('ai_sales_leads',function(Blueprint $t){$t->dropColumn('routing_reason');});Schema::table('ai_sales_settings',function(Blueprint $t){$t->dropColumn('tenant_key');});}};

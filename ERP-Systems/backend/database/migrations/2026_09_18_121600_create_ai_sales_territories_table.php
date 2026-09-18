@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema;
+return new class extends Migration {public function up():void{Schema::create('ai_sales_territories',function(Blueprint $t){$t->id();$t->string('name');$t->string('country')->nullable();$t->string('region')->nullable()->index();$t->json('cities')->nullable();$t->json('industries')->nullable();$t->foreignId('owner_id')->nullable()->constrained('users')->nullOnDelete();$t->decimal('target_value',15,2)->default(0);$t->boolean('is_active')->default(true);$t->timestamps();});}public function down():void{Schema::dropIfExists('ai_sales_territories');}};

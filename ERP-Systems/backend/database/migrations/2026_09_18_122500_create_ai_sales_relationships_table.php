@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration;use Illuminate\Database\Schema\Blueprint;use Illuminate\Support\Facades\Schema;
+return new class extends Migration{public function up():void{Schema::create('ai_sales_relationships',function(Blueprint $t){$t->id();$t->string('from_type')->index();$t->unsignedBigInteger('from_id')->index();$t->string('to_type')->index();$t->unsignedBigInteger('to_id')->index();$t->string('relationship_type')->index();$t->unsignedTinyInteger('strength')->default(50);$t->json('metadata')->nullable();$t->timestamps();$t->index(['from_type','from_id','to_type','to_id'],'ai_sales_rel_lookup');});}public function down():void{Schema::dropIfExists('ai_sales_relationships');}};

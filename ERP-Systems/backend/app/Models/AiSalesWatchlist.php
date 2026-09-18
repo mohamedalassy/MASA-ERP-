@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;
+class AiSalesWatchlist extends Model{protected $fillable=['name','type','criteria','company_ids','signal_types','frequency','notify','is_active','created_by','last_checked_at'];protected $casts=['criteria'=>'array','company_ids'=>'array','signal_types'=>'array','notify'=>'boolean','is_active'=>'boolean','last_checked_at'=>'datetime'];}

@@ -4,11 +4,24 @@ use App\Http\Controllers\Api\PricingRuleController;
 use App\Http\Controllers\Api\PricingPackageController;
 use App\Http\Controllers\Api\ProductAlternativeController;
 use App\Http\Controllers\Api\PricingCostingController;
-
-// Add with the other imports in routes/api.php
+use App\Http\Controllers\Api\FinanceLedgerController;
+use App\Http\Controllers\Api\FixedAssetController;
 use App\Http\Controllers\Api\ProjectQuotationController;
-
-// أضف هذا الـ import أعلى routes/api.php:
+use App\Http\Controllers\Api\CompanyTaxProfileController;
+use App\Http\Controllers\Api\QuotationBillingController;
+use App\Http\Controllers\Api\TaxCodeController;
+use App\Http\Controllers\Api\TaxInvoiceController;
+use App\Http\Controllers\Api\CustomerTaxProfileController;
+// Add import:
+use App\Http\Controllers\Api\HrPayrollController;
+use App\Http\Controllers\Api\SupplierInvoiceController;
+use App\Http\Controllers\Api\FinanceProjectBillingController;
+use App\Http\Controllers\Api\FinanceProjectsBillingController;
+use App\Http\Controllers\Api\TaxInvoicePaymentController;
+use App\Http\Controllers\Api\CollectionsCenterController;
+use App\Http\Controllers\Api\VatCenterController;
+use App\Http\Controllers\Api\BankReconciliationController;
+use App\Http\Controllers\Api\SuppliersCenterController;
 use App\Http\Controllers\Api\SupplierPriceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProjectExpenseController;
@@ -18,6 +31,25 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\PurchaseOrderItemController;
 use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\FinanceDashboardController;
+use App\Http\Controllers\Api\FinanceAccountController;
+use App\Http\Controllers\Api\FinanceJournalEntryController;
+use App\Http\Controllers\Api\CostCenterController;
+use App\Http\Controllers\Api\ProjectFinancialTransactionController;
+
+/*
+|--------------------------------------------------------------------------
+HR API USE|--------------------------------------------------------------------------
+*/
+use App\Http\Controllers\Api\HrBranchController;
+use App\Http\Controllers\Api\HrDepartmentController;
+use App\Http\Controllers\Api\HrEmployeeController;
+use App\Http\Controllers\Api\HrJobTitleController;
+use App\Http\Controllers\Api\HrShiftController;
+use App\Http\Controllers\Api\HrAttendanceDeviceController;
+use App\Http\Controllers\Api\HrAttendanceSummaryController;
+
+
 Route::get('/test', function () {
     return response()->json([
         'success' => true,
@@ -105,11 +137,6 @@ Route::put(
 Route::delete(
     '/purchase-orders/{purchaseOrder}/items/{item}',
     [PurchaseOrderItemController::class, 'destroy']
-);
-
-Route::get(
-    '/products',
-    [ProductController::class, 'index']
 );
 
 Route::get(
@@ -205,19 +232,10 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::post('/products', [ProductController::class, 'store']);
 Route::put('/products/{product}', [ProductController::class, 'update']);
 
-// أضف هذا المسار بجوار مسارات ProjectQuotationController الحالية:
-
 Route::post(
     '/projects/{project}/quotations/{quotation}/submit-for-approval',
     [ProjectQuotationController::class, 'submitForApproval']
 );
-// أضف المسارين دول بجوار مسارات عروض الأسعار:
-
-Route::post(
-    '/projects/{project}/quotations/{quotation}/submit-for-approval',
-    [ProjectQuotationController::class, 'submitForApproval']
-);
-
 Route::post(
     '/projects/{project}/quotations/{quotation}/request-changes',
     [ProjectQuotationController::class, 'requestChanges']
@@ -225,7 +243,6 @@ Route::post(
 
 
 
-// ثم أضف هذه الـ routes:
 Route::get('/supplier-prices', [SupplierPriceController::class, 'index']);
 Route::get('/products/{product}/supplier-prices', [SupplierPriceController::class, 'productPrices']);
 Route::post('/supplier-prices', [SupplierPriceController::class, 'store']);
@@ -269,5 +286,417 @@ Route::delete('/pricing-costings/{pricingCosting}', [PricingCostingController::c
 
 
 
-// Keep your existing quotation routes. Add only this new route:
 Route::post('/projects/{project}/quotations/{quotation}/reject', [ProjectQuotationController::class, 'reject']);
+
+
+/*
+|--------------------------------------------------------------------------
+| Finance
+|--------------------------------------------------------------------------
+*/
+Route::get(
+    '/finance/suppliers-center',
+    [SuppliersCenterController::class, 'index']
+);
+
+Route::get(
+    '/finance/dashboard',
+    [FinanceDashboardController::class, 'index']
+);
+
+/*
+|--------------------------------------------------------------------------
+| Chart Of Accounts
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/finance/accounts',
+    [FinanceAccountController::class, 'index']
+);
+
+Route::post(
+    '/finance/accounts',
+    [FinanceAccountController::class, 'store']
+);
+
+Route::get(
+    '/finance/accounts/{financeAccount}',
+    [FinanceAccountController::class, 'show']
+);
+
+Route::put(
+    '/finance/accounts/{financeAccount}',
+    [FinanceAccountController::class, 'update']
+);
+
+Route::delete(
+    '/finance/accounts/{financeAccount}',
+    [FinanceAccountController::class, 'destroy']
+);
+
+/*
+|--------------------------------------------------------------------------
+| Cost Centers
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/finance/cost-centers',
+    [CostCenterController::class, 'index']
+);
+
+Route::post(
+    '/finance/cost-centers',
+    [CostCenterController::class, 'store']
+);
+
+Route::get(
+    '/finance/cost-centers/{costCenter}',
+    [CostCenterController::class, 'show']
+);
+
+Route::put(
+    '/finance/cost-centers/{costCenter}',
+    [CostCenterController::class, 'update']
+);
+
+Route::delete(
+    '/finance/cost-centers/{costCenter}',
+    [CostCenterController::class, 'destroy']
+);
+
+/*
+|--------------------------------------------------------------------------
+| Journal Entries
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/finance/journal-entries',
+    [FinanceJournalEntryController::class, 'index']
+);
+
+Route::post(
+    '/finance/journal-entries',
+    [FinanceJournalEntryController::class, 'store']
+);
+
+Route::get(
+    '/finance/journal-entries/{journalEntry}',
+    [FinanceJournalEntryController::class, 'show']
+);
+
+Route::put(
+    '/finance/journal-entries/{journalEntry}',
+    [FinanceJournalEntryController::class, 'update']
+);
+
+Route::delete(
+    '/finance/journal-entries/{journalEntry}',
+    [FinanceJournalEntryController::class, 'destroy']
+);
+
+Route::post(
+    '/finance/journal-entries/{journalEntry}/submit',
+    [FinanceJournalEntryController::class, 'submit']
+);
+
+Route::post(
+    '/finance/journal-entries/{journalEntry}/approve',
+    [FinanceJournalEntryController::class, 'approve']
+);
+
+Route::post(
+    '/finance/journal-entries/{journalEntry}/post',
+    [FinanceJournalEntryController::class, 'post']
+);
+
+Route::post(
+    '/finance/journal-entries/{journalEntry}/reject',
+    [FinanceJournalEntryController::class, 'reject']
+);
+
+/*
+|--------------------------------------------------------------------------
+| Project Financial Transactions
+|--------------------------------------------------------------------------
+*/
+Route::get(
+    '/finance/collections-center',
+    [CollectionsCenterController::class, 'index']
+);
+
+Route::get(
+    '/projects/{project}/financial-transactions',
+    [ProjectFinancialTransactionController::class, 'index']
+);
+
+Route::post(
+    '/projects/{project}/financial-transactions',
+    [ProjectFinancialTransactionController::class, 'store']
+);
+
+Route::post(
+    '/projects/{project}/financial-transactions/{transaction}/payment',
+    [ProjectFinancialTransactionController::class, 'recordPayment']
+);
+
+Route::post(
+    '/projects/{project}/financial-transactions/{transaction}/approve',
+    [ProjectFinancialTransactionController::class, 'approve']
+);
+
+Route::post(
+    '/projects/{project}/financial-transactions/{transaction}/cancel',
+    [ProjectFinancialTransactionController::class, 'cancel']
+);
+/*
+|--------------------------------------------------------------------------
+| General Ledger & Trial Balance
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/finance/general-ledger',
+    [FinanceLedgerController::class, 'index']
+);
+
+Route::get(
+    '/finance/trial-balance',
+    [FinanceLedgerController::class, 'trialBalance']
+);
+Route::get(
+    '/finance/income-statement',
+    [FinanceLedgerController::class, 'incomeStatement']
+);
+Route::get(
+    '/finance/balance-sheet',
+    [FinanceLedgerController::class, 'balanceSheet']
+);
+
+Route::get(
+    '/finance/cash-flow',
+    [FinanceLedgerController::class, 'cashFlow']
+);
+
+/*
+|--------------------------------------------------------------------------
+| Fixed Assets
+|--------------------------------------------------------------------------
+*/
+Route::prefix('finance')->group(function () {
+    Route::get('/fixed-assets', [FixedAssetController::class, 'index']);
+    Route::post('/fixed-assets', [FixedAssetController::class, 'store']);
+    Route::put('/fixed-assets/{fixedAsset}', [FixedAssetController::class, 'update']);
+    Route::delete('/fixed-assets/{fixedAsset}', [FixedAssetController::class, 'destroy']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Tax / VAT / ZATCA
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('finance')->group(function () {
+    Route::get('/vat-center', [VatCenterController::class, 'index']);
+
+    Route::get('/tax-profiles', [CompanyTaxProfileController::class, 'index']);
+    Route::post('/tax-profiles', [CompanyTaxProfileController::class, 'store']);
+    Route::get('/tax-profiles/{companyTaxProfile}', [CompanyTaxProfileController::class, 'show']);
+    Route::put('/tax-profiles/{companyTaxProfile}', [CompanyTaxProfileController::class, 'update']);
+
+    Route::get('/tax-codes', [TaxCodeController::class, 'index']);
+    Route::post('/tax-codes', [TaxCodeController::class, 'store']);
+    Route::put('/tax-codes/{taxCode}', [TaxCodeController::class, 'update']);
+
+    Route::get('/quotations/{quotation}/billing', [QuotationBillingController::class, 'show']);
+
+    Route::get('/tax-invoices', [TaxInvoiceController::class, 'index']);
+    Route::post('/tax-invoices', [TaxInvoiceController::class, 'store']);
+    Route::get(
+        '/tax-invoices/payment-accounts',
+        [TaxInvoicePaymentController::class, 'accounts']
+    );
+    Route::get('/tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'show']);
+    Route::put('/tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'update']);
+    Route::post('/tax-invoices/{taxInvoice}/issue', [TaxInvoiceController::class, 'issue']);
+    Route::post(
+        '/tax-invoices/{taxInvoice}/refresh-buyer',
+        [TaxInvoiceController::class, 'refreshBuyer']
+    );
+    Route::delete('/tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'destroy']);
+
+    // Customer Tax Profiles
+    Route::get('/customer-tax-profiles', [CustomerTaxProfileController::class, 'index']);
+    Route::post('/customer-tax-profiles', [CustomerTaxProfileController::class, 'store']);
+    Route::get('/customer-tax-profiles/{customerTaxProfile}', [CustomerTaxProfileController::class, 'show']);
+    Route::put('/customer-tax-profiles/{customerTaxProfile}', [CustomerTaxProfileController::class, 'update']);
+
+    // Collections / Payments
+    Route::get('/payments', [TaxInvoicePaymentController::class, 'index']);
+    Route::post(
+        '/tax-invoices/{taxInvoice}/payments',
+        [TaxInvoicePaymentController::class, 'store']
+    );
+});
+Route::prefix('finance')->group(function () {
+    Route::get(
+        '/bank-reconciliation/accounts',
+        [BankReconciliationController::class, 'accounts']
+    );
+
+    Route::get(
+        '/bank-reconciliations',
+        [BankReconciliationController::class, 'index']
+    );
+
+    Route::post(
+        '/bank-reconciliations',
+        [BankReconciliationController::class, 'store']
+    );
+
+    Route::get(
+        '/bank-reconciliations/{bankReconciliation}',
+        [BankReconciliationController::class, 'show']
+    );
+
+    Route::post(
+        '/bank-reconciliations/{bankReconciliation}/import',
+        [BankReconciliationController::class, 'import']
+    );
+
+    Route::post(
+        '/bank-reconciliations/{bankReconciliation}/auto-match',
+        [BankReconciliationController::class, 'autoMatch']
+    );
+
+    Route::post(
+        '/bank-reconciliations/{bankReconciliation}/lines/{line}/match',
+        [BankReconciliationController::class, 'match']
+    );
+
+    Route::delete(
+        '/bank-reconciliations/{bankReconciliation}/lines/{line}/match',
+        [BankReconciliationController::class, 'unmatch']
+    );
+
+    Route::post(
+        '/bank-reconciliations/{bankReconciliation}/complete',
+        [BankReconciliationController::class, 'complete']
+    );
+});
+// Add finance billing routes:
+Route::get(
+    '/finance/projects/{project}/billing',
+    [FinanceProjectBillingController::class, 'project']
+);
+
+Route::get(
+    '/finance/quotations/{quotation}/billing-summary',
+    [FinanceProjectBillingController::class, 'quotation']
+);
+
+Route::get(
+    '/finance/projects-billing',
+    [FinanceProjectsBillingController::class, 'index']
+);
+
+Route::get(
+    '/finance/supplier-invoices',
+    [SupplierInvoiceController::class, 'index']
+);
+Route::get(
+    '/finance/supplier-invoices/purchase-orders',
+    [SupplierInvoiceController::class, 'purchaseOrders']
+);
+
+Route::post(
+    '/finance/supplier-invoices',
+    [SupplierInvoiceController::class, 'store']
+);
+Route::get(
+    '/finance/supplier-invoices/cash-accounts',
+    [SupplierInvoiceController::class, 'cashAccounts']
+);
+
+Route::post(
+    '/finance/supplier-invoices/{supplierInvoice}/payments',
+    [SupplierInvoiceController::class, 'recordPayment']
+);
+Route::post(
+    '/finance/supplier-invoices/{supplierInvoice}/post',
+    [SupplierInvoiceController::class, 'post']
+);
+
+Route::get(
+    '/finance/supplier-invoices/{supplierInvoice}',
+    [SupplierInvoiceController::class, 'show']
+);
+
+Route::post(
+    '/finance/supplier-invoices/{supplierInvoice}/rematch',
+    [SupplierInvoiceController::class, 'rematch']
+);
+
+Route::post(
+    '/finance/supplier-invoices/{supplierInvoice}/submit',
+    [SupplierInvoiceController::class, 'submit']
+);
+
+Route::post(
+    '/finance/supplier-invoices/{supplierInvoice}/approve',
+    [SupplierInvoiceController::class, 'approve']
+);
+
+/*
+|--------------------------------------------------------------------------
+HR API ROUTE |--------------------------------------------------------------------------
+*/
+Route::prefix('hr')->name('hr.')->group(function () {
+    Route::apiResource('branches', HrBranchController::class)
+        ->parameters(['branches' => 'hrBranch']);
+
+    Route::apiResource('departments', HrDepartmentController::class)
+        ->parameters(['departments' => 'hrDepartment']);
+
+    Route::apiResource('job-titles', HrJobTitleController::class)
+        ->parameters(['job-titles' => 'hrJobTitle']);
+
+    Route::apiResource('shifts', HrShiftController::class)
+        ->parameters(['shifts' => 'hrShift']);
+
+    Route::apiResource('employees', HrEmployeeController::class)
+        ->parameters(['employees' => 'hrEmployee']);
+});
+Route::prefix('hr')->name('hr.')->group(function () {
+    Route::post('payrolls/generate', [HrPayrollController::class, 'generate'])
+        ->name('payrolls.generate');
+
+    Route::apiResource('payrolls', HrPayrollController::class)
+        ->only(['index', 'show', 'update'])
+        ->parameters(['payrolls' => 'hrPayroll']);
+
+    Route::get('attendance/summary', [HrAttendanceSummaryController::class, 'index'])
+        ->name('attendance.summary');
+
+    Route::post('attendance-devices/{hrAttendanceDevice}/test-connection', [HrAttendanceDeviceController::class, 'testConnection'])
+        ->name('attendance-devices.test-connection');
+
+    Route::apiResource('attendance-devices', HrAttendanceDeviceController::class)
+        ->parameters(['attendance-devices' => 'hrAttendanceDevice']);
+});
+require __DIR__ . '/ai_sales.php';
+require __DIR__ . '/sales-foundation.php';
+require __DIR__ . '/sales-core.php';
+require __DIR__ . '/sales-commercial.php';
+require __DIR__ . '/sales-operations.php';
+require __DIR__ . '/sales-intelligence.php';
+require __DIR__ . '/sales-ai.php';
+require __DIR__.'/hr_v2.php';
+require __DIR__.'/hr_v2_stage3.php';
+require __DIR__.'/hr_v2_stage4.php';
+require __DIR__.'/hr_v2_stage5.php';
+require __DIR__.'/hr_v2_stage6.php';
+require __DIR__.'/hr_v2_stage7.php';
+require __DIR__.'/hr_v2_stage8.php';

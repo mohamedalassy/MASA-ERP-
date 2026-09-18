@@ -1,36 +1,28 @@
 import {
-  LayoutDashboard, Search, Inbox, Building2, BrainCircuit, Users, Target,
-  MapPinned, Radar, BriefcaseBusiness, MessagesSquare, WandSparkles,
-  ListChecks, BookOpenCheck, ChartNoAxesCombined, Bot, Settings
+  House, Compass, Building2, Handshake, FileSearch, MapPinned, Mail,
+  ListChecks, ChartNoAxesCombined, Sparkles, Settings2
 } from "lucide-react";
 import "./ai-sales-nav.css";
 
-export const AI_SALES_VIEWS = [
-  ["ai-sales","نظرة عامة",LayoutDashboard],
-  ["ai-sales-discover","اكتشاف العملاء",Search],
-  ["ai-sales-discovered","العملاء المكتشفون",Inbox],
-  ["ai-sales-companies","الشركات",Building2],
-  ["ai-sales-analysis","تحليل AI",BrainCircuit],
-  ["ai-sales-leads","Leads",Users],
-  ["ai-sales-opportunities","الفرص",Target],
-  ["ai-sales-map","الخريطة والمناطق",MapPinned],
-  ["ai-sales-signals","Signals Radar",Radar],
-  ["ai-sales-tenders","المناقصات والمشاريع",BriefcaseBusiness],
-  ["ai-sales-communications","التواصل",MessagesSquare],
-  ["ai-sales-message","AI Message Composer",WandSparkles],
-  ["ai-sales-tasks","المهام والمتابعات",ListChecks],
-  ["ai-sales-playbooks","Sales Playbooks",BookOpenCheck],
-  ["ai-sales-analytics","التقارير والتحليلات",ChartNoAxesCombined],
-  ["ai-sales-command","AI Command Center",Bot],
-  ["ai-sales-settings","الإعدادات",Settings],
+const items = [
+ ["ai-sales","Home",House],
+ ["ai-sales-discover","Discover",Compass],
+ ["ai-sales-companies","Companies",Building2],
+ ["ai-sales-opportunities","Opportunities",Handshake],
+ ["ai-sales-tenders","Tenders",FileSearch],
+ ["ai-sales-map","Map",MapPinned],
+ ["ai-sales-communications","Messages",Mail],
+ ["ai-sales-tasks","Tasks",ListChecks],
+ ["ai-sales-analytics","Reports",ChartNoAxesCombined],
+ ["ai-sales-command","AI",Sparkles],
+ ["ai-sales-settings","Settings",Settings2],
 ];
 
 export default function AISalesNav({activeView,onNavigate}) {
- return <div className="ais-nav">
-  <div className="ais-nav-title"><BrainCircuit size={18}/> MASA AI Sales</div>
-  <div className="ais-nav-scroll">{AI_SALES_VIEWS.map(([id,label,Icon]) =>
-   <button key={id} className={activeView===id?"active":""} onClick={()=>onNavigate?.(id)}>
-    <Icon size={16}/><span>{label}</span>
-   </button>)}</div>
- </div>;
+ return <nav className="ai-icon-nav">
+  {items.map(([id,label,Icon])=><button type="button" key={id}
+   className={activeView===id?"active":""} onClick={()=>onNavigate?.(id)}>
+   <span><Icon size={19}/></span><small>{label}</small>
+  </button>)}
+ </nav>;
 }

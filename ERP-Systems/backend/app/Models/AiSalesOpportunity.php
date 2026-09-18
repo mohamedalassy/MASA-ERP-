@@ -1,0 +1,4 @@
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Factories\HasFactory;use Illuminate\Database\Eloquent\Model;
+class AiSalesOpportunity extends Model {use HasFactory;protected $fillable=['company_id','lead_id','title','stage','value','currency','probability','health_score','risk_level','risk_reasons','expected_close_date','matched_items','recommended_items','next_best_action','last_analyzed_at','owner_id'];protected $casts=['value'=>'decimal:2','expected_close_date'=>'date','matched_items'=>'array','risk_reasons'=>'array','recommended_items'=>'array','last_analyzed_at'=>'datetime'];public function company(){return $this->belongsTo(AiSalesCompany::class,'company_id');}public function lead(){return $this->belongsTo(AiSalesLead::class,'lead_id');}public function owner(){return $this->belongsTo(User::class,'owner_id');}}

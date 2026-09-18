@@ -1,0 +1,3 @@
+<?php
+namespace App\Models; use Illuminate\Database\Eloquent\Model;
+class AiSalesCatalogProfile extends Model { protected $fillable=['name','type','product_id','description','target_industries','target_company_sizes','keywords','buying_signals','pain_points','is_active']; protected $casts=['target_industries'=>'array','target_company_sizes'=>'array','keywords'=>'array','buying_signals'=>'array','pain_points'=>'array','is_active'=>'boolean']; public function product(){return $this->belongsTo(Product::class);} }

@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration;use Illuminate\Database\Schema\Blueprint;use Illuminate\Support\Facades\Schema;
+return new class extends Migration{public function up():void{Schema::create('ai_sales_targets',function(Blueprint $t){$t->id();$t->string('scope_type')->index();$t->unsignedBigInteger('scope_id')->nullable();$t->string('metric')->default('revenue');$t->decimal('target_value',15,2);$t->date('period_start');$t->date('period_end');$t->timestamps();});}public function down():void{Schema::dropIfExists('ai_sales_targets');}};

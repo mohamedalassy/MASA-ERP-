@@ -1,0 +1,11 @@
+<?php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\HrV2\PeopleIntelligenceController;
+use App\Http\Controllers\Api\HrV2\ApprovalCenterController;
+use App\Http\Controllers\Api\HrV2\AutomationStudioController;
+Route::prefix('hr/v2')->name('hr.v2.')->group(function(){
+ Route::get('analytics',[PeopleIntelligenceController::class,'dashboard']);
+ Route::get('approvals',[ApprovalCenterController::class,'index']);
+ Route::post('approvals/{approvalRequest}/action',[ApprovalCenterController::class,'action']);
+ Route::get('automation',[AutomationStudioController::class,'index']);
+});

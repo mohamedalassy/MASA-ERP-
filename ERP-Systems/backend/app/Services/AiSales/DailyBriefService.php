@@ -1,0 +1,3 @@
+<?php
+namespace App\Services\AiSales;use App\Models\{AiSalesRecommendation,AiSalesTask,AiSalesOpportunity,AiSalesSignal};
+class DailyBriefService{public function build():array{return ['priority_actions'=>AiSalesRecommendation::where('status','open')->orderByDesc('priority_score')->limit(5)->get(),'overdue_tasks'=>AiSalesTask::where('status','open')->where('due_at','<',now())->orderBy('due_at')->limit(10)->get(),'at_risk_deals'=>AiSalesOpportunity::where('risk_level','high')->orderByDesc('value')->limit(10)->get(),'new_signals'=>AiSalesSignal::where('detected_at','>=',now()->subDay())->orderByDesc('strength')->limit(10)->get()];}}

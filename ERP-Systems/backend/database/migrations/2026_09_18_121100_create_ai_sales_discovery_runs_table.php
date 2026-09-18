@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema;
+return new class extends Migration { public function up():void { Schema::create('ai_sales_discovery_runs',function(Blueprint $t){$t->id();$t->string('status')->default('queued')->index();$t->json('criteria')->nullable();$t->unsignedInteger('found_count')->default(0);$t->unsignedInteger('accepted_count')->default(0);$t->unsignedInteger('rejected_count')->default(0);$t->text('notes')->nullable();$t->timestamp('started_at')->nullable();$t->timestamp('finished_at')->nullable();$t->timestamps();}); } public function down():void{Schema::dropIfExists('ai_sales_discovery_runs');}};

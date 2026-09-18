@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;
+class AiSalesIcpProfile extends Model{protected $fillable=['name','description','industries','regions','company_sizes','keywords','positive_signals','negative_signals','catalog_profile_ids','minimum_score','is_active'];protected $casts=['industries'=>'array','regions'=>'array','company_sizes'=>'array','keywords'=>'array','positive_signals'=>'array','negative_signals'=>'array','catalog_profile_ids'=>'array','is_active'=>'boolean'];}

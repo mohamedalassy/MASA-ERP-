@@ -10,6 +10,7 @@ class PurchaseOrder extends Model
     use HasFactory;
 
     protected $fillable = [
+        'branch_id',
         'project_id',
         'supplier_id',
         'po_number',
@@ -39,44 +40,34 @@ class PurchaseOrder extends Model
         'approved_at' => 'datetime',
     ];
 
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
     public function project()
     {
-        return $this->belongsTo(
-            Project::class,
-            'project_id'
-        );
+        return $this->belongsTo(Project::class, 'project_id');
     }
 
     public function supplier()
     {
-        return $this->belongsTo(
-            Supplier::class,
-            'supplier_id'
-        );
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 
     public function items()
     {
-        return $this->hasMany(
-            PurchaseOrderItem::class,
-            'purchase_order_id'
-        );
+        return $this->hasMany(PurchaseOrderItem::class, 'purchase_order_id');
     }
 
     public function creator()
     {
-        return $this->belongsTo(
-            User::class,
-            'created_by'
-        );
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function approver()
     {
-        return $this->belongsTo(
-            User::class,
-            'approved_by'
-        );
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function financialTransactions()

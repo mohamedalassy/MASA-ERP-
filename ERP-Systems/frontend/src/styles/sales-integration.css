@@ -1,0 +1,11 @@
+
+.sales-branch-selector{
+  height:40px;padding:0 10px;border:1px solid var(--border);border-radius:11px;
+  background:#fff;display:flex;align-items:center;gap:7px;color:var(--primary);
+}
+.sales-branch-selector select{
+  border:0;background:transparent;color:var(--text);font-family:inherit;font-size:9px;font-weight:700;outline:0;
+}
+.sales-state{min-height:100px;display:grid;place-items:center;color:var(--text-light)}
+.sales-state.error{color:var(--red);background:#fff9f9}
+.sales-target-card small{display:block;margin-top:8px;color:var(--text-light)}

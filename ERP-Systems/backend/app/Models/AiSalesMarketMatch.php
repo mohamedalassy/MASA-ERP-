@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;
+class AiSalesMarketMatch extends Model{protected $fillable=['company_id','catalog_profile_id','icp_profile_id','match_score','confidence','reasons','gaps','matched_at'];protected $casts=['reasons'=>'array','gaps'=>'array','matched_at'=>'datetime'];public function company(){return $this->belongsTo(AiSalesCompany::class,'company_id');}public function catalogProfile(){return $this->belongsTo(AiSalesCatalogProfile::class,'catalog_profile_id');}}

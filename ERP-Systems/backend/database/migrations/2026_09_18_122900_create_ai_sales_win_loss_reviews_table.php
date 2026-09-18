@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration;use Illuminate\Database\Schema\Blueprint;use Illuminate\Support\Facades\Schema;
+return new class extends Migration{public function up():void{Schema::create('ai_sales_win_loss_reviews',function(Blueprint $t){$t->id();$t->foreignId('opportunity_id')->constrained('ai_sales_opportunities')->cascadeOnDelete();$t->string('outcome')->index();$t->json('reasons')->nullable();$t->json('competitors')->nullable();$t->text('lessons')->nullable();$t->timestamps();});}public function down():void{Schema::dropIfExists('ai_sales_win_loss_reviews');}};

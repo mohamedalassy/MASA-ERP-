@@ -1,21 +1,22 @@
-import {
-  Users,
-  TrendingUp,
-  BadgeDollarSign,
-  FileText,
-  ShoppingCart,
-  Package,
-  Calculator,
-  FolderKanban,
-  UserRound,
-  WalletCards,
-  BarChart3,
-  Settings,
-  Headphones,
-  Boxes,
-  Building2,
+import { 
+  Users, 
+  TrendingUp, 
+  BadgeDollarSign, 
+  FileText, 
+  ShoppingCart, 
+  Package, 
+  Calculator, 
+  FolderKanban, 
+  UserRound, 
+  WalletCards, 
+  BarChart3, 
+  Settings, 
+  Headphones, 
+  Boxes, 
+  Building2, 
   Wrench,
-  ChevronLeft,
+  BrainCircuit,
+  ChevronLeft, 
 } from "lucide-react";
 
 const apps = [
@@ -30,10 +31,24 @@ const apps = [
   {
     id: "sales",
     name: "المبيعات",
-    description: "عروض الأسعار وأوامر البيع",
+    description: "Leads والفرص والعروض وأوامر البيع والعقود والتحليلات",
     icon: TrendingUp,
     tone: "purple",
   },
+  {
+  id: "ai-sales",
+  name: "AI Sales",
+  description: "اكتشاف العملاء وتحليل الفرص وذكاء المبيعات بالذكاء الاصطناعي",
+  icon: BrainCircuit,
+  tone: "purple",
+},
+{
+  id: "ai-sales",
+  name: "AI Sales",
+  description: "اكتشاف العملاء وتحليل الفرص وذكاء المبيعات بالذكاء الاصطناعي",
+  icon: BrainCircuit,
+  tone: "purple",
+},
   {
     id: "pricing",
     name: "التسعير",
@@ -137,10 +152,28 @@ const apps = [
   },
 ];
 
-export default function AppLauncher({ onChangeView }) {
+export default function AppLauncher({
+  onChangeView,
+}) {
   const handleAppClick = (app) => {
-    if (!onChangeView) return;
+    if (!onChangeView) {
+      return;
+    }
 
+    // Sales opens the new Sales Command Center directly.
+    if (app.id === "sales") {
+      onChangeView("sales");
+      return;
+    }
+
+    // Pricing keeps its current standalone dashboard.
+    if (app.id === "pricing") {
+      onChangeView("pricing");
+      return;
+    }
+
+    // Preserve the existing workflow for CRM,
+    // Purchasing, Accounting and Projects.
     if (app.stage) {
       onChangeView("work-orders", {
         stage: app.stage,
@@ -156,10 +189,15 @@ export default function AppLauncher({ onChangeView }) {
     <section className="app-launcher">
       <div className="app-launcher-header">
         <div>
-          <span className="section-kicker">MASA ERP</span>
+          <span className="section-kicker">
+            MASA ERP
+          </span>
+
           <h2>التطبيقات</h2>
+
           <p>
-            كل أدوات إدارة شركتك في مكان واحد، ومربوطة ببعض تلقائياً.
+            كل أدوات إدارة شركتك في مكان واحد،
+            ومربوطة ببعض تلقائياً.
           </p>
         </div>
 
@@ -181,15 +219,25 @@ export default function AppLauncher({ onChangeView }) {
               type="button"
               className="app-card"
               key={app.id}
-              onClick={() => handleAppClick(app)}
+              onClick={() =>
+                handleAppClick(app)
+              }
             >
-              <div className={`app-icon ${app.tone}`}>
-                <Icon size={25} strokeWidth={1.8} />
+              <div
+                className={`app-icon ${app.tone}`}
+              >
+                <Icon
+                  size={25}
+                  strokeWidth={1.8}
+                />
               </div>
 
               <div className="app-copy">
                 <strong>{app.name}</strong>
-                <span>{app.description}</span>
+
+                <span>
+                  {app.description}
+                </span>
               </div>
 
               <ChevronLeft
