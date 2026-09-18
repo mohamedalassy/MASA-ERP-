@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\Api\SupplierPriceHistoryController;
 use App\Http\Controllers\Api\PricingRuleController;
 use App\Http\Controllers\Api\PricingPackageController;
@@ -12,11 +13,9 @@ use App\Http\Controllers\Api\QuotationBillingController;
 use App\Http\Controllers\Api\TaxCodeController;
 use App\Http\Controllers\Api\TaxInvoiceController;
 use App\Http\Controllers\Api\CustomerTaxProfileController;
-// Add import:
 use App\Http\Controllers\Api\HrPayrollController;
 use App\Http\Controllers\Api\SupplierInvoiceController;
 use App\Http\Controllers\Api\FinanceProjectBillingController;
-use App\Http\Controllers\Api\FinanceProjectsBillingController;
 use App\Http\Controllers\Api\TaxInvoicePaymentController;
 use App\Http\Controllers\Api\CollectionsCenterController;
 use App\Http\Controllers\Api\VatCenterController;
@@ -39,8 +38,10 @@ use App\Http\Controllers\Api\ProjectFinancialTransactionController;
 
 /*
 |--------------------------------------------------------------------------
-HR API USE|--------------------------------------------------------------------------
+| HR API USE
+|--------------------------------------------------------------------------
 */
+
 use App\Http\Controllers\Api\HrBranchController;
 use App\Http\Controllers\Api\HrDepartmentController;
 use App\Http\Controllers\Api\HrEmployeeController;
@@ -159,6 +160,7 @@ Route::get(
     '/products/{product}/inventory-transactions',
     [InventoryTransactionController::class, 'productHistory']
 );
+
 Route::post(
     '/inventory/issue-to-project',
     [InventoryTransactionController::class, 'issueToProject']
@@ -178,6 +180,7 @@ Route::delete(
     '/projects/{project}/expenses/{expense}',
     [ProjectExpenseController::class, 'destroy']
 );
+
 Route::put(
     '/projects/{project}/execution-status',
     [ProjectController::class, 'updateExecutionStatus']
@@ -197,6 +200,7 @@ Route::post(
     '/projects/{project}/return-to-stage',
     [ProjectController::class, 'returnToStage']
 );
+
 Route::get(
     '/projects/{project}/quotations',
     [ProjectQuotationController::class, 'index']
@@ -216,18 +220,22 @@ Route::post(
     '/projects/{project}/quotations/{quotation}/approve',
     [ProjectQuotationController::class, 'approve']
 );
+
 Route::post(
     '/projects/{project}/quotations',
     [ProjectQuotationController::class, 'store']
 );
+
 Route::put(
     '/projects/{project}/quotations/{quotation}',
     [ProjectQuotationController::class, 'update']
 );
+
 Route::get(
     '/quotations',
     [ProjectQuotationController::class, 'all']
 );
+
 Route::get('/products', [ProductController::class, 'index']);
 Route::post('/products', [ProductController::class, 'store']);
 Route::put('/products/{product}', [ProductController::class, 'update']);
@@ -236,19 +244,16 @@ Route::post(
     '/projects/{project}/quotations/{quotation}/submit-for-approval',
     [ProjectQuotationController::class, 'submitForApproval']
 );
+
 Route::post(
     '/projects/{project}/quotations/{quotation}/request-changes',
     [ProjectQuotationController::class, 'requestChanges']
 );
 
-
-
 Route::get('/supplier-prices', [SupplierPriceController::class, 'index']);
 Route::get('/products/{product}/supplier-prices', [SupplierPriceController::class, 'productPrices']);
 Route::post('/supplier-prices', [SupplierPriceController::class, 'store']);
 Route::put('/supplier-prices/{supplierPrice}', [SupplierPriceController::class, 'update']);
-
-
 
 Route::get(
     '/supplier-price-history',
@@ -261,21 +266,17 @@ Route::put('/pricing-rules/{pricingRule}', [PricingRuleController::class, 'updat
 Route::delete('/pricing-rules/{pricingRule}', [PricingRuleController::class, 'destroy']);
 Route::post('/pricing-rules/resolve', [PricingRuleController::class, 'resolve']);
 
-
 Route::get('/pricing-packages', [PricingPackageController::class, 'index']);
 Route::get('/pricing-packages/{pricingPackage}', [PricingPackageController::class, 'show']);
 Route::post('/pricing-packages', [PricingPackageController::class, 'store']);
 Route::put('/pricing-packages/{pricingPackage}', [PricingPackageController::class, 'update']);
 Route::delete('/pricing-packages/{pricingPackage}', [PricingPackageController::class, 'destroy']);
 
-
 Route::get('/product-alternatives', [ProductAlternativeController::class, 'index']);
 Route::get('/products/{product}/alternatives', [ProductAlternativeController::class, 'productAlternatives']);
 Route::post('/product-alternatives', [ProductAlternativeController::class, 'store']);
 Route::put('/product-alternatives/{productAlternative}', [ProductAlternativeController::class, 'update']);
 Route::delete('/product-alternatives/{productAlternative}', [ProductAlternativeController::class, 'destroy']);
-
-
 
 Route::get('/pricing-costings', [PricingCostingController::class, 'index']);
 Route::post('/pricing-costings/calculate', [PricingCostingController::class, 'calculate']);
@@ -284,16 +285,17 @@ Route::post('/pricing-costings', [PricingCostingController::class, 'store']);
 Route::put('/pricing-costings/{pricingCosting}', [PricingCostingController::class, 'update']);
 Route::delete('/pricing-costings/{pricingCosting}', [PricingCostingController::class, 'destroy']);
 
-
-
-Route::post('/projects/{project}/quotations/{quotation}/reject', [ProjectQuotationController::class, 'reject']);
-
+Route::post(
+    '/projects/{project}/quotations/{quotation}/reject',
+    [ProjectQuotationController::class, 'reject']
+);
 
 /*
 |--------------------------------------------------------------------------
 | Finance
 |--------------------------------------------------------------------------
 */
+
 Route::get(
     '/finance/suppliers-center',
     [SuppliersCenterController::class, 'index']
@@ -310,30 +312,11 @@ Route::get(
 |--------------------------------------------------------------------------
 */
 
-Route::get(
-    '/finance/accounts',
-    [FinanceAccountController::class, 'index']
-);
-
-Route::post(
-    '/finance/accounts',
-    [FinanceAccountController::class, 'store']
-);
-
-Route::get(
-    '/finance/accounts/{financeAccount}',
-    [FinanceAccountController::class, 'show']
-);
-
-Route::put(
-    '/finance/accounts/{financeAccount}',
-    [FinanceAccountController::class, 'update']
-);
-
-Route::delete(
-    '/finance/accounts/{financeAccount}',
-    [FinanceAccountController::class, 'destroy']
-);
+Route::get('/finance/accounts', [FinanceAccountController::class, 'index']);
+Route::post('/finance/accounts', [FinanceAccountController::class, 'store']);
+Route::get('/finance/accounts/{financeAccount}', [FinanceAccountController::class, 'show']);
+Route::put('/finance/accounts/{financeAccount}', [FinanceAccountController::class, 'update']);
+Route::delete('/finance/accounts/{financeAccount}', [FinanceAccountController::class, 'destroy']);
 
 /*
 |--------------------------------------------------------------------------
@@ -341,30 +324,11 @@ Route::delete(
 |--------------------------------------------------------------------------
 */
 
-Route::get(
-    '/finance/cost-centers',
-    [CostCenterController::class, 'index']
-);
-
-Route::post(
-    '/finance/cost-centers',
-    [CostCenterController::class, 'store']
-);
-
-Route::get(
-    '/finance/cost-centers/{costCenter}',
-    [CostCenterController::class, 'show']
-);
-
-Route::put(
-    '/finance/cost-centers/{costCenter}',
-    [CostCenterController::class, 'update']
-);
-
-Route::delete(
-    '/finance/cost-centers/{costCenter}',
-    [CostCenterController::class, 'destroy']
-);
+Route::get('/finance/cost-centers', [CostCenterController::class, 'index']);
+Route::post('/finance/cost-centers', [CostCenterController::class, 'store']);
+Route::get('/finance/cost-centers/{costCenter}', [CostCenterController::class, 'show']);
+Route::put('/finance/cost-centers/{costCenter}', [CostCenterController::class, 'update']);
+Route::delete('/finance/cost-centers/{costCenter}', [CostCenterController::class, 'destroy']);
 
 /*
 |--------------------------------------------------------------------------
@@ -372,60 +336,23 @@ Route::delete(
 |--------------------------------------------------------------------------
 */
 
-Route::get(
-    '/finance/journal-entries',
-    [FinanceJournalEntryController::class, 'index']
-);
-
-Route::post(
-    '/finance/journal-entries',
-    [FinanceJournalEntryController::class, 'store']
-);
-
-Route::get(
-    '/finance/journal-entries/{journalEntry}',
-    [FinanceJournalEntryController::class, 'show']
-);
-
-Route::put(
-    '/finance/journal-entries/{journalEntry}',
-    [FinanceJournalEntryController::class, 'update']
-);
-
-Route::delete(
-    '/finance/journal-entries/{journalEntry}',
-    [FinanceJournalEntryController::class, 'destroy']
-);
-
-Route::post(
-    '/finance/journal-entries/{journalEntry}/submit',
-    [FinanceJournalEntryController::class, 'submit']
-);
-
-Route::post(
-    '/finance/journal-entries/{journalEntry}/approve',
-    [FinanceJournalEntryController::class, 'approve']
-);
-
-Route::post(
-    '/finance/journal-entries/{journalEntry}/post',
-    [FinanceJournalEntryController::class, 'post']
-);
-
-Route::post(
-    '/finance/journal-entries/{journalEntry}/reject',
-    [FinanceJournalEntryController::class, 'reject']
-);
+Route::get('/finance/journal-entries', [FinanceJournalEntryController::class, 'index']);
+Route::post('/finance/journal-entries', [FinanceJournalEntryController::class, 'store']);
+Route::get('/finance/journal-entries/{journalEntry}', [FinanceJournalEntryController::class, 'show']);
+Route::put('/finance/journal-entries/{journalEntry}', [FinanceJournalEntryController::class, 'update']);
+Route::delete('/finance/journal-entries/{journalEntry}', [FinanceJournalEntryController::class, 'destroy']);
+Route::post('/finance/journal-entries/{journalEntry}/submit', [FinanceJournalEntryController::class, 'submit']);
+Route::post('/finance/journal-entries/{journalEntry}/approve', [FinanceJournalEntryController::class, 'approve']);
+Route::post('/finance/journal-entries/{journalEntry}/post', [FinanceJournalEntryController::class, 'post']);
+Route::post('/finance/journal-entries/{journalEntry}/reject', [FinanceJournalEntryController::class, 'reject']);
 
 /*
 |--------------------------------------------------------------------------
 | Project Financial Transactions
 |--------------------------------------------------------------------------
 */
-Route::get(
-    '/finance/collections-center',
-    [CollectionsCenterController::class, 'index']
-);
+
+Route::get('/finance/collections-center', [CollectionsCenterController::class, 'index']);
 
 Route::get(
     '/projects/{project}/financial-transactions',
@@ -451,40 +378,25 @@ Route::post(
     '/projects/{project}/financial-transactions/{transaction}/cancel',
     [ProjectFinancialTransactionController::class, 'cancel']
 );
+
 /*
 |--------------------------------------------------------------------------
 | General Ledger & Trial Balance
 |--------------------------------------------------------------------------
 */
 
-Route::get(
-    '/finance/general-ledger',
-    [FinanceLedgerController::class, 'index']
-);
-
-Route::get(
-    '/finance/trial-balance',
-    [FinanceLedgerController::class, 'trialBalance']
-);
-Route::get(
-    '/finance/income-statement',
-    [FinanceLedgerController::class, 'incomeStatement']
-);
-Route::get(
-    '/finance/balance-sheet',
-    [FinanceLedgerController::class, 'balanceSheet']
-);
-
-Route::get(
-    '/finance/cash-flow',
-    [FinanceLedgerController::class, 'cashFlow']
-);
+Route::get('/finance/general-ledger', [FinanceLedgerController::class, 'index']);
+Route::get('/finance/trial-balance', [FinanceLedgerController::class, 'trialBalance']);
+Route::get('/finance/income-statement', [FinanceLedgerController::class, 'incomeStatement']);
+Route::get('/finance/balance-sheet', [FinanceLedgerController::class, 'balanceSheet']);
+Route::get('/finance/cash-flow', [FinanceLedgerController::class, 'cashFlow']);
 
 /*
 |--------------------------------------------------------------------------
 | Fixed Assets
 |--------------------------------------------------------------------------
 */
+
 Route::prefix('finance')->group(function () {
     Route::get('/fixed-assets', [FixedAssetController::class, 'index']);
     Route::post('/fixed-assets', [FixedAssetController::class, 'store']);
@@ -514,79 +426,54 @@ Route::prefix('finance')->group(function () {
 
     Route::get('/tax-invoices', [TaxInvoiceController::class, 'index']);
     Route::post('/tax-invoices', [TaxInvoiceController::class, 'store']);
+
     Route::get(
         '/tax-invoices/payment-accounts',
         [TaxInvoicePaymentController::class, 'accounts']
     );
+
     Route::get('/tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'show']);
     Route::put('/tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'update']);
     Route::post('/tax-invoices/{taxInvoice}/issue', [TaxInvoiceController::class, 'issue']);
+
     Route::post(
         '/tax-invoices/{taxInvoice}/refresh-buyer',
         [TaxInvoiceController::class, 'refreshBuyer']
     );
+
     Route::delete('/tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'destroy']);
 
-    // Customer Tax Profiles
     Route::get('/customer-tax-profiles', [CustomerTaxProfileController::class, 'index']);
     Route::post('/customer-tax-profiles', [CustomerTaxProfileController::class, 'store']);
     Route::get('/customer-tax-profiles/{customerTaxProfile}', [CustomerTaxProfileController::class, 'show']);
     Route::put('/customer-tax-profiles/{customerTaxProfile}', [CustomerTaxProfileController::class, 'update']);
 
-    // Collections / Payments
     Route::get('/payments', [TaxInvoicePaymentController::class, 'index']);
+
     Route::post(
         '/tax-invoices/{taxInvoice}/payments',
         [TaxInvoicePaymentController::class, 'store']
     );
 });
+
 Route::prefix('finance')->group(function () {
-    Route::get(
-        '/bank-reconciliation/accounts',
-        [BankReconciliationController::class, 'accounts']
-    );
-
-    Route::get(
-        '/bank-reconciliations',
-        [BankReconciliationController::class, 'index']
-    );
-
-    Route::post(
-        '/bank-reconciliations',
-        [BankReconciliationController::class, 'store']
-    );
-
-    Route::get(
-        '/bank-reconciliations/{bankReconciliation}',
-        [BankReconciliationController::class, 'show']
-    );
-
-    Route::post(
-        '/bank-reconciliations/{bankReconciliation}/import',
-        [BankReconciliationController::class, 'import']
-    );
-
-    Route::post(
-        '/bank-reconciliations/{bankReconciliation}/auto-match',
-        [BankReconciliationController::class, 'autoMatch']
-    );
-
-    Route::post(
-        '/bank-reconciliations/{bankReconciliation}/lines/{line}/match',
-        [BankReconciliationController::class, 'match']
-    );
-
-    Route::delete(
-        '/bank-reconciliations/{bankReconciliation}/lines/{line}/match',
-        [BankReconciliationController::class, 'unmatch']
-    );
-
-    Route::post(
-        '/bank-reconciliations/{bankReconciliation}/complete',
-        [BankReconciliationController::class, 'complete']
-    );
+    Route::get('/bank-reconciliation/accounts', [BankReconciliationController::class, 'accounts']);
+    Route::get('/bank-reconciliations', [BankReconciliationController::class, 'index']);
+    Route::post('/bank-reconciliations', [BankReconciliationController::class, 'store']);
+    Route::get('/bank-reconciliations/{bankReconciliation}', [BankReconciliationController::class, 'show']);
+    Route::post('/bank-reconciliations/{bankReconciliation}/import', [BankReconciliationController::class, 'import']);
+    Route::post('/bank-reconciliations/{bankReconciliation}/auto-match', [BankReconciliationController::class, 'autoMatch']);
+    Route::post('/bank-reconciliations/{bankReconciliation}/lines/{line}/match', [BankReconciliationController::class, 'match']);
+    Route::delete('/bank-reconciliations/{bankReconciliation}/lines/{line}/match', [BankReconciliationController::class, 'unmatch']);
+    Route::post('/bank-reconciliations/{bankReconciliation}/complete', [BankReconciliationController::class, 'complete']);
 });
-// Add finance billing routes:
+
+/*
+|--------------------------------------------------------------------------
+| Finance Project Billing
+|--------------------------------------------------------------------------
+*/
+
 Route::get(
     '/finance/projects/{project}/billing',
     [FinanceProjectBillingController::class, 'project']
@@ -597,15 +484,26 @@ Route::get(
     [FinanceProjectBillingController::class, 'quotation']
 );
 
+/*
+ * تم توحيد هذا الـroute على نفس FinanceProjectBillingController
+ * بدل FinanceProjectsBillingController غير الموجود.
+ */
 Route::get(
     '/finance/projects-billing',
-    [FinanceProjectsBillingController::class, 'index']
+    [FinanceProjectBillingController::class, 'index']
 );
+
+/*
+|--------------------------------------------------------------------------
+| Supplier Invoices
+|--------------------------------------------------------------------------
+*/
 
 Route::get(
     '/finance/supplier-invoices',
     [SupplierInvoiceController::class, 'index']
 );
+
 Route::get(
     '/finance/supplier-invoices/purchase-orders',
     [SupplierInvoiceController::class, 'purchaseOrders']
@@ -615,6 +513,7 @@ Route::post(
     '/finance/supplier-invoices',
     [SupplierInvoiceController::class, 'store']
 );
+
 Route::get(
     '/finance/supplier-invoices/cash-accounts',
     [SupplierInvoiceController::class, 'cashAccounts']
@@ -624,6 +523,7 @@ Route::post(
     '/finance/supplier-invoices/{supplierInvoice}/payments',
     [SupplierInvoiceController::class, 'recordPayment']
 );
+
 Route::post(
     '/finance/supplier-invoices/{supplierInvoice}/post',
     [SupplierInvoiceController::class, 'post']
@@ -651,8 +551,10 @@ Route::post(
 
 /*
 |--------------------------------------------------------------------------
-HR API ROUTE |--------------------------------------------------------------------------
+| HR API ROUTE
+|--------------------------------------------------------------------------
 */
+
 Route::prefix('hr')->name('hr.')->group(function () {
     Route::apiResource('branches', HrBranchController::class)
         ->parameters(['branches' => 'hrBranch']);
@@ -669,6 +571,7 @@ Route::prefix('hr')->name('hr.')->group(function () {
     Route::apiResource('employees', HrEmployeeController::class)
         ->parameters(['employees' => 'hrEmployee']);
 });
+
 Route::prefix('hr')->name('hr.')->group(function () {
     Route::post('payrolls/generate', [HrPayrollController::class, 'generate'])
         ->name('payrolls.generate');
@@ -677,15 +580,30 @@ Route::prefix('hr')->name('hr.')->group(function () {
         ->only(['index', 'show', 'update'])
         ->parameters(['payrolls' => 'hrPayroll']);
 
-    Route::get('attendance/summary', [HrAttendanceSummaryController::class, 'index'])
-        ->name('attendance.summary');
+    Route::get(
+        'attendance/summary',
+        [HrAttendanceSummaryController::class, 'index']
+    )->name('attendance.summary');
 
-    Route::post('attendance-devices/{hrAttendanceDevice}/test-connection', [HrAttendanceDeviceController::class, 'testConnection'])
-        ->name('attendance-devices.test-connection');
+    Route::post(
+        'attendance-devices/{hrAttendanceDevice}/test-connection',
+        [HrAttendanceDeviceController::class, 'testConnection']
+    )->name('attendance-devices.test-connection');
 
-    Route::apiResource('attendance-devices', HrAttendanceDeviceController::class)
-        ->parameters(['attendance-devices' => 'hrAttendanceDevice']);
+    Route::apiResource(
+        'attendance-devices',
+        HrAttendanceDeviceController::class
+    )->parameters([
+        'attendance-devices' => 'hrAttendanceDevice',
+    ]);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Modular Routes
+|--------------------------------------------------------------------------
+*/
+
 require __DIR__ . '/ai_sales.php';
 require __DIR__ . '/sales-foundation.php';
 require __DIR__ . '/sales-core.php';
@@ -693,11 +611,12 @@ require __DIR__ . '/sales-commercial.php';
 require __DIR__ . '/sales-operations.php';
 require __DIR__ . '/sales-intelligence.php';
 require __DIR__ . '/sales-ai.php';
-require __DIR__.'/hr_v2.php';
-require __DIR__.'/hr_v2_stage2.php';
-require __DIR__.'/hr_v2_stage3.php';
-require __DIR__.'/hr_v2_stage4.php';
-require __DIR__.'/hr_v2_stage5.php';
-require __DIR__.'/hr_v2_stage6.php';
-require __DIR__.'/hr_v2_stage7.php';
-require __DIR__.'/hr_v2_stage8.php';
+
+require __DIR__ . '/hr_v2.php';
+require __DIR__ . '/hr_v2_stage2.php';
+require __DIR__ . '/hr_v2_stage3.php';
+require __DIR__ . '/hr_v2_stage4.php';
+require __DIR__ . '/hr_v2_stage5.php';
+require __DIR__ . '/hr_v2_stage6.php';
+require __DIR__ . '/hr_v2_stage7.php';
+require __DIR__ . '/hr_v2_stage8.php';
