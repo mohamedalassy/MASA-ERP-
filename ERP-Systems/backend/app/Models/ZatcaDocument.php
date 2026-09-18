@@ -1,0 +1,3 @@
+<?php
+namespace App\Models; use Illuminate\Database\Eloquent\Model; use Illuminate\Database\Eloquent\Relations\BelongsTo;
+class ZatcaDocument extends Model {protected $fillable=['tax_invoice_id','uuid','submission_type','status','xml_content','invoice_hash','qr_code','clearance_status','response_message','response_payload','submitted_at','cleared_at'];protected $casts=['response_payload'=>'array','submitted_at'=>'datetime','cleared_at'=>'datetime'];public function taxInvoice():BelongsTo{return $this->belongsTo(TaxInvoice::class);}}

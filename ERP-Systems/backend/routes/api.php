@@ -694,6 +694,7 @@ require __DIR__ . '/sales-operations.php';
 require __DIR__ . '/sales-intelligence.php';
 require __DIR__ . '/sales-ai.php';
 require __DIR__.'/hr_v2.php';
+require __DIR__.'/hr_v2_stage2.php';
 require __DIR__.'/hr_v2_stage3.php';
 require __DIR__.'/hr_v2_stage4.php';
 require __DIR__.'/hr_v2_stage5.php';

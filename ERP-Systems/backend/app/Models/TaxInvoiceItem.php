@@ -1,0 +1,3 @@
+<?php
+namespace App\Models; use Illuminate\Database\Eloquent\Model; use Illuminate\Database\Eloquent\Relations\BelongsTo;
+class TaxInvoiceItem extends Model {protected $fillable=['tax_invoice_id','quotation_item_id','product_id','item_code','description','unit','quantity','unit_price','discount_amount','tax_code_id','tax_rate','taxable_amount','tax_amount','line_total','source_quantity_snapshot','previously_invoiced_quantity_snapshot','remaining_quantity_before_snapshot','sort_order'];public function taxInvoice():BelongsTo{return $this->belongsTo(TaxInvoice::class);}public function taxCode():BelongsTo{return $this->belongsTo(TaxCode::class);}}
