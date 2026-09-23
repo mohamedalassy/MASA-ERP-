@@ -34,6 +34,15 @@ export default function DiscoverLeads({
   onNavigate,
   activeView = "ai-sales-discover",
 }) {
+  const [showAddTarget, setShowAddTarget] = useState(false);
+
+  const [newTarget, setNewTarget] = useState({
+    name: "",
+    type: "service",
+    description: "",
+    keywords: "",
+  });
+
   const [profiles, setProfiles] = useState([]);
   const [selectedProfiles, setSelectedProfiles] = useState([]);
   const [selectedSignals, setSelectedSignals] = useState([
@@ -88,6 +97,63 @@ export default function DiscoverLeads({
     return data;
   }
 
+  async function createTarget() {
+    const name = newTarget.name.trim();
+
+    if (!name) {
+      setError("Enter a target name.");
+      return;
+    }
+
+    setError("");
+
+    try {
+      const created = await request("/catalog-profiles", {
+        method: "POST",
+
+        body: JSON.stringify({
+          name,
+          type: newTarget.type,
+          description: newTarget.description.trim() || null,
+
+          keywords: newTarget.keywords
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
+
+          is_active: true,
+        }),
+      });
+
+      setNewTarget({
+        name: "",
+        type: "service",
+        description: "",
+        keywords: "",
+      });
+
+      setShowAddTarget(false);
+
+      await loadCatalog();
+
+      if (created?.id) {
+        setSelectedProfiles((current) => [
+          ...new Set([
+            ...current,
+            Number(created.id),
+          ]),
+        ]);
+      }
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        err.message ||
+          "Unable to create target profile."
+      );
+    }
+  }
+
   async function loadCatalog() {
     setCatalogLoading(true);
     setError("");
@@ -112,10 +178,14 @@ export default function DiscoverLeads({
           return validCurrent;
         }
 
-        return availableIds.slice(0, Math.min(3, availableIds.length));
+        return availableIds.slice(
+          0,
+          Math.min(3, availableIds.length)
+        );
       });
     } catch (err) {
       console.error(err);
+
       setError(
         err.message ||
           "Unable to load AI Sales catalog."
@@ -137,6 +207,7 @@ export default function DiscoverLeads({
       await loadCatalog();
     } catch (err) {
       console.error(err);
+
       setError(
         err.message ||
           "Unable to sync ERP catalog."
@@ -250,7 +321,32 @@ export default function DiscoverLeads({
           }
         >
           <div className="pro-form">
-            <label>Target Products & Services</label>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <label style={{ margin: 0 }}>
+                Target Products & Services
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setShowAddTarget(true)}
+                style={{
+                  border: 0,
+                  background: "transparent",
+                  color: "#6657F5",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                + Add Target
+              </button>
+            </div>
 
             {catalogLoading ? (
               <div
@@ -282,6 +378,19 @@ export default function DiscoverLeads({
                       disabled={discovering}
                     >
                       {profile.name}
+
+                      <small
+                        style={{
+                          display: "block",
+                          marginTop: 3,
+                          opacity: 0.65,
+                          fontSize: 9,
+                          textTransform:
+                            "uppercase",
+                        }}
+                      >
+                        {profile.type}
+                      </small>
                     </button>
                   );
                 })}
@@ -290,12 +399,13 @@ export default function DiscoverLeads({
               <div
                 style={{
                   padding: 16,
-                  border: "1px dashed #d7d7e0",
+                  border:
+                    "1px dashed #d7d7e0",
                   borderRadius: 12,
                 }}
               >
                 <strong>
-                  No AI Sales catalog profiles found.
+                  No sales targets configured yet.
                 </strong>
 
                 <div
@@ -304,13 +414,164 @@ export default function DiscoverLeads({
                     opacity: 0.7,
                   }}
                 >
-                  Sync the ERP catalog to create product
-                  profiles.
+                  Sync ERP products or add a
+                  service, solution, subscription
+                  or project manually.
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowAddTarget(true)
+                  }
+                  style={{
+                    marginTop: 12,
+                    border: 0,
+                    borderRadius: 9,
+                    background: "#6657F5",
+                    color: "#fff",
+                    padding: "9px 14px",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                  }}
+                >
+                  + Add First Target
+                </button>
               </div>
             )}
 
-            <label>Target Region</label>
+            {showAddTarget && (
+              <div
+                style={{
+                  border:
+                    "1px solid #ddd9ff",
+                  background: "#faf9ff",
+                  borderRadius: 14,
+                  padding: 16,
+                  display: "grid",
+                  gap: 10,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <strong>
+                    Add Sales Target
+                  </strong>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowAddTarget(false)
+                    }
+                    style={{
+                      border: 0,
+                      background:
+                        "transparent",
+                      cursor: "pointer",
+                      fontSize: 18,
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Target name"
+                  value={newTarget.name}
+                  onChange={(e) =>
+                    setNewTarget(
+                      (current) => ({
+                        ...current,
+                        name: e.target.value,
+                      })
+                    )
+                  }
+                />
+
+                <select
+                  value={newTarget.type}
+                  onChange={(e) =>
+                    setNewTarget(
+                      (current) => ({
+                        ...current,
+                        type: e.target.value,
+                      })
+                    )
+                  }
+                >
+                  <option value="product">
+                    Product
+                  </option>
+                  <option value="service">
+                    Service
+                  </option>
+                  <option value="subscription">
+                    Subscription
+                  </option>
+                  <option value="project">
+                    Project
+                  </option>
+                  <option value="solution">
+                    Solution
+                  </option>
+                </select>
+
+                <textarea
+                  placeholder="What does this product or service provide?"
+                  value={
+                    newTarget.description
+                  }
+                  onChange={(e) =>
+                    setNewTarget(
+                      (current) => ({
+                        ...current,
+                        description:
+                          e.target.value,
+                      })
+                    )
+                  }
+                  rows={3}
+                />
+
+                <input
+                  type="text"
+                  placeholder="Keywords separated by commas"
+                  value={newTarget.keywords}
+                  onChange={(e) =>
+                    setNewTarget(
+                      (current) => ({
+                        ...current,
+                        keywords:
+                          e.target.value,
+                      })
+                    )
+                  }
+                />
+
+                <button
+                  type="button"
+                  onClick={createTarget}
+                  style={{
+                    border: 0,
+                    borderRadius: 10,
+                    background: "#6657F5",
+                    color: "#fff",
+                    padding: "11px 14px",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                  }}
+                >
+                  Create Target
+                </button>
+              </div>
+            )}
 
             <select
               value={region}
@@ -337,7 +598,9 @@ export default function DiscoverLeads({
                   type="button"
                   key={signal.id}
                   className={
-                    selectedSignals.includes(signal.id)
+                    selectedSignals.includes(
+                      signal.id
+                    )
                       ? "selected"
                       : ""
                   }
@@ -357,7 +620,8 @@ export default function DiscoverLeads({
                   padding: "12px 14px",
                   borderRadius: 10,
                   background: "#fff3f3",
-                  border: "1px solid #ffd1d1",
+                  border:
+                    "1px solid #ffd1d1",
                   color: "#b42318",
                   fontSize: 13,
                 }}
@@ -372,7 +636,8 @@ export default function DiscoverLeads({
                   padding: "12px 14px",
                   borderRadius: 10,
                   background: "#f2fbf6",
-                  border: "1px solid #ccebd9",
+                  border:
+                    "1px solid #ccebd9",
                   fontSize: 13,
                 }}
               >
@@ -405,10 +670,14 @@ export default function DiscoverLeads({
 
         <div className="agent-card">
           <div className="agent-orb">
-            <uiIcons.Sparkles size={35} />
+            <uiIcons.Sparkles
+              size={35}
+            />
           </div>
 
-          <small>DISCOVERY AGENT</small>
+          <small>
+            DISCOVERY AGENT
+          </small>
 
           <h2>
             {discovering
@@ -417,21 +686,27 @@ export default function DiscoverLeads({
           </h2>
 
           <p>
-            AI uses your ERP catalog and sales settings
-            to find, enrich, verify and score relevant
-            accounts before they reach your team.
+            AI uses your ERP catalog and
+            sales settings to find, enrich,
+            verify and score relevant
+            accounts before they reach your
+            team.
           </p>
 
           <div className="agent-stats">
             <span>
               <b>
-                {selectedProfileObjects.length}
+                {
+                  selectedProfileObjects.length
+                }
               </b>
               Targets
             </span>
 
             <span>
-              <b>{selectedSignals.length}</b>
+              <b>
+                {selectedSignals.length}
+              </b>
               Signals
             </span>
 
@@ -452,7 +727,10 @@ export default function DiscoverLeads({
               }}
             >
               Discovering companies in{" "}
-              <strong>{region}</strong>...
+              <strong>
+                {region}
+              </strong>
+              ...
             </div>
           )}
         </div>
