@@ -29,6 +29,16 @@ return Application::configure(basePath: dirname(__DIR__))
         */
 
         $middleware->prepend(HandleCors::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Permissions — مستخدم في settings-routes.php
+        |--------------------------------------------------------------------------
+        */
+
+        $middleware->alias([
+            'permission' => \App\Http\Middleware\CheckPermission::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

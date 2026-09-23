@@ -18,83 +18,98 @@ import BalanceSheet from "./BalanceSheet";
 import CashFlowStatement from "./CashFlowStatement";
 import FinanceReports from "./FinanceReports";
 
+import "../../styles/accounting-core.css";
+import "../../styles/finance-enterprise.css";
+
+/*
+ * التعديلات عن النسخة السابقة:
+ *
+ * ١. "accounting" (من AppLauncher والـSidebar) بقت بتفتح المالية.
+ * ٢. نصف الصفحات بتستقبل onChangeView والنص التاني onNavigate —
+ *    الراوتر بيمرّر الاتنين، فأزرار التنقّل جوه الصفحات بتشتغل.
+ * ٣. الصفحات بتنادي "finance-tax-details" والراوتر كان بيسمّيها
+ *    "finance-tax-invoice-details" — الاتنين مدعومين دلوقتي.
+ * ٤. TaxInvoiceDetails بتستقبل taxInvoiceId مش invoiceId.
+ * ٥. "finance-project-center" (من ProjectDetails) مدعومة.
+ */
 export const isFinanceView = (view = "") =>
-  view === "finance" || view.startsWith("finance-");
+  view === "finance" || view === "accounting" || view.startsWith("finance-");
 
 export default function FinanceRouter({
   activeView = "finance",
   onNavigate,
   options = {},
 }) {
+  const nav = { onNavigate, onChangeView: onNavigate };
+
   switch (activeView) {
     case "finance":
-      return <FinanceDashboard onNavigate={onNavigate} />;
+    case "accounting":
+      return <FinanceDashboard {...nav} />;
 
     case "finance-chart-accounts":
-      return <ChartOfAccounts onNavigate={onNavigate} />;
+      return <ChartOfAccounts {...nav} />;
 
     case "finance-journal":
-      return <JournalEntries onNavigate={onNavigate} />;
+      return <JournalEntries {...nav} />;
 
     case "finance-general-ledger":
-      return <GeneralLedger onNavigate={onNavigate} />;
+      return <GeneralLedger {...nav} />;
 
     case "finance-collections-center":
-      return <CollectionsCenter onNavigate={onNavigate} />;
+      return <CollectionsCenter {...nav} />;
 
     case "finance-suppliers":
-      return <FinanceSuppliers onNavigate={onNavigate} />;
+      return <FinanceSuppliers {...nav} />;
 
     case "finance-banks":
-      return <FinanceBanks onNavigate={onNavigate} />;
+      return <FinanceBanks {...nav} />;
 
     case "finance-cost-centers":
-      return <FinanceCostCenters onNavigate={onNavigate} />;
+      return <FinanceCostCenters {...nav} />;
 
     case "finance-customers":
-      return <FinanceCustomers onNavigate={onNavigate} />;
+      return <FinanceCustomers {...nav} />;
 
     case "finance-projects":
-      return (
-        <ProjectFinancialCenter
-          onNavigate={onNavigate}
-          projectId={options.projectId}
-        />
-      );
+    case "finance-project-center":
+      return <ProjectFinancialCenter {...nav} projectId={options.projectId} />;
 
     case "finance-supplier-invoices":
-      return <SupplierInvoices onNavigate={onNavigate} />;
+      return <SupplierInvoices {...nav} />;
 
     case "finance-tax-invoices":
-      return <TaxInvoiceCenter onNavigate={onNavigate} />;
+      return <TaxInvoiceCenter {...nav} />;
 
+    case "finance-tax-details":
     case "finance-tax-invoice-details":
       return (
         <TaxInvoiceDetails
-          onNavigate={onNavigate}
-          invoiceId={options.invoiceId ?? options.id}
+          {...nav}
+          taxInvoiceId={options.taxInvoiceId ?? options.invoiceId ?? options.id}
+          viewData={options}
         />
       );
 
     case "finance-vat-center":
-      return <VatCenter onNavigate={onNavigate} />;
+      return <VatCenter {...nav} />;
 
     case "finance-bank-reconciliation":
-      return <BankReconciliation onNavigate={onNavigate} />;
+      return <BankReconciliation {...nav} />;
 
     case "finance-income-statement":
-      return <IncomeStatement onNavigate={onNavigate} />;
+      return <IncomeStatement {...nav} />;
 
     case "finance-balance-sheet":
-      return <BalanceSheet onNavigate={onNavigate} />;
+      return <BalanceSheet {...nav} />;
 
     case "finance-cash-flow":
-      return <CashFlowStatement onNavigate={onNavigate} />;
+      return <CashFlowStatement {...nav} />;
 
     case "finance-reports":
-      return <FinanceReports onNavigate={onNavigate} />;
+      return <FinanceReports {...nav} />;
 
     default:
-      return <FinanceDashboard onNavigate={onNavigate} />;
+      return <FinanceDashboard {...nav} />;
   }
 }

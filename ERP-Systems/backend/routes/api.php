@@ -620,3 +620,9 @@ require __DIR__ . '/hr_v2_stage5.php';
 require __DIR__ . '/hr_v2_stage6.php';
 require __DIR__ . '/hr_v2_stage7.php';
 require __DIR__ . '/hr_v2_stage8.php';
+
+/* فحص منظومة المبيعات — GET /api/sales/system-health */
+require __DIR__ . '/sales-health.php';
+
+/* الصلاحيات وسجل التدقيق — محمية بـ auth:sanctum */
+require __DIR__ . '/settings-routes.php';
