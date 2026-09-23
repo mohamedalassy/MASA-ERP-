@@ -42,13 +42,7 @@ const apps = [
   icon: BrainCircuit,
   tone: "purple",
 },
-{
-  id: "ai-sales",
-  name: "AI Sales",
-  description: "اكتشاف العملاء وتحليل الفرص وذكاء المبيعات بالذكاء الاصطناعي",
-  icon: BrainCircuit,
-  tone: "purple",
-},
+
   {
     id: "pricing",
     name: "التسعير",

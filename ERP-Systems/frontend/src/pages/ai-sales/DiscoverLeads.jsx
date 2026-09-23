@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Shell, Btn, Panel, uiIcons } from "./shared";
-
-const API = "http://127.0.0.1:8000/api/ai-sales";
+import { aiSalesRequest } from "./aiSalesApi";
 
 const REGIONS = [
   "Eastern Province",
@@ -45,6 +44,7 @@ export default function DiscoverLeads({
 
   const [profiles, setProfiles] = useState([]);
   const [selectedProfiles, setSelectedProfiles] = useState([]);
+
   const [selectedSignals, setSelectedSignals] = useState([
     "new_business",
     "expansion",
@@ -63,39 +63,11 @@ export default function DiscoverLeads({
     loadCatalog();
   }, []);
 
-  async function request(url, options = {}) {
-    const response = await fetch(`${API}${url}`, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-      ...options,
-    });
-
-    let data = null;
-
-    try {
-      data = await response.json();
-    } catch {
-      data = null;
-    }
-
-    if (!response.ok) {
-      const validationErrors = data?.errors
-        ? Object.values(data.errors).flat().join(" ")
-        : "";
-
-      throw new Error(
-        validationErrors ||
-          data?.message ||
-          data?.error ||
-          `Request failed (${response.status})`
-      );
-    }
-
-    return data;
-  }
+  /*
+  |--------------------------------------------------------------------------
+  | Create Manual Sales Target
+  |--------------------------------------------------------------------------
+  */
 
   async function createTarget() {
     const name = newTarget.name.trim();
@@ -108,13 +80,15 @@ export default function DiscoverLeads({
     setError("");
 
     try {
-      const created = await request("/catalog-profiles", {
+      const created = await aiSalesRequest("/catalog-profiles", {
         method: "POST",
 
         body: JSON.stringify({
           name,
           type: newTarget.type,
-          description: newTarget.description.trim() || null,
+
+          description:
+            newTarget.description.trim() || null,
 
           keywords: newTarget.keywords
             .split(",")
@@ -145,7 +119,10 @@ export default function DiscoverLeads({
         ]);
       }
     } catch (err) {
-      console.error(err);
+      console.error(
+        "Failed to create AI Sales target:",
+        err
+      );
 
       setError(
         err.message ||
@@ -154,12 +131,20 @@ export default function DiscoverLeads({
     }
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Load AI Sales Catalog
+  |--------------------------------------------------------------------------
+  */
+
   async function loadCatalog() {
     setCatalogLoading(true);
     setError("");
 
     try {
-      const data = await request("/catalog-profiles");
+      const data = await aiSalesRequest(
+        "/catalog-profiles"
+      );
 
       const items = Array.isArray(data)
         ? data
@@ -168,7 +153,9 @@ export default function DiscoverLeads({
       setProfiles(items);
 
       setSelectedProfiles((current) => {
-        const availableIds = items.map((item) => Number(item.id));
+        const availableIds = items.map((item) =>
+          Number(item.id)
+        );
 
         const validCurrent = current.filter((id) =>
           availableIds.includes(Number(id))
@@ -184,7 +171,10 @@ export default function DiscoverLeads({
         );
       });
     } catch (err) {
-      console.error(err);
+      console.error(
+        "Failed to load AI Sales catalog:",
+        err
+      );
 
       setError(
         err.message ||
@@ -195,18 +185,27 @@ export default function DiscoverLeads({
     }
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Sync ERP Catalog
+  |--------------------------------------------------------------------------
+  */
+
   async function syncCatalog() {
     setCatalogSyncing(true);
     setError("");
 
     try {
-      await request("/catalog/sync", {
+      await aiSalesRequest("/catalog/sync", {
         method: "POST",
       });
 
       await loadCatalog();
     } catch (err) {
-      console.error(err);
+      console.error(
+        "Failed to sync ERP catalog:",
+        err
+      );
 
       setError(
         err.message ||
@@ -217,15 +216,29 @@ export default function DiscoverLeads({
     }
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Toggle Target
+  |--------------------------------------------------------------------------
+  */
+
   function toggleProfile(id) {
     const numericId = Number(id);
 
     setSelectedProfiles((current) =>
       current.includes(numericId)
-        ? current.filter((item) => item !== numericId)
+        ? current.filter(
+            (item) => item !== numericId
+          )
         : [...current, numericId]
     );
   }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Toggle Signal
+  |--------------------------------------------------------------------------
+  */
 
   function toggleSignal(id) {
     setSelectedSignals((current) =>
@@ -235,11 +248,18 @@ export default function DiscoverLeads({
     );
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Start Discovery
+  |--------------------------------------------------------------------------
+  */
+
   async function startDiscovery() {
     if (!selectedProfiles.length) {
       setError(
         "Select at least one product or service before starting discovery."
       );
+
       return;
     }
 
@@ -253,24 +273,37 @@ export default function DiscoverLeads({
     setResult(null);
 
     try {
-      const data = await request("/discovery/run", {
-        method: "POST",
+      const data = await aiSalesRequest(
+        "/discovery/run",
+        {
+          method: "POST",
 
-        body: JSON.stringify({
-          catalog_profile_ids: selectedProfiles,
-          country: "Saudi Arabia",
-          region,
-          signals: selectedSignals,
-        }),
-      });
+          body: JSON.stringify({
+            catalog_profile_ids:
+              selectedProfiles,
 
-      setResult(data?.run || data);
+            country: "Saudi Arabia",
+
+            region,
+
+            signals: selectedSignals,
+          }),
+        }
+      );
+
+      const discoveryResult =
+        data?.run ?? data?.data ?? data;
+
+      setResult(discoveryResult);
 
       setTimeout(() => {
         onNavigate?.("ai-sales-discovered");
       }, 900);
     } catch (err) {
-      console.error(err);
+      console.error(
+        "AI Discovery failed:",
+        err
+      );
 
       setError(
         err.message ||
@@ -281,13 +314,44 @@ export default function DiscoverLeads({
     }
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Selected Target Objects
+  |--------------------------------------------------------------------------
+  */
+
   const selectedProfileObjects = useMemo(
     () =>
       profiles.filter((profile) =>
-        selectedProfiles.includes(Number(profile.id))
+        selectedProfiles.includes(
+          Number(profile.id)
+        )
       ),
     [profiles, selectedProfiles]
   );
+
+  /*
+  |--------------------------------------------------------------------------
+  | Discovery Result Counts
+  |--------------------------------------------------------------------------
+  */
+
+  const foundCount =
+    result?.found_count ??
+    result?.total_count ??
+    result?.accepted_count ??
+    0;
+
+  const acceptedCount =
+    result?.accepted_count ??
+    result?.accepted ??
+    0;
+
+  /*
+  |--------------------------------------------------------------------------
+  | Render
+  |--------------------------------------------------------------------------
+  */
 
   return (
     <Shell
@@ -297,20 +361,28 @@ export default function DiscoverLeads({
       subtitle="Build a precise target market and let AI surface companies with real buying signals."
     >
       <div className="workspace-2">
+        {/* =====================================================
+            DISCOVERY CONFIGURATION
+        ===================================================== */}
+
         <Panel
           title="Discovery Configuration"
           action={
             <button
               type="button"
               onClick={syncCatalog}
-              disabled={catalogSyncing || discovering}
+              disabled={
+                catalogSyncing || discovering
+              }
               style={{
                 border: 0,
                 background: "transparent",
+
                 cursor:
                   catalogSyncing || discovering
                     ? "not-allowed"
                     : "pointer",
+
                 fontWeight: 700,
               }}
             >
@@ -321,11 +393,16 @@ export default function DiscoverLeads({
           }
         >
           <div className="pro-form">
+            {/* =============================================
+                Products / Services
+            ============================================= */}
+
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
+                justifyContent:
+                  "space-between",
                 gap: 12,
               }}
             >
@@ -335,7 +412,9 @@ export default function DiscoverLeads({
 
               <button
                 type="button"
-                onClick={() => setShowAddTarget(true)}
+                onClick={() =>
+                  setShowAddTarget(true)
+                }
                 style={{
                   border: 0,
                   background: "transparent",
@@ -370,10 +449,14 @@ export default function DiscoverLeads({
                       type="button"
                       key={profile.id}
                       className={
-                        selected ? "selected" : ""
+                        selected
+                          ? "selected"
+                          : ""
                       }
                       onClick={() =>
-                        toggleProfile(profile.id)
+                        toggleProfile(
+                          profile.id
+                        )
                       }
                       disabled={discovering}
                     >
@@ -399,13 +482,16 @@ export default function DiscoverLeads({
               <div
                 style={{
                   padding: 16,
+
                   border:
                     "1px dashed #d7d7e0",
+
                   borderRadius: 12,
                 }}
               >
                 <strong>
-                  No sales targets configured yet.
+                  No sales targets configured
+                  yet.
                 </strong>
 
                 <div
@@ -415,8 +501,9 @@ export default function DiscoverLeads({
                   }}
                 >
                   Sync ERP products or add a
-                  service, solution, subscription
-                  or project manually.
+                  service, solution,
+                  subscription or project
+                  manually.
                 </div>
 
                 <button
@@ -440,23 +527,34 @@ export default function DiscoverLeads({
               </div>
             )}
 
+            {/* =============================================
+                Add Target
+            ============================================= */}
+
             {showAddTarget && (
               <div
                 style={{
                   border:
                     "1px solid #ddd9ff",
+
                   background: "#faf9ff",
+
                   borderRadius: 14,
+
                   padding: 16,
+
                   display: "grid",
+
                   gap: 10,
                 }}
               >
                 <div
                   style={{
                     display: "flex",
+
                     justifyContent:
                       "space-between",
+
                     alignItems: "center",
                   }}
                 >
@@ -471,9 +569,12 @@ export default function DiscoverLeads({
                     }
                     style={{
                       border: 0,
+
                       background:
                         "transparent",
+
                       cursor: "pointer",
+
                       fontSize: 18,
                     }}
                   >
@@ -509,15 +610,19 @@ export default function DiscoverLeads({
                   <option value="product">
                     Product
                   </option>
+
                   <option value="service">
                     Service
                   </option>
+
                   <option value="subscription">
                     Subscription
                   </option>
+
                   <option value="project">
                     Project
                   </option>
+
                   <option value="solution">
                     Solution
                   </option>
@@ -532,6 +637,7 @@ export default function DiscoverLeads({
                     setNewTarget(
                       (current) => ({
                         ...current,
+
                         description:
                           e.target.value,
                       })
@@ -548,6 +654,7 @@ export default function DiscoverLeads({
                     setNewTarget(
                       (current) => ({
                         ...current,
+
                         keywords:
                           e.target.value,
                       })
@@ -573,6 +680,10 @@ export default function DiscoverLeads({
               </div>
             )}
 
+            {/* =============================================
+                Region
+            ============================================= */}
+
             <select
               value={region}
               onChange={(e) =>
@@ -589,6 +700,10 @@ export default function DiscoverLeads({
                 </option>
               ))}
             </select>
+
+            {/* =============================================
+                Signals
+            ============================================= */}
 
             <label>Company Signals</label>
 
@@ -614,15 +729,24 @@ export default function DiscoverLeads({
               ))}
             </div>
 
+            {/* =============================================
+                Error
+            ============================================= */}
+
             {error && (
               <div
                 style={{
                   padding: "12px 14px",
+
                   borderRadius: 10,
+
                   background: "#fff3f3",
+
                   border:
                     "1px solid #ffd1d1",
+
                   color: "#b42318",
+
                   fontSize: 13,
                 }}
               >
@@ -630,28 +754,44 @@ export default function DiscoverLeads({
               </div>
             )}
 
+            {/* =============================================
+                Result
+            ============================================= */}
+
             {result && (
               <div
                 style={{
                   padding: "12px 14px",
+
                   borderRadius: 10,
+
                   background: "#f2fbf6",
+
                   border:
                     "1px solid #ccebd9",
+
                   fontSize: 13,
                 }}
               >
                 Discovery completed —{" "}
+
                 <strong>
-                  {result.found_count ?? 0}
+                  {foundCount}
                 </strong>{" "}
+
                 companies found,{" "}
+
                 <strong>
-                  {result.accepted_count ?? 0}
+                  {acceptedCount}
                 </strong>{" "}
+
                 accepted.
               </div>
             )}
+
+            {/* =============================================
+                Start Discovery
+            ============================================= */}
 
             <Btn
               onClick={startDiscovery}
@@ -668,11 +808,13 @@ export default function DiscoverLeads({
           </div>
         </Panel>
 
+        {/* =====================================================
+            AI DISCOVERY AGENT
+        ===================================================== */}
+
         <div className="agent-card">
           <div className="agent-orb">
-            <uiIcons.Sparkles
-              size={35}
-            />
+            <uiIcons.Sparkles size={35} />
           </div>
 
           <small>
@@ -686,11 +828,10 @@ export default function DiscoverLeads({
           </h2>
 
           <p>
-            AI uses your ERP catalog and
-            sales settings to find, enrich,
-            verify and score relevant
-            accounts before they reach your
-            team.
+            AI uses your ERP catalog and sales
+            settings to find, enrich, verify
+            and score relevant accounts before
+            they reach your team.
           </p>
 
           <div className="agent-stats">
@@ -700,6 +841,7 @@ export default function DiscoverLeads({
                   selectedProfileObjects.length
                 }
               </b>
+
               Targets
             </span>
 
@@ -707,11 +849,13 @@ export default function DiscoverLeads({
               <b>
                 {selectedSignals.length}
               </b>
+
               Signals
             </span>
 
             <span>
               <b>{profiles.length}</b>
+
               Catalog
             </span>
           </div>
@@ -720,16 +864,19 @@ export default function DiscoverLeads({
             <div
               style={{
                 marginTop: 20,
+
                 padding: 14,
+
                 borderRadius: 12,
+
                 background:
                   "rgba(255,255,255,.08)",
               }}
             >
               Discovering companies in{" "}
-              <strong>
-                {region}
-              </strong>
+
+              <strong>{region}</strong>
+
               ...
             </div>
           )}
