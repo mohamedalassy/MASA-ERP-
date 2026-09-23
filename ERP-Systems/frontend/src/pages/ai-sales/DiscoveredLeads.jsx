@@ -1,61 +1,39 @@
-import { useEffect, useMemo, useState } from "react";
-import { Shell, Btn, Panel, uiIcons } from "./shared";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-const API = "http://127.0.0.1:8000/api/ai-sales";
+import {
+  Shell,
+  Btn,
+  Kpi,
+  Panel,
+  Score,
+} from "./shared";
 
-const REGIONS = [
-  "Eastern Province",
-  "Riyadh",
-  "Makkah",
-  "Madinah",
-  "Qassim",
-  "Asir",
-  "Tabuk",
-  "Hail",
-  "Northern Borders",
-  "Jazan",
-  "Najran",
-  "Al Bahah",
-  "Al Jouf",
-];
+const API =
+  "http://127.0.0.1:8000/api/ai-sales";
 
-const SIGNALS = [
-  { id: "new_business", label: "New Business" },
-  { id: "expansion", label: "Expansion" },
-  { id: "new_branch", label: "New Branch" },
-  { id: "hiring", label: "Hiring" },
-  { id: "projects", label: "Projects" },
-  { id: "funding", label: "Funding" },
-  { id: "tender", label: "Tenders" },
-  { id: "procurement", label: "Procurement" },
-];
-
-export default function DiscoverLeads({
+export default function DiscoveredLeads({
   onNavigate,
-  activeView = "ai-sales-discover",
+  activeView = "ai-sales-discovered",
 }) {
-  const [profiles, setProfiles] = useState([]);
-  const [selectedProfiles, setSelectedProfiles] = useState([]);
-  const [selectedSignals, setSelectedSignals] = useState([
-    "new_business",
-    "expansion",
-  ]);
-
-  const [region, setRegion] = useState("Eastern Province");
-
-  const [catalogLoading, setCatalogLoading] = useState(true);
-  const [catalogSyncing, setCatalogSyncing] = useState(false);
-  const [discovering, setDiscovering] = useState(false);
-
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
 
-  useEffect(() => {
-    loadCatalog();
-  }, []);
+  const [search, setSearch] = useState("");
+  const [minScore, setMinScore] = useState(0);
 
-  async function request(url, options = {}) {
-    const response = await fetch(`${API}${url}`, {
+  /*
+  |--------------------------------------------------------------------------
+  | API Request
+  |--------------------------------------------------------------------------
+  */
+
+  async function request(path, options = {}) {
+    const response = await fetch(`${API}${path}`, {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
@@ -64,22 +42,13 @@ export default function DiscoverLeads({
       ...options,
     });
 
-    let data = null;
-
-    try {
-      data = await response.json();
-    } catch {
-      data = null;
-    }
+    const data = await response
+      .json()
+      .catch(() => null);
 
     if (!response.ok) {
-      const validationErrors = data?.errors
-        ? Object.values(data.errors).flat().join(" ")
-        : "";
-
       throw new Error(
-        validationErrors ||
-          data?.message ||
+        data?.message ||
           data?.error ||
           `Request failed (${response.status})`
       );
@@ -88,375 +57,408 @@ export default function DiscoverLeads({
     return data;
   }
 
-  async function loadCatalog() {
-    setCatalogLoading(true);
+  /*
+  |--------------------------------------------------------------------------
+  | Load Discovered Companies
+  |--------------------------------------------------------------------------
+  */
+
+  async function loadCompanies() {
+    setLoading(true);
     setError("");
 
     try {
-      const data = await request("/catalog-profiles");
+      const data = await request(
+        "/companies?status=discovered&per_page=100"
+      );
 
-      const items = Array.isArray(data)
+      /*
+       * Supports:
+       *
+       * { data: [...] }
+       *
+       * and Laravel paginator:
+       *
+       * { data: [...], current_page: 1, ... }
+       *
+       * and plain array responses.
+       */
+      const rows = Array.isArray(data)
         ? data
-        : data?.data || [];
+        : Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data?.companies)
+            ? data.companies
+            : [];
 
-      setProfiles(items);
-
-      setSelectedProfiles((current) => {
-        const availableIds = items.map((item) => Number(item.id));
-
-        const validCurrent = current.filter((id) =>
-          availableIds.includes(Number(id))
-        );
-
-        if (validCurrent.length) {
-          return validCurrent;
-        }
-
-        return availableIds.slice(0, Math.min(3, availableIds.length));
-      });
+      setCompanies(rows);
     } catch (err) {
-      console.error(err);
+      console.error(
+        "Failed to load discovered companies:",
+        err
+      );
+
       setError(
         err.message ||
-          "Unable to load AI Sales catalog."
+          "Unable to load discovered companies."
       );
     } finally {
-      setCatalogLoading(false);
+      setLoading(false);
     }
   }
 
-  async function syncCatalog() {
-    setCatalogSyncing(true);
-    setError("");
+  useEffect(() => {
+    loadCompanies();
+  }, []);
 
-    try {
-      await request("/catalog/sync", {
-        method: "POST",
-      });
+  /*
+  |--------------------------------------------------------------------------
+  | Normalize Score
+  |--------------------------------------------------------------------------
+  */
 
-      await loadCatalog();
-    } catch (err) {
-      console.error(err);
-      setError(
-        err.message ||
-          "Unable to sync ERP catalog."
-      );
-    } finally {
-      setCatalogSyncing(false);
-    }
-  }
-
-  function toggleProfile(id) {
-    const numericId = Number(id);
-
-    setSelectedProfiles((current) =>
-      current.includes(numericId)
-        ? current.filter((item) => item !== numericId)
-        : [...current, numericId]
+  function getScore(company) {
+    return Number(
+      company?.score?.overall_score ??
+        company?.latest_score?.overall_score ??
+        company?.overall_score ??
+        company?.score?.overall ??
+        company?.score ??
+        0
     );
   }
 
-  function toggleSignal(id) {
-    setSelectedSignals((current) =>
-      current.includes(id)
-        ? current.filter((item) => item !== id)
-        : [...current, id]
+  /*
+  |--------------------------------------------------------------------------
+  | Search / Filter
+  |--------------------------------------------------------------------------
+  */
+
+  const filteredCompanies = useMemo(() => {
+    const term = search
+      .trim()
+      .toLowerCase();
+
+    return companies.filter((company) => {
+      const score = getScore(company);
+
+      const haystack = [
+        company.name,
+        company.industry,
+        company.category,
+        company.city,
+        company.region,
+        company.country,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch =
+        !term || haystack.includes(term);
+
+      const matchesScore =
+        score >= minScore;
+
+      return matchesSearch && matchesScore;
+    });
+  }, [companies, search, minScore]);
+
+  /*
+  |--------------------------------------------------------------------------
+  | KPIs
+  |--------------------------------------------------------------------------
+  */
+
+  const totalCompanies = companies.length;
+
+  const qualifiedCompanies =
+    companies.filter(
+      (company) => getScore(company) >= 60
+    ).length;
+
+  const hotCompanies =
+    companies.filter(
+      (company) => getScore(company) >= 85
+    ).length;
+
+  /*
+  |--------------------------------------------------------------------------
+  | Navigation
+  |--------------------------------------------------------------------------
+  */
+
+  function openCompany(company) {
+    /*
+     * Store selected company temporarily.
+     * Later we'll move this into the AI Sales state/router.
+     */
+    sessionStorage.setItem(
+      "ai-sales-selected-company",
+      JSON.stringify(company)
     );
+
+    onNavigate?.("ai-sales-company-360");
   }
 
-  async function startDiscovery() {
-    if (!selectedProfiles.length) {
-      setError(
-        "Select at least one product or service before starting discovery."
-      );
-      return;
-    }
-
-    if (!region) {
-      setError("Select a target region.");
-      return;
-    }
-
-    setDiscovering(true);
-    setError("");
-    setResult(null);
-
-    try {
-      const data = await request("/discovery/run", {
-        method: "POST",
-
-        body: JSON.stringify({
-          catalog_profile_ids: selectedProfiles,
-          country: "Saudi Arabia",
-          region,
-          signals: selectedSignals,
-        }),
-      });
-
-      setResult(data?.run || data);
-
-      setTimeout(() => {
-        onNavigate?.("ai-sales-discovered");
-      }, 900);
-    } catch (err) {
-      console.error(err);
-
-      setError(
-        err.message ||
-          "AI Discovery could not be completed."
-      );
-    } finally {
-      setDiscovering(false);
-    }
-  }
-
-  const selectedProfileObjects = useMemo(
-    () =>
-      profiles.filter((profile) =>
-        selectedProfiles.includes(Number(profile.id))
-      ),
-    [profiles, selectedProfiles]
-  );
+  /*
+  |--------------------------------------------------------------------------
+  | Render
+  |--------------------------------------------------------------------------
+  */
 
   return (
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="Discover New Leads"
-      subtitle="Build a precise target market and let AI surface companies with real buying signals."
+      title="Discovered Leads"
+      subtitle="Review AI discoveries, evidence, scores and recommended next actions."
     >
-      <div className="workspace-2">
+      <>
+        <div className="mini-kpis">
+          <Kpi
+            type="leads"
+            title="Discovered"
+            value={totalCompanies}
+            delta=""
+            note="AI discovered companies"
+          />
+
+          <Kpi
+            type="companies"
+            title="Qualified"
+            value={qualifiedCompanies}
+            delta=""
+            note="Score ≥ 60"
+          />
+
+          <Kpi
+            type="opportunities"
+            title="Hot Leads"
+            value={hotCompanies}
+            delta=""
+            note="Score ≥ 85"
+          />
+        </div>
+
         <Panel
-          title="Discovery Configuration"
+          title="Lead Intelligence"
           action={
             <button
               type="button"
-              onClick={syncCatalog}
-              disabled={catalogSyncing || discovering}
+              onClick={loadCompanies}
+              disabled={loading}
               style={{
                 border: 0,
                 background: "transparent",
-                cursor:
-                  catalogSyncing || discovering
-                    ? "not-allowed"
-                    : "pointer",
+                color: "#6657F5",
+                cursor: loading
+                  ? "default"
+                  : "pointer",
                 fontWeight: 700,
               }}
             >
-              {catalogSyncing
-                ? "Syncing..."
-                : "Sync ERP Catalog"}
+              {loading
+                ? "Refreshing..."
+                : "Refresh"}
             </button>
           }
         >
-          <div className="pro-form">
-            <label>Target Products & Services</label>
-
-            {catalogLoading ? (
-              <div
-                style={{
-                  padding: "18px 0",
-                  opacity: 0.7,
-                }}
-              >
-                Loading ERP catalog...
-              </div>
-            ) : profiles.length ? (
-              <div className="select-cards">
-                {profiles.map((profile) => {
-                  const selected =
-                    selectedProfiles.includes(
-                      Number(profile.id)
-                    );
-
-                  return (
-                    <button
-                      type="button"
-                      key={profile.id}
-                      className={
-                        selected ? "selected" : ""
-                      }
-                      onClick={() =>
-                        toggleProfile(profile.id)
-                      }
-                      disabled={discovering}
-                    >
-                      {profile.name}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div
-                style={{
-                  padding: 16,
-                  border: "1px dashed #d7d7e0",
-                  borderRadius: 12,
-                }}
-              >
-                <strong>
-                  No AI Sales catalog profiles found.
-                </strong>
-
-                <div
-                  style={{
-                    marginTop: 6,
-                    opacity: 0.7,
-                  }}
-                >
-                  Sync the ERP catalog to create product
-                  profiles.
-                </div>
-              </div>
-            )}
-
-            <label>Target Region</label>
+          <div className="filterbar">
+            <input
+              type="search"
+              placeholder="Search companies, sectors or cities..."
+              value={search}
+              onChange={(event) =>
+                setSearch(event.target.value)
+              }
+            />
 
             <select
-              value={region}
-              onChange={(e) =>
-                setRegion(e.target.value)
+              value={minScore}
+              onChange={(event) =>
+                setMinScore(
+                  Number(event.target.value)
+                )
               }
-              disabled={discovering}
             >
-              {REGIONS.map((item) => (
-                <option
-                  key={item}
-                  value={item}
-                >
-                  {item}
-                </option>
-              ))}
+              <option value={0}>
+                All Scores
+              </option>
+
+              <option value={60}>
+                Qualified ≥ 60
+              </option>
+
+              <option value={75}>
+                Strong ≥ 75
+              </option>
+
+              <option value={85}>
+                Hot ≥ 85
+              </option>
             </select>
 
-            <label>Company Signals</label>
-
-            <div className="select-cards">
-              {SIGNALS.map((signal) => (
-                <button
-                  type="button"
-                  key={signal.id}
-                  className={
-                    selectedSignals.includes(signal.id)
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    toggleSignal(signal.id)
-                  }
-                  disabled={discovering}
-                >
-                  {signal.label}
-                </button>
-              ))}
-            </div>
-
-            {error && (
-              <div
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 10,
-                  background: "#fff3f3",
-                  border: "1px solid #ffd1d1",
-                  color: "#b42318",
-                  fontSize: 13,
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            {result && (
-              <div
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 10,
-                  background: "#f2fbf6",
-                  border: "1px solid #ccebd9",
-                  fontSize: 13,
-                }}
-              >
-                Discovery completed —{" "}
-                <strong>
-                  {result.found_count ?? 0}
-                </strong>{" "}
-                companies found,{" "}
-                <strong>
-                  {result.accepted_count ?? 0}
-                </strong>{" "}
-                accepted.
-              </div>
-            )}
+            <Btn
+              secondary
+              onClick={loadCompanies}
+              disabled={loading}
+            >
+              Refresh
+            </Btn>
 
             <Btn
-              onClick={startDiscovery}
-              disabled={
-                discovering ||
-                catalogLoading ||
-                !selectedProfiles.length
+              onClick={() =>
+                onNavigate?.("ai-sales-discover")
               }
             >
-              {discovering
-                ? "AI is scanning the market..."
-                : "Start AI Discovery →"}
+              + Discover More
             </Btn>
           </div>
-        </Panel>
 
-        <div className="agent-card">
-          <div className="agent-orb">
-            <uiIcons.Sparkles size={35} />
-          </div>
-
-          <small>DISCOVERY AGENT</small>
-
-          <h2>
-            {discovering
-              ? "Scanning the market..."
-              : "Ready to scan the market"}
-          </h2>
-
-          <p>
-            AI uses your ERP catalog and sales settings
-            to find, enrich, verify and score relevant
-            accounts before they reach your team.
-          </p>
-
-          <div className="agent-stats">
-            <span>
-              <b>
-                {selectedProfileObjects.length}
-              </b>
-              Targets
-            </span>
-
-            <span>
-              <b>{selectedSignals.length}</b>
-              Signals
-            </span>
-
-            <span>
-              <b>{profiles.length}</b>
-              Catalog
-            </span>
-          </div>
-
-          {discovering && (
+          {error && (
             <div
               style={{
-                marginTop: 20,
+                margin: "14px 0",
                 padding: 14,
-                borderRadius: 12,
-                background:
-                  "rgba(255,255,255,.08)",
+                borderRadius: 10,
+                border:
+                  "1px solid #fecaca",
+                background: "#fef2f2",
+                color: "#b91c1c",
               }}
             >
-              Discovering companies in{" "}
-              <strong>{region}</strong>...
+              {error}
             </div>
           )}
-        </div>
-      </div>
+
+          {loading ? (
+            <div
+              style={{
+                padding: 30,
+                textAlign: "center",
+                opacity: 0.65,
+              }}
+            >
+              Loading discovered companies...
+            </div>
+          ) : filteredCompanies.length === 0 ? (
+            <div
+              style={{
+                padding: 30,
+                textAlign: "center",
+                border:
+                  "1px dashed #d9dce7",
+                borderRadius: 12,
+                marginTop: 14,
+              }}
+            >
+              <strong>
+                No discovered companies found.
+              </strong>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  opacity: 0.65,
+                }}
+              >
+                Run AI Discovery or change the
+                current filters.
+              </div>
+            </div>
+          ) : (
+            <div className="data-table">
+              <div className="tr th">
+                <span>Company</span>
+                <span>Industry</span>
+                <span>Location</span>
+                <span>AI Score</span>
+                <span>Status</span>
+              </div>
+
+              {filteredCompanies.map(
+                (company) => {
+                  const score =
+                    getScore(company);
+
+                  return (
+                    <div
+                      className="tr"
+                      key={company.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() =>
+                        openCompany(company)
+                      }
+                      onKeyDown={(event) => {
+                        if (
+                          event.key ===
+                            "Enter" ||
+                          event.key === " "
+                        ) {
+                          openCompany(company);
+                        }
+                      }}
+                      style={{
+                        cursor: "pointer",
+                      }}
+                    >
+                      <b>
+                        {company.name ||
+                          "Unnamed Company"}
+                      </b>
+
+                      <span>
+                        {company.industry ||
+                          company.category ||
+                          "—"}
+                      </span>
+
+                      <span>
+                        {[
+                          company.city,
+                          company.region,
+                        ]
+                          .filter(Boolean)
+                          .join(", ") || "—"}
+                      </span>
+
+                      <Score n={score} />
+
+                      <span
+                        style={{
+                          textTransform:
+                            "capitalize",
+                        }}
+                      >
+                        {company.status ||
+                          "discovered"}
+                      </span>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+          )}
+
+          {!loading &&
+            filteredCompanies.length > 0 && (
+              <div
+                style={{
+                  marginTop: 12,
+                  fontSize: 12,
+                  opacity: 0.6,
+                }}
+              >
+                Showing{" "}
+                {filteredCompanies.length} of{" "}
+                {companies.length} discovered
+                companies.
+              </div>
+            )}
+        </Panel>
+      </>
     </Shell>
   );
 }
