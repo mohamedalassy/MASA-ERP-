@@ -1,22 +1,22 @@
-import { 
-  Users, 
-  TrendingUp, 
-  BadgeDollarSign, 
-  FileText, 
-  ShoppingCart, 
-  Package, 
-  Calculator, 
-  FolderKanban, 
-  UserRound, 
-  WalletCards, 
-  BarChart3, 
-  Settings, 
-  Headphones, 
-  Boxes, 
-  Building2, 
+import {
+  Users,
+  TrendingUp,
+  BadgeDollarSign,
+  FileText,
+  ShoppingCart,
+  Package,
+  Calculator,
+  FolderKanban,
+  UserRound,
+  WalletCards,
+  BarChart3,
+  Settings,
+  Headphones,
+  Boxes,
+  Building2,
   Wrench,
   BrainCircuit,
-  ChevronLeft, 
+  ChevronLeft,
 } from "lucide-react";
 
 const apps = [
@@ -31,18 +31,19 @@ const apps = [
   {
     id: "sales",
     name: "المبيعات",
-    description: "Leads والفرص والعروض وأوامر البيع والعقود والتحليلات",
+    description:
+      "Leads والفرص والعروض وأوامر البيع والعقود والتحليلات",
     icon: TrendingUp,
     tone: "purple",
   },
   {
-  id: "ai-sales",
-  name: "AI Sales",
-  description: "اكتشاف العملاء وتحليل الفرص وذكاء المبيعات بالذكاء الاصطناعي",
-  icon: BrainCircuit,
-  tone: "purple",
-},
-
+    id: "ai-sales",
+    name: "AI Sales",
+    description:
+      "اكتشاف العملاء وتحليل الفرص وذكاء المبيعات بالذكاء الاصطناعي",
+    icon: BrainCircuit,
+    tone: "purple",
+  },
   {
     id: "pricing",
     name: "التسعير",
@@ -72,14 +73,18 @@ const apps = [
     icon: Package,
     tone: "green",
   },
+
+  /* =========================
+     MASA Finance
+  ========================= */
   {
     id: "accounting",
     name: "المحاسبة",
     description: "الحسابات والقيود والتقارير المالية",
     icon: Calculator,
     tone: "teal",
-    stage: "finance",
   },
+
   {
     id: "projects",
     name: "المشاريع",
@@ -154,27 +159,58 @@ export default function AppLauncher({
       return;
     }
 
-    // Sales opens the new Sales Command Center directly.
+    /* =========================
+       Sales
+    ========================= */
+
     if (app.id === "sales") {
       onChangeView("sales");
       return;
     }
 
-    // Pricing keeps its current standalone dashboard.
+    /* =========================
+       AI Sales
+    ========================= */
+
+    if (app.id === "ai-sales") {
+      onChangeView("ai-sales");
+      return;
+    }
+
+    /* =========================
+       Pricing
+    ========================= */
+
     if (app.id === "pricing") {
       onChangeView("pricing");
       return;
     }
 
-    // Preserve the existing workflow for CRM,
-    // Purchasing, Accounting and Projects.
+    /* =========================
+       MASA Finance
+    ========================= */
+
+    if (app.id === "accounting") {
+      onChangeView("finance");
+      return;
+    }
+
+    /* =========================
+       Existing Work Order Apps
+    ========================= */
+
     if (app.stage) {
       onChangeView("work-orders", {
         stage: app.stage,
         source: app.id,
       });
+
       return;
     }
+
+    /* =========================
+       Default
+    ========================= */
 
     onChangeView(app.id);
   };

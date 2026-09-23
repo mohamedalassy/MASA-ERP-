@@ -11,6 +11,13 @@ import PricingReports from "./pages/PricingReports";
 import AISalesRouter from "./pages/ai-sales/AISalesRouter";
 
 /* =========================
+   MASA Finance
+========================= */
+import FinanceRouter, {
+  isFinanceView,
+} from "./pages/finance/FinanceRouter";
+
+/* =========================
    MASA People V2
 ========================= */
 import PeopleRouter, {
@@ -73,6 +80,12 @@ function App() {
 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
 
+  /* =========================
+     Finance
+  ========================= */
+
+  const [financeOptions, setFinanceOptions] = useState({});
+
   const handleChangeView = (view, options = {}) => {
     /*
     |--------------------------------------------------------------------------
@@ -125,6 +138,19 @@ function App() {
 
       setActiveWorkOrderSource(null);
       setActiveView("hr-v2-employee-360");
+      return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | MASA Finance
+    |--------------------------------------------------------------------------
+    */
+
+    if (isFinanceView(view)) {
+      setFinanceOptions(options || {});
+      setActiveWorkOrderSource(null);
+      setActiveView(view);
       return;
     }
 
@@ -183,6 +209,18 @@ function App() {
 
           {activeView === "dashboard" && (
             <Dashboard onChangeView={handleChangeView} />
+          )}
+
+          {/* =========================
+              MASA Finance
+          ========================= */}
+
+          {isFinanceView(activeView) && (
+            <FinanceRouter
+              activeView={activeView}
+              onNavigate={handleChangeView}
+              options={financeOptions}
+            />
           )}
 
           {/* =========================
