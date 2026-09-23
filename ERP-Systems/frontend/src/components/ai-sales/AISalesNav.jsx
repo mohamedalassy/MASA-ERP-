@@ -2,6 +2,7 @@ import {
   House,
   Compass,
   Building2,
+  UsersRound,
   Handshake,
   FileSearch,
   MapPinned,
@@ -18,6 +19,10 @@ const items = [
   ["ai-sales", "Home", House],
   ["ai-sales-discover", "Discover", Compass],
   ["ai-sales-companies", "Companies", Building2],
+
+  // AI-approved sales leads
+  ["ai-sales-leads", "Leads", UsersRound],
+
   ["ai-sales-opportunities", "Opportunities", Handshake],
   ["ai-sales-tenders", "Tenders", FileSearch],
   ["ai-sales-map", "Map", MapPinned],

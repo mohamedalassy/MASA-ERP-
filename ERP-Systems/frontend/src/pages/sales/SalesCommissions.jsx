@@ -1,12 +1,9 @@
-
-import { SalesPageFrame, SalesPanel, SalesState, StatusPill } from "../../components/sales/SalesPageFrame";
-import { useSalesApi } from "../../hooks/useSalesApi";
-const money=v=>new Intl.NumberFormat("ar-SA",{style:"currency",currency:"SAR",maximumFractionDigits:0}).format(Number(v||0));
-export default function SalesCommissions({onNavigate}) {
- const {data,loading,error}=useSalesApi("/sales/commissions");
- const rows=Array.isArray(data)?data:[];
- return <SalesPageFrame activeView="sales-commissions" onNavigate={onNavigate} title="محرك العمولات" description="عمولات مبنية على التحصيل الفعلي.">
- <SalesState loading={loading} error={error} empty={!rows.length}><SalesPanel title="Commission Statement"><div className="sales-table"><div className="sales-table-head cols-6"><span>المندوب</span><span>Basis</span><span>Eligible</span><span>Rate</span><span>Commission</span><span>Status</span></div>
- {rows.map(x=><div className="sales-table-row cols-6" key={x.id}><strong>{x.user?.name||"-"}</strong><span>{x.basis}</span><span>{money(x.eligible_amount)}</span><span>{x.rate}%</span><b>{money(x.commission_amount)}</b><StatusPill tone={x.status==="approved"?"green":"orange"}>{x.status}</StatusPill></div>)}</div></SalesPanel></SalesState>
- </SalesPageFrame>
+import {BadgeDollarSign, CheckCircle2, Clock3, WalletCards} from "lucide-react";
+import SalesWorkspace from "./components/SalesWorkspace";
+export default function SalesCommissions({onNavigate,activeView="sales-commissions"}) {
+ return <SalesWorkspace activeView={activeView} onNavigate={onNavigate}><section className="sv3-page">
+  <header className="sv3-head"><div><span>SALES COMPENSATION</span><h1>Commissions</h1><p>Transparent commission accruals tied to performance and collection.</p></div></header>
+  <div className="sv3-commission-wallet"><div><WalletCards size={22}/><span>Total Accrued</span><b>SAR 184K</b><small>Q3 2026</small></div><div><CheckCircle2 size={18}/><span>Approved</span><b>SAR 126K</b></div><div><Clock3 size={18}/><span>Pending</span><b>SAR 42K</b></div><div><BadgeDollarSign size={18}/><span>Paid</span><b>SAR 116K</b></div></div>
+  <div className="sv3-commission-table">{[["Ahmed","SAR 48K","SAR 34K","SAR 14K"],["Mohamed","SAR 42K","SAR 31K","SAR 11K"],["Sara","SAR 39K","SAR 28K","SAR 11K"],["Khaled","SAR 31K","SAR 22K","SAR 9K"]].map(r=><div key={r[0]}><span className="avatar">{r[0][0]}</span><b>{r[0]}</b><span>{r[1]} earned</span><strong>{r[2]} approved</strong><em>{r[3]} pending</em></div>)}</div>
+ </section></SalesWorkspace>
 }

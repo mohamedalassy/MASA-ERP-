@@ -1,13 +1,10 @@
-
-import { SalesPageFrame, SalesPanel, SalesState, ProgressBar } from "../../components/sales/SalesPageFrame";
-import { useSalesApi } from "../../hooks/useSalesApi";
-const money=v=>new Intl.NumberFormat("ar-SA",{style:"currency",currency:"SAR",maximumFractionDigits:0}).format(Number(v||0));
-export default function SalesTargets({onNavigate}) {
- const {data,loading,error}=useSalesApi("/sales/targets/performance");
- const rows=Array.isArray(data)?data:[];
- return <SalesPageFrame activeView="sales-targets" onNavigate={onNavigate} title="الأهداف والحصص البيعية" description="Target vs Actual حسب الفرع والمندوب.">
- <SalesState loading={loading} error={error} empty={!rows.length}><SalesPanel title="Target Performance"><div className="sales-targets-grid">
- {rows.map((x,i)=><article className="sales-target-card" key={x.target?.id||i}><strong>{x.target?.user?.name||x.target?.branch?.name||"Branch Target"}</strong><div className="sales-target-values"><div><span>Target</span><strong>{money(x.target?.target_amount)}</strong></div><div><span>Actual</span><strong>{money(x.actual_amount)}</strong></div><div><span>Gap</span><strong>{money(x.gap)}</strong></div></div><ProgressBar value={x.achievement_percent} tone={x.achievement_percent>=90?"green":"orange"}/><small>{x.achievement_percent}%</small></article>)}
- </div></SalesPanel></SalesState>
- </SalesPageFrame>
+import {Crown, Goal, Medal, TrendingUp, Trophy} from "lucide-react";
+import SalesWorkspace from "./components/SalesWorkspace";
+export default function SalesTargets({onNavigate,activeView="sales-targets"}) {
+ const reps=[["Ahmed","SAR 1.42M",108],["Mohamed","SAR 1.18M",94],["Sara","SAR 1.04M",91],["Khaled","SAR 890K",82]];
+ return <SalesWorkspace activeView={activeView} onNavigate={onNavigate}><section className="sv3-page">
+  <header className="sv3-head"><div><span>QUOTA & PERFORMANCE</span><h1>Sales Targets</h1><p>Align team execution to revenue goals and quota attainment.</p></div></header>
+  <div className="sv3-target-hero"><div className="sv3-target-ring"><b>70%</b><span>Q3 attained</span></div><div><span>TEAM TARGET</span><b>SAR 7.0M</b><small>SAR 4.9M achieved • SAR 2.1M gap</small></div><div className="sv3-target-forecast"><TrendingUp size={18}/><span>Forecast finish</span><b>92%</b><small>of target</small></div></div>
+  <div className="sv3-leaderboard"><header><Trophy size={18}/><h3>Sales Leaderboard</h3><span>Q3 2026</span></header>{reps.map(([n,v,p],i)=><div key={n}><span className={"rank r"+i}>{i===0?<Crown size={15}/>:i<3?<Medal size={14}/>:i+1}</span><div><b>{n}</b><small>{v} closed</small></div><div className="sv3-quota-bar"><i style={{width:`${Math.min(p,100)}%`}}/></div><strong>{p}%</strong></div>)}</div>
+ </section></SalesWorkspace>
 }

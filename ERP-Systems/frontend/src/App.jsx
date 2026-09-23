@@ -45,18 +45,13 @@ import PricingApprovals from "./pages/PricingApprovals";
 /* =========================
    Sales
 ========================= */
-import SalesCommandCenter from "./pages/sales/SalesCommandCenter";
-import SalesLeads from "./pages/sales/SalesLeads";
-import SalesOpportunities from "./pages/sales/SalesOpportunities";
-import SalesPipeline from "./pages/sales/SalesPipeline";
-import SalesCustomer360 from "./pages/sales/SalesCustomer360";
-import SalesActivities from "./pages/sales/SalesActivities";
-import SalesQuotations from "./pages/sales/SalesQuotations";
+import SalesModule, {
+  isSalesView,
+} from "./pages/sales/SalesModule";
+
+// Keep the existing quotation builder page.
+// It is outside SalesModule so the current quotation workflow is not broken.
 import SalesCreateQuotation from "./pages/sales/SalesCreateQuotation";
-import SalesNegotiations from "./pages/sales/SalesNegotiations";
-import SalesOrders from "./pages/sales/SalesOrders";
-import SalesContracts from "./pages/sales/SalesContracts";
-import SalesReports from "./pages/sales/SalesReports";
 
 import "./styles/master.css";
 import "./styles/sales-premium.css";
@@ -239,52 +234,18 @@ function App() {
               Sales
           ========================= */}
 
-          {activeView === "sales" && (
-            <SalesCommandCenter onNavigate={handleChangeView} />
+          {isSalesView(activeView) && (
+            <SalesModule
+              activeView={activeView}
+              onNavigate={handleChangeView}
+            />
           )}
 
-          {activeView === "sales-leads" && (
-            <SalesLeads onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "sales-opportunities" && (
-            <SalesOpportunities onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "sales-pipeline" && (
-            <SalesPipeline onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "sales-customers" && (
-            <SalesCustomer360 onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "sales-activities" && (
-            <SalesActivities onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "sales-quotations" && (
-            <SalesQuotations onNavigate={handleChangeView} />
-          )}
-
+          {/* Existing quotation creation workflow */}
           {activeView === "sales-create-quotation" && (
-            <SalesCreateQuotation onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "sales-negotiations" && (
-            <SalesNegotiations onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "sales-orders" && (
-            <SalesOrders onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "sales-contracts" && (
-            <SalesContracts onNavigate={handleChangeView} />
-          )}
-
-          {activeView === "sales-reports" && (
-            <SalesReports onNavigate={handleChangeView} />
+            <SalesCreateQuotation
+              onNavigate={handleChangeView}
+            />
           )}
 
           {/* =========================

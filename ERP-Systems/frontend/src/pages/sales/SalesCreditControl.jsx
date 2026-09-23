@@ -1,12 +1,10 @@
-
-import { SalesPageFrame, SalesPanel, SalesState, StatusPill, ProgressBar } from "../../components/sales/SalesPageFrame";
-import { useSalesApi } from "../../hooks/useSalesApi";
-const money=v=>new Intl.NumberFormat("ar-SA",{style:"currency",currency:"SAR",maximumFractionDigits:0}).format(Number(v||0));
-export default function SalesCreditControl({onNavigate}) {
- const {data,loading,error}=useSalesApi("/sales/credit-control");
- const rows=Array.isArray(data)?data:[];
- return <SalesPageFrame activeView="sales-credit-control" onNavigate={onNavigate} title="Customer Credit Control" description="الحد الائتماني والمستخدم والمتأخرات والمخاطر.">
- <SalesState loading={loading} error={error} empty={!rows.length}><SalesPanel title="Credit Risk Desk"><div className="sales-table"><div className="sales-table-head cols-6"><span>العميل</span><span>Limit</span><span>Used</span><span>Available</span><span>Overdue</span><span>Risk</span></div>
- {rows.map(x=><div className="sales-table-row cols-6" key={x.id}><strong>{x.customer?.name||"-"}</strong><span>{money(x.credit_limit)}</span><div><span>{money(x.used_credit)}</span><ProgressBar value={Number(x.credit_limit)>0?Number(x.used_credit)/Number(x.credit_limit)*100:0} tone={x.risk_status==="high"?"red":"orange"}/></div><span>{money(x.available_credit)}</span><b>{money(x.overdue_amount)}</b><StatusPill tone={x.risk_status==="low"?"green":x.risk_status==="medium"?"orange":"red"}>{x.risk_status}</StatusPill></div>)}</div></SalesPanel></SalesState>
- </SalesPageFrame>
+import {AlertTriangle, CreditCard, ShieldCheck, TimerReset} from "lucide-react";
+import SalesWorkspace from "./components/SalesWorkspace";
+export default function SalesCreditControl({onNavigate,activeView="sales-credit"}) {
+ return <SalesWorkspace activeView={activeView} onNavigate={onNavigate}><section className="sv3-page">
+  <header className="sv3-head"><div><span>RECEIVABLES RISK</span><h1>Credit Control</h1><p>Manage exposure, aging and customers approaching credit limits.</p></div></header>
+  <div className="sv3-credit-top"><div><CreditCard size={18}/><span>Total Receivables</span><b>SAR 1.34M</b></div><div><AlertTriangle size={18}/><span>Overdue</span><b>SAR 410K</b></div><div><ShieldCheck size={18}/><span>Within Limit</span><b>93%</b></div><div><TimerReset size={18}/><span>DSO</span><b>46 days</b></div></div>
+  <div className="sv3-aging-chart"><h3>Aging Distribution</h3>{[["Current",610,46],["1–30",330,25],["31–60",210,16],["61–90",120,9],["90+",70,5]].map(([a,v,p])=><div key={a}><span>{a}</span><div className="bar"><i style={{width:`${p*2}%`}}/></div><b>SAR {v}K</b><strong>{p}%</strong></div>)}</div>
+  <div className="sv3-credit-cards">{[["Gulf Logistics","SAR 210K","120%","Over Limit"],["Al Noor Contracting","SAR 142K","88%","Watch"],["Eastern Industrial","SAR 88K","44%","Healthy"]].map(([a,b,c,d])=><article key={a}><h3>{a}</h3><b>{b}</b><span>Exposure</span><div className="meter"><i style={{width:c}}/></div><footer><span>{c} of limit</span><strong>{d}</strong></footer></article>)}</div>
+ </section></SalesWorkspace>
 }

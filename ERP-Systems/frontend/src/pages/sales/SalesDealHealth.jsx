@@ -1,11 +1,12 @@
-
-import { SalesPageFrame, SalesPanel, SalesState, StatusPill, ProgressBar } from "../../components/sales/SalesPageFrame";
-import { useSalesApi } from "../../hooks/useSalesApi";
-export default function SalesDealHealth({onNavigate}) {
- const {data,loading,error}=useSalesApi("/sales/deal-health");
- const rows=Array.isArray(data)?data:[];
- return <SalesPageFrame activeView="sales-deal-health" onNavigate={onNavigate} title="Deal Health Center" description="Scoring ومخاطر الصفقات بناءً على النشاط والاحتمالية والإغلاق.">
- <SalesState loading={loading} error={error} empty={!rows.length}><SalesPanel title="Deal Health"><div className="sales-table"><div className="sales-table-head cols-6"><span>الفرصة</span><span>العميل</span><span>Score</span><span>Inactive</span><span>Risk</span><span>Health</span></div>
- {rows.map(x=><div className="sales-table-row cols-6" key={x.id}><strong>{x.opportunity?.name||"-"}</strong><span>{x.opportunity?.customer?.name||"-"}</span><div><span>{x.score}</span><ProgressBar value={x.score} tone={x.score>=75?"green":x.score>=50?"orange":"red"}/></div><span>{x.days_since_activity}d</span><span>{x.risk_level}</span><StatusPill tone={x.health==="healthy"?"green":x.health==="watch"?"orange":"red"}>{x.health}</StatusPill></div>)}</div></SalesPanel></SalesState>
- </SalesPageFrame>
+import {AlertTriangle, HeartPulse, ShieldAlert, ShieldCheck} from "lucide-react";
+import SalesWorkspace from "./components/SalesWorkspace";
+export default function SalesDealHealth({onNavigate,activeView="sales-deal-health"}) {
+ return <SalesWorkspace activeView={activeView} onNavigate={onNavigate}><section className="sv3-page">
+  <header className="sv3-head"><div><span>RISK INTELLIGENCE</span><h1>Deal Health</h1><p>Spot deterioration before opportunities slip or stall.</p></div></header>
+  <div className="sv3-health-bands">{[[ShieldCheck,"Healthy","28","green"],[HeartPulse,"Needs Attention","12","blue"],[AlertTriangle,"At Risk","6","orange"],[ShieldAlert,"Critical","2","red"]].map(([I,a,b,t])=><div className={t} key={a}><I size={19}/><b>{b}</b><span>{a}</span></div>)}</div>
+  <div className="sv3-risk-matrix"><div className="axis-y">Risk →</div><div className="grid">
+   {[["Eastern Industrial","380K","low high"],["Gulf Logistics","195K","high medium"],["Al Noor","265K","medium high"],["Nova Medical","318K","low medium"],["Afaq","142K","high low"]].map(([a,b,c])=><button className={c} key={a}><b>{a}</b><span>SAR {b}</span></button>)}
+  </div><div className="axis-x">Value / Strategic Importance →</div></div>
+  <div className="sv3-risk-queue">{["No activity for 12 days","Close date moved twice","Discount increased beyond norm","Customer response slowing"].map((x,i)=><div key={x}><span>{i+1}</span><b>{x}</b><small>{["Gulf Logistics","Al Noor Contracting","Afaq Facilities","Gulf Logistics"][i]}</small></div>)}</div>
+ </section></SalesWorkspace>
 }

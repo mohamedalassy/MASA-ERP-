@@ -13,8 +13,7 @@ import {
   uiIcons,
 } from "./shared";
 
-const API =
-  "http://127.0.0.1:8000/api/ai-sales";
+import { aiSalesRequest } from "./aiSalesApi";
 
 export default function Company360({
   onNavigate,
@@ -23,39 +22,9 @@ export default function Company360({
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [converting, setConverting] = useState(false);
+  const [converting, setConverting] =
+    useState(false);
   const [success, setSuccess] = useState("");
-
-  /*
-  |--------------------------------------------------------------------------
-  | API
-  |--------------------------------------------------------------------------
-  */
-
-  async function request(path, options = {}) {
-    const response = await fetch(`${API}${path}`, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-      ...options,
-    });
-
-    const data = await response
-      .json()
-      .catch(() => null);
-
-    if (!response.ok) {
-      throw new Error(
-        data?.message ||
-          data?.error ||
-          `Request failed (${response.status})`
-      );
-    }
-
-    return data;
-  }
 
   /*
   |--------------------------------------------------------------------------
@@ -98,7 +67,7 @@ export default function Company360({
     }
 
     try {
-      const data = await request(
+      const data = await aiSalesRequest(
         `/companies/${stored.id}`
       );
 
@@ -114,6 +83,11 @@ export default function Company360({
         err
       );
 
+      /*
+       * لو تحميل التفاصيل الكاملة فشل،
+       * نعرض بيانات الشركة المحفوظة بدل
+       * شاشة بيضاء.
+       */
       setCompany(stored);
 
       setError(
@@ -326,7 +300,7 @@ export default function Company360({
     setSuccess("");
 
     try {
-      const data = await request(
+      const data = await aiSalesRequest(
         `/companies/${company.id}/leads`,
         {
           method: "POST",
@@ -354,6 +328,20 @@ export default function Company360({
         data?.data ??
         data;
 
+      /*
+       * حماية إضافية في حالة الـAPI
+       * رجّع response غير متوقع.
+       */
+      if (!createdLead?.id) {
+        throw new Error(
+          "Lead was created but the API did not return a valid lead record."
+        );
+      }
+
+      /*
+       * تحديث Company 360 محليًا
+       * بدون الحاجة لإعادة تحميل الصفحة.
+       */
       setCompany((current) => ({
         ...current,
 
@@ -367,6 +355,10 @@ export default function Company360({
         ],
       }));
 
+      /*
+       * حفظ الـLead المختار لاستخدامه
+       * في صفحة Lead Details.
+       */
       sessionStorage.setItem(
         "ai-sales-selected-lead",
         JSON.stringify(createdLead)
@@ -495,13 +487,18 @@ export default function Company360({
       subtitle="Everything your sales team needs before contacting a target account."
     >
       <>
+        {/* =====================================================
+            Error
+        ===================================================== */}
+
         {error && (
           <div
             style={{
               marginBottom: 14,
               padding: 13,
               borderRadius: 10,
-              border: "1px solid #fecaca",
+              border:
+                "1px solid #fecaca",
               background: "#fef2f2",
               color: "#b91c1c",
             }}
@@ -510,13 +507,18 @@ export default function Company360({
           </div>
         )}
 
+        {/* =====================================================
+            Success
+        ===================================================== */}
+
         {success && (
           <div
             style={{
               marginBottom: 14,
               padding: 13,
               borderRadius: 10,
-              border: "1px solid #bbf7d0",
+              border:
+                "1px solid #bbf7d0",
               background: "#f0fdf4",
               color: "#166534",
             }}
@@ -525,9 +527,9 @@ export default function Company360({
           </div>
         )}
 
-        {/* =========================
+        {/* =====================================================
             Account Hero
-        ========================= */}
+        ===================================================== */}
 
         <div className="account-hero">
           <div className="account-logo">
@@ -579,9 +581,9 @@ export default function Company360({
           )}
         </div>
 
-        {/* =========================
+        {/* =====================================================
             Score Breakdown
-        ========================= */}
+        ===================================================== */}
 
         <div className="mini-kpis">
           <Kpi
@@ -634,9 +636,9 @@ export default function Company360({
           />
         </div>
 
-        {/* =========================
+        {/* =====================================================
             Intelligence
-        ========================= */}
+        ===================================================== */}
 
         <div className="workspace-3">
           <Panel title="Account Signals">
@@ -748,9 +750,9 @@ export default function Company360({
           </Panel>
         </div>
 
-        {/* =========================
+        {/* =====================================================
             Timeline + Intelligence
-        ========================= */}
+        ===================================================== */}
 
         <div className="workspace-2">
           <Panel title="Opportunity Timeline">

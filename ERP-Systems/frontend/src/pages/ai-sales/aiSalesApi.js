@@ -1,12 +1,13 @@
-const BACKEND_URL = "http://127.0.0.1:8000";
-const API_URL = `${BACKEND_URL}/api/ai-sales`;
+const API_URL = "/api/ai-sales";
 
 let csrfReady = false;
 
 function getCookie(name) {
   const cookies = document.cookie
     .split("; ")
-    .find((row) => row.startsWith(`${name}=`));
+    .find((row) =>
+      row.startsWith(`${name}=`)
+    );
 
   if (!cookies) {
     return null;
@@ -18,12 +19,15 @@ function getCookie(name) {
 }
 
 async function ensureCsrfCookie() {
-  if (csrfReady && getCookie("XSRF-TOKEN")) {
+  const existingToken =
+    getCookie("XSRF-TOKEN");
+
+  if (csrfReady && existingToken) {
     return;
   }
 
   const response = await fetch(
-    `${BACKEND_URL}/sanctum/csrf-cookie`,
+    "/sanctum/csrf-cookie",
     {
       method: "GET",
       credentials: "include",
@@ -43,9 +47,12 @@ async function ensureCsrfCookie() {
 }
 
 function isWriteMethod(method) {
-  return ["POST", "PUT", "PATCH", "DELETE"].includes(
-    method.toUpperCase()
-  );
+  return [
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+  ].includes(method.toUpperCase());
 }
 
 export async function aiSalesRequest(
@@ -75,10 +82,12 @@ export async function aiSalesRequest(
   }
 
   if (isWriteMethod(method)) {
-    const token = getCookie("XSRF-TOKEN");
+    const token =
+      getCookie("XSRF-TOKEN");
 
     if (token) {
-      headers["X-XSRF-TOKEN"] = token;
+      headers["X-XSRF-TOKEN"] =
+        token;
     }
   }
 
@@ -104,7 +113,9 @@ export async function aiSalesRequest(
     const message =
       data?.message ||
       data?.error ||
-      Object.values(data?.errors || {})
+      Object.values(
+        data?.errors || {}
+      )
         .flat()
         .join(" ") ||
       `Request failed (${response.status})`;
@@ -124,4 +135,4 @@ export async function initializeAiSalesCsrf() {
   await ensureCsrfCookie();
 }
 
-export { API_URL, BACKEND_URL };
+export { API_URL };

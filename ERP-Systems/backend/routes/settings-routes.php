@@ -5,52 +5,119 @@
 | الصلاحيات وسجل التدقيق
 |--------------------------------------------------------------------------
 |
-| ضمّه في routes/api.php:
-|     require __DIR__ . '/settings-routes.php';
+| يتم تحميل هذا الملف من routes/api.php:
 |
-| ⚠ المسارات دي **لازم** تكون محمية — هي اللي بتدير الصلاحيات نفسها.
+| require __DIR__ . '/settings-routes.php';
+|
+| هذه المسارات محمية لأنها تدير الصلاحيات وسجل التدقيق.
 |
 */
 
-use AppHttpControllersApiAuditLogController;
-use AppHttpControllersApiPermissionController;
-use IlluminateSupportFacadesRoute;
+use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\PermissionController;
+use Illuminate\Support\Facades\Route;
 
-/* صلاحياتي — متاح لأي مستخدم مسجّل */
+/*
+|--------------------------------------------------------------------------
+| My Permissions
+|--------------------------------------------------------------------------
+|
+| متاح لأي مستخدم مسجل.
+|
+*/
+
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('me/permissions', [PermissionController::class, 'me']);
+
+    Route::get(
+        'me/permissions',
+        [PermissionController::class, 'me']
+    );
+
 });
 
-/* إدارة الصلاحيات — محمية بصلاحية permissions.manage */
-Route::middleware(['auth:sanctum', 'permission:permissions.manage'])
+/*
+|--------------------------------------------------------------------------
+| Permissions Management
+|--------------------------------------------------------------------------
+|
+| محمية بصلاحية:
+| permissions.manage
+|
+*/
+
+Route::middleware([
+    'auth:sanctum',
+    'permission:permissions.manage',
+])
     ->prefix('settings')
     ->group(function () {
 
-        Route::get('permissions', [PermissionController::class, 'catalog']);
+        Route::get(
+            'permissions',
+            [PermissionController::class, 'catalog']
+        );
 
-        Route::get('departments', [PermissionController::class, 'departments']);
+        Route::get(
+            'departments',
+            [PermissionController::class, 'departments']
+        );
 
         Route::put(
             'departments/{department}/permissions',
-            [PermissionController::class, 'updateDepartmentPermissions']
+            [
+                PermissionController::class,
+                'updateDepartmentPermissions',
+            ]
         );
 
         Route::get(
             'users/{user}/permissions',
-            [PermissionController::class, 'userPermissions']
+            [
+                PermissionController::class,
+                'userPermissions',
+            ]
         );
 
         Route::put(
             'users/{user}/permissions',
-            [PermissionController::class, 'updateUserPermissions']
+            [
+                PermissionController::class,
+                'updateUserPermissions',
+            ]
         );
+
     });
 
-/* سجل التدقيق — محمي بصلاحية audit.view */
-Route::middleware(['auth:sanctum', 'permission:audit.view'])
+/*
+|--------------------------------------------------------------------------
+| Audit Logs
+|--------------------------------------------------------------------------
+|
+| محمية بصلاحية:
+| audit.view
+|
+*/
+
+Route::middleware([
+    'auth:sanctum',
+    'permission:audit.view',
+])
     ->prefix('settings/audit-logs')
     ->group(function () {
-        Route::get('summary', [AuditLogController::class, 'summary']);
-        Route::get('/', [AuditLogController::class, 'index']);
-        Route::get('{auditLog}', [AuditLogController::class, 'show']);
+
+        Route::get(
+            'summary',
+            [AuditLogController::class, 'summary']
+        );
+
+        Route::get(
+            '/',
+            [AuditLogController::class, 'index']
+        );
+
+        Route::get(
+            '{auditLog}',
+            [AuditLogController::class, 'show']
+        );
+
     });

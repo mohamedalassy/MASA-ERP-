@@ -1,12 +1,10 @@
-
-import { SalesPageFrame, SalesPanel, SalesState, StatusPill, ProgressBar } from "../../components/sales/SalesPageFrame";
-import { useSalesApi } from "../../hooks/useSalesApi";
-const money=v=>new Intl.NumberFormat("ar-SA",{style:"currency",currency:"SAR",maximumFractionDigits:0}).format(Number(v||0));
-export default function SalesRenewals({onNavigate}) {
- const {data,loading,error}=useSalesApi("/sales/renewals");
- const rows=Array.isArray(data)?data:[];
- return <SalesPageFrame activeView="sales-renewals" onNavigate={onNavigate} title="Renewals Center" description="العقود المستحقة للتجديد وربطها بفرص جديدة.">
- <SalesState loading={loading} error={error} empty={!rows.length}><SalesPanel title="Renewal Pipeline"><div className="sales-table"><div className="sales-table-head cols-6"><span>Renewal #</span><span>العميل</span><span>القيمة</span><span>Expiry</span><span>Probability</span><span>Status</span></div>
- {rows.map(x=><div className="sales-table-row cols-6" key={x.id}><strong>{x.renewal_number}</strong><span>{x.customer?.name||"-"}</span><b>{money(x.renewal_value)}</b><span>{x.expiry_date}</span><div><span>{x.probability}%</span><ProgressBar value={x.probability} tone="green"/></div><StatusPill tone={x.status==="converted"?"green":"orange"}>{x.status}</StatusPill></div>)}</div></SalesPanel></SalesState>
- </SalesPageFrame>
+import {CalendarClock, ChevronRight, RefreshCw, ShieldAlert} from "lucide-react";
+import SalesWorkspace from "./components/SalesWorkspace";
+export default function SalesRenewals({onNavigate,activeView="sales-renewals"}) {
+ const lanes=[["0–30 days",[["Gulf Logistics","SAR 460K","38d"],["Afaq Facilities","SAR 180K","27d"]]],["31–60 days",[["Eastern Industrial","SAR 320K","52d"]]],["61–90 days",[["Nova Medical","SAR 210K","76d"],["Al Noor","SAR 185K","84d"]]]];
+ return <SalesWorkspace activeView={activeView} onNavigate={onNavigate}><section className="sv3-page">
+  <header className="sv3-head"><div><span>RECURRING REVENUE</span><h1>Renewals</h1><p>Protect upcoming contract value with time-based renewal execution.</p></div></header>
+  <div className="sv3-renew-top"><div><RefreshCw size={18}/><span>Renewal Pipeline</span><b>SAR 1.14M</b></div><div><CalendarClock size={18}/><span>Due in 90 Days</span><b>18</b></div><div><ShieldAlert size={18}/><span>At Risk</span><b>5</b></div></div>
+  <div className="sv3-renew-lanes">{lanes.map(([lane,items],li)=><section key={lane}><header><b>{lane}</b><span>{items.length} renewals</span></header>{items.map(([a,b,d])=><article key={a}><div><b>{a}</b><span>{b}</span></div><strong>{d}</strong><button>Open <ChevronRight size={13}/></button></article>)}</section>)}</div>
+ </section></SalesWorkspace>
 }

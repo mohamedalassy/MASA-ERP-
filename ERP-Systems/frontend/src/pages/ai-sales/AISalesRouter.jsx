@@ -54,9 +54,6 @@ export default function AISalesRouter({
   const Component =
     P[activeView] || AISalesDashboard;
 
-  // Supports both navigation prop names.
-  // App.jsx can send onChangeView,
-  // while existing AI Sales pages can continue using onNavigate.
   const navigate = (view, options = {}) => {
     if (onNavigate) {
       onNavigate(view, options);
