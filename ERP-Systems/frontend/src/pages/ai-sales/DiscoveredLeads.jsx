@@ -72,17 +72,6 @@ export default function DiscoveredLeads({
         "/companies?status=discovered&per_page=100"
       );
 
-      /*
-       * Supports:
-       *
-       * { data: [...] }
-       *
-       * and Laravel paginator:
-       *
-       * { data: [...], current_page: 1, ... }
-       *
-       * and plain array responses.
-       */
       const rows = Array.isArray(data)
         ? data
         : Array.isArray(data?.data)
@@ -184,21 +173,21 @@ export default function DiscoveredLeads({
 
   /*
   |--------------------------------------------------------------------------
-  | Navigation
+  | Open Company 360
   |--------------------------------------------------------------------------
   */
 
   function openCompany(company) {
-    /*
-     * Store selected company temporarily.
-     * Later we'll move this into the AI Sales state/router.
-     */
+    if (!company?.id) {
+      return;
+    }
+
     sessionStorage.setItem(
       "ai-sales-selected-company",
       JSON.stringify(company)
     );
 
-    onNavigate?.("ai-sales-company-360");
+    onNavigate?.("ai-sales-company");
   }
 
   /*
@@ -322,8 +311,7 @@ export default function DiscoveredLeads({
                 margin: "14px 0",
                 padding: 14,
                 borderRadius: 10,
-                border:
-                  "1px solid #fecaca",
+                border: "1px solid #fecaca",
                 background: "#fef2f2",
                 color: "#b91c1c",
               }}
@@ -397,6 +385,7 @@ export default function DiscoveredLeads({
                             "Enter" ||
                           event.key === " "
                         ) {
+                          event.preventDefault();
                           openCompany(company);
                         }
                       }}

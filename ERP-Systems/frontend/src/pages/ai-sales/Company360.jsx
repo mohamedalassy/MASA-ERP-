@@ -7,6 +7,7 @@ import {
 import {
   Shell,
   Btn,
+  Kpi,
   Panel,
   Score,
   uiIcons,
@@ -17,7 +18,7 @@ const API =
 
 export default function Company360({
   onNavigate,
- activeView = "ai-sales-company",
+  activeView = "ai-sales-company",
 }) {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -76,7 +77,7 @@ export default function Company360({
 
   /*
   |--------------------------------------------------------------------------
-  | Load Company 360
+  | Load Company
   |--------------------------------------------------------------------------
   */
 
@@ -113,10 +114,6 @@ export default function Company360({
         err
       );
 
-      /*
-       * Keep the company selected from the table visible
-       * even if the detail endpoint fails.
-       */
       setCompany(stored);
 
       setError(
@@ -134,7 +131,7 @@ export default function Company360({
 
   /*
   |--------------------------------------------------------------------------
-  | Normalizers
+  | Score
   |--------------------------------------------------------------------------
   */
 
@@ -158,6 +155,12 @@ export default function Company360({
       0
   );
 
+  /*
+  |--------------------------------------------------------------------------
+  | Signals
+  |--------------------------------------------------------------------------
+  */
+
   const signals = useMemo(() => {
     if (!company) {
       return [];
@@ -175,6 +178,12 @@ export default function Company360({
 
     return [];
   }, [company]);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Catalog Matches
+  |--------------------------------------------------------------------------
+  */
 
   const catalogMatches = useMemo(() => {
     if (!company) {
@@ -207,6 +216,12 @@ export default function Company360({
     return [];
   }, [company]);
 
+  /*
+  |--------------------------------------------------------------------------
+  | Activities
+  |--------------------------------------------------------------------------
+  */
+
   const activities = useMemo(() => {
     if (!company) {
       return [];
@@ -217,6 +232,31 @@ export default function Company360({
     }
 
     return [];
+  }, [company]);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Existing Lead
+  |--------------------------------------------------------------------------
+  */
+
+  const existingLead = useMemo(() => {
+    if (!company) {
+      return null;
+    }
+
+    if (company.lead) {
+      return company.lead;
+    }
+
+    if (
+      Array.isArray(company.leads) &&
+      company.leads.length > 0
+    ) {
+      return company.leads[0];
+    }
+
+    return null;
   }, [company]);
 
   /*
@@ -286,32 +326,55 @@ export default function Company360({
     setSuccess("");
 
     try {
-      /*
-       * This endpoint may need to be aligned with the
-       * current LeadController route.
-       */
-      const data = await request("/leads", {
-        method: "POST",
+      const data = await request(
+        `/companies/${company.id}/leads`,
+        {
+          method: "POST",
 
-        body: JSON.stringify({
-          company_id: company.id,
-          source: "ai_sales",
-          status: "new",
-        }),
-      });
+          body: JSON.stringify({
+            status: "new",
 
-      setSuccess(
-        data?.message ||
-          "Company converted to lead successfully."
+            priority:
+              overallScore >= 85
+                ? "urgent"
+                : overallScore >= 70
+                  ? "high"
+                  : overallScore >= 50
+                    ? "medium"
+                    : "low",
+
+            notes:
+              "Lead created from AI Sales Company 360.",
+          }),
+        }
       );
+
+      const createdLead =
+        data?.lead ??
+        data?.data ??
+        data;
 
       setCompany((current) => ({
         ...current,
-        lead:
-          data?.lead ??
-          data?.data ??
-          current?.lead,
+
+        status: "approved",
+
+        lead: createdLead,
+
+        leads: [
+          ...(current?.leads || []),
+          createdLead,
+        ],
       }));
+
+      sessionStorage.setItem(
+        "ai-sales-selected-lead",
+        JSON.stringify(createdLead)
+      );
+
+      setSuccess(
+        `${company.name} converted to a lead successfully.`
+      );
     } catch (err) {
       console.error(
         "Failed to convert company to lead:",
@@ -325,6 +388,25 @@ export default function Company360({
     } finally {
       setConverting(false);
     }
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Open Existing Lead
+  |--------------------------------------------------------------------------
+  */
+
+  function openLead() {
+    if (!existingLead) {
+      return;
+    }
+
+    sessionStorage.setItem(
+      "ai-sales-selected-lead",
+      JSON.stringify(existingLead)
+    );
+
+    onNavigate?.("ai-sales-lead-detail");
   }
 
   /*
@@ -443,7 +525,9 @@ export default function Company360({
           </div>
         )}
 
-        {/* ACCOUNT HERO */}
+        {/* =========================
+            Account Hero
+        ========================= */}
 
         <div className="account-hero">
           <div className="account-logo">
@@ -462,6 +546,7 @@ export default function Company360({
               <uiIcons.MapPin size={14} />
 
               {" "}
+
               {[
                 company.city,
                 company.region,
@@ -478,12 +563,8 @@ export default function Company360({
             <Score n={overallScore} />
           </div>
 
-          {company.lead ? (
-            <Btn
-              onClick={() =>
-                onNavigate?.("ai-sales-leads")
-              }
-            >
+          {existingLead ? (
+            <Btn onClick={openLead}>
               View Lead
             </Btn>
           ) : (
@@ -498,7 +579,9 @@ export default function Company360({
           )}
         </div>
 
-        {/* SCORE BREAKDOWN */}
+        {/* =========================
+            Score Breakdown
+        ========================= */}
 
         <div className="mini-kpis">
           <Kpi
@@ -551,7 +634,9 @@ export default function Company360({
           />
         </div>
 
-        {/* INTELLIGENCE */}
+        {/* =========================
+            Intelligence
+        ========================= */}
 
         <div className="workspace-3">
           <Panel title="Account Signals">
@@ -654,7 +739,7 @@ export default function Company360({
             <Btn
               onClick={() =>
                 onNavigate?.(
-                  "ai-sales-message-composer"
+                  "ai-sales-message"
                 )
               }
             >
@@ -663,7 +748,9 @@ export default function Company360({
           </Panel>
         </div>
 
-        {/* TIMELINE + ACCOUNT DATA */}
+        {/* =========================
+            Timeline + Intelligence
+        ========================= */}
 
         <div className="workspace-2">
           <Panel title="Opportunity Timeline">
@@ -764,7 +851,9 @@ export default function Company360({
               </span>
 
               <span>
-                <small>Data Confidence</small>
+                <small>
+                  Data Confidence
+                </small>
 
                 <b>
                   {company.data_confidence ??
