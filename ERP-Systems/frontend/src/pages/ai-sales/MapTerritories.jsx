@@ -431,7 +431,7 @@ export default function MapTerritories({ onNavigate }) {
         <div style={styles.mainGrid}>
           <section style={styles.mapCard}>
             <div style={styles.cardHeader}>
-              <div>
+              <div style={styles.cardHeaderCopy}>
                 <b>Sales Territory Map</b>
                 <span>
                   {selected ? selected.name : "Select a territory"}
@@ -668,7 +668,7 @@ export default function MapTerritories({ onNavigate }) {
 
           <section style={styles.performanceCard}>
             <div style={styles.cardHeader}>
-              <div>
+              <div style={styles.cardHeaderCopy}>
                 <b>Territory Performance</b>
                 <span>Click a territory to focus the map</span>
               </div>
@@ -1066,6 +1066,8 @@ const styles = {
   mapCard: { background: "#fff", border: "1px solid #e5e8f1", borderRadius: 15, overflow: "hidden" },
   performanceCard: { background: "#fff", border: "1px solid #e5e8f1", borderRadius: 15, overflow: "hidden" },
   cardHeader: { minHeight: 58, padding: "0 16px", borderBottom: "1px solid #edf0f5", display: "flex", alignItems: "center", justifyContent: "space-between", color: PURPLE },
+  cardHeaderCopy: { display: "grid", gap: 4, minWidth: 0 },
+
   mapFilterBar: { padding: "10px 12px", borderBottom: "1px solid #eef0f5", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", background: "#fff" },
   searchWrap: { height: 34, minWidth: 220, padding: "0 10px", borderRadius: 8, border: "1px solid #dfe3eb", display: "flex", alignItems: "center", gap: 7, color: "#98a2b3" },
   mapFilterInput: { minWidth: 0, flex: 1, border: 0, outline: "none", fontFamily: "inherit", fontSize: 11 },
