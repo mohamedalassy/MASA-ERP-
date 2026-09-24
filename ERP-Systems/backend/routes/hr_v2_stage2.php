@@ -1,13 +1,3 @@
 <?php
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\HrV2\AttendanceCommandCenterController;
-use App\Http\Controllers\Api\HrV2\RosterController;
-use App\Http\Controllers\Api\HrV2\AttendanceRequestController;
-Route::prefix('hr/v2')->name('hr.v2.')->group(function(){
- Route::get('attendance/command-center',[AttendanceCommandCenterController::class,'index']);
- Route::get('rosters',[RosterController::class,'index']);
- Route::post('rosters',[RosterController::class,'store']);
- Route::get('attendance/corrections',[AttendanceRequestController::class,'corrections']);
- Route::get('attendance/overtime',[AttendanceRequestController::class,'overtime']);
- Route::get('leaves',[AttendanceRequestController::class,'leaves']);
-});
+use Illuminate\Support\Facades\Route;use App\Http\Controllers\Api\HrV2\AttendanceCommandCenterController;use App\Http\Controllers\Api\HrV2\RosterController;use App\Http\Controllers\Api\HrV2\AttendanceRequestController;
+Route::prefix('hr/v2')->name('hr.v2.')->group(function(){Route::get('attendance/command-center',[AttendanceCommandCenterController::class,'index']);Route::get('rosters',[RosterController::class,'index']);Route::post('rosters',[RosterController::class,'store']);Route::patch('rosters/{roster}',[RosterController::class,'update']);Route::delete('rosters/{roster}',[RosterController::class,'destroy']);Route::get('attendance/corrections',[AttendanceRequestController::class,'corrections']);Route::post('attendance/corrections/{request}/review',[AttendanceRequestController::class,'reviewCorrection']);Route::get('attendance/overtime',[AttendanceRequestController::class,'overtime']);Route::post('attendance/overtime/{request}/review',[AttendanceRequestController::class,'reviewOvertime']);Route::get('leaves',[AttendanceRequestController::class,'leaves']);Route::post('leaves/{request}/review',[AttendanceRequestController::class,'reviewLeave']);});

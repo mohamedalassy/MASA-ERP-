@@ -1,29 +1,11 @@
 <?php
 namespace App\Http\Controllers\Api\HrV2;
-use App\Http\Controllers\Controller;
-use App\Models\HrGoal;use App\Models\HrGoalCycle;use App\Models\HrPerformanceReview;use App\Models\HrReviewCycle;
-use App\Models\HrSkill;use App\Models\HrEmployeeSkill;use App\Models\HrLearningEnrollment;use App\Models\HrSuccessionPlan;
-class TalentManagementController extends Controller {
- public function performance(){
-  return response()->json([
-   'active_goal_cycles'=>HrGoalCycle::where('status','active')->count(),
-   'active_goals'=>HrGoal::where('status','active')->count(),
-   'active_review_cycles'=>HrReviewCycle::whereIn('status',['active','calibration'])->count(),
-   'pending_reviews'=>HrPerformanceReview::whereIn('status',['pending','in_progress'])->count(),
-   'goals'=>HrGoal::with('employee:id,first_name,last_name')->latest()->limit(30)->get(),
-   'reviews'=>HrPerformanceReview::with('employee:id,first_name,last_name')->latest()->limit(20)->get()
-  ]);
- }
- public function learning(){
-  return response()->json([
-   'skills'=>HrSkill::where('is_active',true)->count(),
-   'skill_gaps'=>HrEmployeeSkill::whereColumn('level','<','target_level')->count(),
-   'active_enrollments'=>HrLearningEnrollment::whereIn('status',['assigned','enrolled','in_progress'])->count(),
-   'completed'=>HrLearningEnrollment::where('status','completed')->count(),
-   'enrollments'=>HrLearningEnrollment::with(['employee:id,first_name,last_name','course:id,title'])->latest()->limit(30)->get()
-  ]);
- }
- public function succession(){
-  return response()->json(HrSuccessionPlan::with(['candidates.employee:id,first_name,last_name'])->latest()->get());
- }
+use App\Http\Controllers\Controller;use App\Models\HrGoal;use App\Models\HrGoalCycle;use App\Models\HrPerformanceReview;use App\Models\HrReviewCycle;use App\Models\HrSkill;use App\Models\HrEmployeeSkill;use App\Models\HrLearningEnrollment;use App\Models\HrSuccessionPlan;use Illuminate\Http\Request;
+class TalentManagementController{
+ public function performance(){return response()->json(['active_goal_cycles'=>HrGoalCycle::where('status','active')->count(),'active_goals'=>HrGoal::where('status','active')->count(),'active_review_cycles'=>HrReviewCycle::whereIn('status',['active','calibration'])->count(),'pending_reviews'=>HrPerformanceReview::whereIn('status',['pending','in_progress'])->count(),'goals'=>HrGoal::with('employee:id,first_name,last_name')->latest()->limit(50)->get(),'reviews'=>HrPerformanceReview::with('employee:id,first_name,last_name')->latest()->limit(30)->get()]);}
+ public function learning(){return response()->json(['skills'=>HrSkill::where('is_active',true)->count(),'skill_gaps'=>HrEmployeeSkill::whereColumn('level','<','target_level')->count(),'active_enrollments'=>HrLearningEnrollment::whereIn('status',['assigned','enrolled','in_progress'])->count(),'completed'=>HrLearningEnrollment::where('status','completed')->count(),'enrollments'=>HrLearningEnrollment::with(['employee:id,first_name,last_name','course:id,title'])->latest()->limit(50)->get()]);}
+ public function succession(){return response()->json(HrSuccessionPlan::with(['candidates.employee:id,first_name,last_name'])->latest()->get());}
+ public function storeGoal(Request $r){$d=$r->validate(['cycle_id'=>'required|exists:hr_goal_cycles,id','employee_id'=>'nullable|exists:hr_employees,id','department_id'=>'nullable|exists:hr_departments,id','title'=>'required|string|max:255','description'=>'nullable|string','weight'=>'nullable|numeric|min:0|max:100','target_value'=>'nullable|numeric','unit'=>'nullable|string']);return response()->json(HrGoal::create($d),201);}
+ public function updateGoal(Request $r,HrGoal $goal){$d=$r->validate(['current_value'=>'nullable|numeric','progress'=>'nullable|integer|min:0|max:100','status'=>'nullable|in:draft,active,completed,cancelled']);$goal->update($d);return response()->json($goal);}
+ public function enroll(Request $r){$d=$r->validate(['employee_id'=>'required|exists:hr_employees,id','course_id'=>'required|exists:hr_learning_courses,id','due_date'=>'nullable|date']);return response()->json(HrLearningEnrollment::firstOrCreate(['employee_id'=>$d['employee_id'],'course_id'=>$d['course_id']],['status'=>'assigned','due_date'=>$d['due_date']??null]),201);}
 }

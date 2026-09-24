@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Api\HrV2;
-use App\Http\Controllers\Controller;use App\Models\HrEmployeeLifecycleEvent;use App\Models\HrEmployeeOnboarding;use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;use App\Models\HrEmployeeLifecycleEvent;use App\Models\HrEmployeeOnboarding;use App\Models\HrEmployee;use Illuminate\Http\Request;use Illuminate\Support\Facades\DB;
 class LifecycleV2Controller extends Controller{
- public function index(Request $r){return response()->json(['onboarding'=>HrEmployeeOnboarding::with('employee:id,employee_number,first_name,last_name')->whereIn('status',['planned','in_progress'])->latest()->get(),'events'=>HrEmployeeLifecycleEvent::with('employee:id,employee_number,first_name,last_name')->latest()->limit(50)->get()]);}
+ public function index(Request $r){return response()->json(['onboarding'=>HrEmployeeOnboarding::with('employee:id,employee_number,first_name,last_name')->whereIn('status',['planned','in_progress'])->latest()->get(),'events'=>HrEmployeeLifecycleEvent::with('employee:id,employee_number,first_name,last_name')->latest()->limit(100)->get()]);}
+ public function storeEvent(Request $r){$d=$r->validate(['employee_id'=>'required|exists:hr_employees,id','event_type'=>'required|in:hire,probation,promotion,transfer,salary_change,contract_renewal,suspension,resignation,termination,offboarding','effective_date'=>'required|date','title'=>'required|string|max:255','notes'=>'nullable|string','after_data'=>'nullable|array']);return DB::transaction(function()use($d){$e=HrEmployee::findOrFail($d['employee_id']);$d['before_data']=$e->only(['branch_id','department_id','job_title_id','manager_id','status']);$event=HrEmployeeLifecycleEvent::create($d);$safe=array_intersect_key($d['after_data']??[],array_flip(['branch_id','department_id','job_title_id','manager_id','status','termination_date','termination_reason']));if($safe)$e->update($safe);return response()->json($event->load('employee'),201);});}
 }

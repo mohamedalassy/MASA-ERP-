@@ -1,12 +1,46 @@
 <?php
+
 namespace App\Http\Controllers\Api\HrV2;
-use App\Http\Controllers\Controller;use App\Models\HrWpsBatch;use App\Models\HrWpsBatchLine;use App\Models\HrPayrollRunV2;use Illuminate\Http\Request;use Illuminate\Support\Facades\DB;
-class WpsController extends Controller{
- public function index(Request $r){return response()->json(HrWpsBatch::withCount('lines')->latest()->paginate($r->integer('per_page',25)));}
- public function generate(Request $r){
-  $d=$r->validate(['payroll_run_id'=>'required|exists:hr_payroll_runs_v2,id']);$run=HrPayrollRunV2::with('employees.employee')->findOrFail($d['payroll_run_id']);
-  $batch=DB::transaction(function()use($run){$b=HrWpsBatch::create(['payroll_run_id'=>$run->id,'batch_number'=>'WPS-'.now()->format('YmdHis'),'salary_month'=>$run->period_end,'status'=>'draft']);
-   foreach($run->employees as $p){$iban=$p->employee?->iban;$errors=[];if(!$iban)$errors[]='missing_iban';HrWpsBatchLine::create(['wps_batch_id'=>$b->id,'employee_id'=>$p->employee_id,'iban'=>$iban,'basic_salary'=>$p->basic_salary,'other_earnings'=>max(0,$p->gross_salary-$p->basic_salary),'deductions'=>$p->deductions,'net_salary'=>$p->net_salary,'status'=>$errors?'invalid':'ready','validation_errors'=>$errors]);}return $b;});
-  return response()->json($batch->load('lines'),201);
- }
+
+use App\Http\Controllers\Controller;
+use App\Models\HrPayrollRun;
+use App\Services\WpsFileService;
+use Illuminate\Http\Request;
+
+class WpsController extends Controller
+{
+    public function __construct(private readonly WpsFileService $wps) {}
+
+    public function index(Request $request)
+    {
+        $runs = HrPayrollRun::query()
+            ->whereNotNull('wps_generated_at')
+            ->orWhereIn('status', ['approved', 'posted', 'paid'])
+            ->orderByDesc('period_year')->orderByDesc('period_month')
+            ->get()
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'batch_number' => $r->run_number,
+                'salary_month' => sprintf('%04d-%02d', $r->period_year, $r->period_month),
+                'lines_count' => $r->employees_count,
+                'total_net' => $r->total_net,
+                'status' => $r->wps_validation_status ?: ($r->wps_generated_at ? 'generated' : 'pending'),
+                'payroll_status' => $r->status,
+                'wps_generated_at' => $r->wps_generated_at,
+            ]);
+
+        return response()->json(['success' => true, 'data' => $runs]);
+    }
+
+    public function generate(Request $request)
+    {
+        $data = $request->validate(['payroll_run_id' => ['required', 'integer', 'exists:hr_payroll_runs,id']]);
+        $run = HrPayrollRun::findOrFail($data['payroll_run_id']);
+        $result = $this->wps->generate($run);
+
+        return response()->json([
+            'success' => $result['generated'],
+            'data' => $result,
+        ], $result['generated'] ? 201 : 422);
+    }
 }
