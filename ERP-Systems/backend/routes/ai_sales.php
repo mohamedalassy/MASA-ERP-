@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\Api\AiSalesCompanyController;
 use App\Http\Controllers\Api\AiSalesSignalController;
 use App\Http\Controllers\Api\AiSalesScoreController;
@@ -90,7 +89,21 @@ Route::prefix('ai-sales')->group(function () {
         AiSalesLeadController::class,
         'show'
     ]);
+/*
+|--------------------------------------------------------------------------
+| Company Geocoding
+|--------------------------------------------------------------------------
+*/
 
+Route::post('/companies/{company}/geocode', [
+    AiSalesIntelligenceController::class,
+    'geocodeCompany'
+]);
+
+Route::post('/geocoding/run', [
+    AiSalesIntelligenceController::class,
+    'geocodePending'
+]);
     /*
     |--------------------------------------------------------------------------
     | Opportunities
@@ -227,6 +240,11 @@ Route::prefix('ai-sales')->group(function () {
     Route::post('/territories', [
         AiSalesAdvancedController::class,
         'storeTerritory'
+    ]);
+
+    Route::put('/territories/{territory}', [
+        AiSalesAdvancedController::class,
+        'updateTerritory'
     ]);
 
     Route::get('/activities', [

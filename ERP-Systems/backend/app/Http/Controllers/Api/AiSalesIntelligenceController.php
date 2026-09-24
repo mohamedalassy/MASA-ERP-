@@ -9,6 +9,7 @@ use App\Models\AiSalesDiscoveryRun;
 
 use App\Services\AiSales\CatalogSyncService;
 use App\Services\AiSales\CompanyEnrichmentService;
+use App\Services\AiSales\CompanyGeocodingService;
 use App\Services\AiSales\DiscoveryEngine;
 use App\Services\AiSales\ScoringEngine;
 
@@ -30,22 +31,17 @@ class AiSalesIntelligenceController extends Controller
 
             return response()->json([
                 'success' => true,
-
                 'message' =>
                     'ERP catalog synchronized with AI Sales successfully.',
-
                 'result' => $result,
             ]);
-
         } catch (Throwable $e) {
             report($e);
 
             return response()->json([
                 'success' => false,
-
                 'message' =>
                     'Unable to synchronize ERP catalog.',
-
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -214,7 +210,6 @@ class AiSalesIntelligenceController extends Controller
 
                 'run' => $run,
             ], 201);
-
         } catch (Throwable $e) {
             report($e);
 
@@ -328,6 +323,46 @@ class AiSalesIntelligenceController extends Controller
             $service->merge(
                 $company,
                 $data
+            )
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Company Geocoding
+    |--------------------------------------------------------------------------
+    */
+
+    public function geocodeCompany(
+        Request $request,
+        AiSalesCompany $company,
+        CompanyGeocodingService $service
+    ) {
+        $data = $request->validate([
+            'force' => 'nullable|boolean',
+        ]);
+
+        return response()->json(
+            $service->geocode(
+                $company,
+                (bool) ($data['force'] ?? false)
+            )
+        );
+    }
+
+    public function geocodePending(
+        Request $request,
+        CompanyGeocodingService $service
+    ) {
+        $data = $request->validate([
+            'limit' => 'nullable|integer|min:1|max:100',
+            'force' => 'nullable|boolean',
+        ]);
+
+        return response()->json(
+            $service->geocodePending(
+                (int) ($data['limit'] ?? 50),
+                (bool) ($data['force'] ?? false)
             )
         );
     }

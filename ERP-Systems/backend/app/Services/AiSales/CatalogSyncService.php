@@ -9,7 +9,17 @@ use Illuminate\Support\Str;
 class CatalogSyncService
 {
     /**
-     * Sync all active ERP products.
+     * Minimum length for a standalone keyword.
+     */
+    private const MIN_KEYWORD_LENGTH = 3;
+
+    /**
+     * Maximum keywords stored per catalog profile.
+     */
+    private const MAX_KEYWORDS = 100;
+
+    /**
+     * Sync all active ERP products with AI Sales.
      */
     public function syncProducts(): array
     {
@@ -19,6 +29,7 @@ class CatalogSyncService
 
         $created = 0;
         $updated = 0;
+        $deactivated = 0;
 
         foreach ($products as $product) {
             $result = $this->syncProduct($product);
@@ -33,10 +44,10 @@ class CatalogSyncService
         }
 
         /*
-         * If an ERP product was deactivated,
-         * deactivate its AI catalog profile too.
+         * Any profile linked to a missing or inactive ERP
+         * product must no longer participate in AI matching.
          */
-        AiSalesCatalogProfile::query()
+        $deactivated = AiSalesCatalogProfile::query()
             ->whereNotNull('product_id')
             ->whereDoesntHave('product', function ($query) {
                 $query->where('is_active', true);
@@ -49,6 +60,7 @@ class CatalogSyncService
             'products_scanned' => $products->count(),
             'profiles_created' => $created,
             'profiles_updated' => $updated,
+            'profiles_deactivated' => $deactivated,
 
             'total_profiles' =>
                 AiSalesCatalogProfile::query()
@@ -58,7 +70,8 @@ class CatalogSyncService
     }
 
     /**
-     * Sync one ERP product.
+     * Sync a single ERP product with its AI Sales
+     * catalog intelligence profile.
      */
     public function syncProduct(Product $product): array
     {
@@ -67,8 +80,8 @@ class CatalogSyncService
             ->first();
 
         /*
-         * Product disabled:
-         * disable its AI profile.
+         * Inactive ERP products must not be considered
+         * by discovery, tender or matching engines.
          */
         if (!$product->is_active) {
             if ($profile) {
@@ -89,7 +102,7 @@ class CatalogSyncService
         }
 
         $data = [
-            'name' => $product->name,
+            'name' => trim((string) $product->name),
 
             'type' => 'product',
 
@@ -131,8 +144,7 @@ class CatalogSyncService
             ];
         }
 
-        $profile =
-            AiSalesCatalogProfile::create($data);
+        $profile = AiSalesCatalogProfile::create($data);
 
         return [
             'action' => 'created',
@@ -140,6 +152,10 @@ class CatalogSyncService
         ];
     }
 
+    /**
+     * Build a clean human-readable description used
+     * by AI Sales intelligence engines.
+     */
     private function buildDescription(
         Product $product
     ): string {
@@ -150,77 +166,266 @@ class CatalogSyncService
             $product->model,
             $product->description,
         ])
-            ->filter()
+            ->filter(
+                fn ($value) =>
+                    $value !== null &&
+                    trim((string) $value) !== ''
+            )
             ->map(
                 fn ($value) =>
                     trim((string) $value)
             )
-            ->unique()
+            ->unique(
+                fn ($value) =>
+                    Str::lower($value)
+            )
             ->implode(' | ');
     }
 
+    /**
+     * Generate meaningful catalog keywords.
+     *
+     * Priority:
+     * 1. Product name
+     * 2. Model
+     * 3. Brand
+     * 4. Category
+     * 5. Product description
+     *
+     * Short and generic words are excluded to reduce
+     * false-positive tender/discovery matches.
+     */
     private function buildKeywords(
         Product $product
     ): array {
-        $values = collect([
-            $product->name,
-            $product->category,
-            $product->brand,
-            $product->model,
-            $product->description,
-        ])
-            ->filter()
-            ->map(
-                fn ($value) =>
-                    Str::lower(
-                        trim((string) $value)
-                    )
-            );
-
         $keywords = [];
 
-        foreach ($values as $value) {
-            /*
-             * Keep complete phrases.
-             */
-            if (mb_strlen($value) >= 3) {
-                $keywords[] = $value;
-            }
+        /*
+         * Product identity fields receive priority.
+         */
+        $identityValues = [
+            $product->name,
+            $product->model,
+            $product->brand,
+            $product->category,
+        ];
 
-            /*
-             * Extract meaningful individual words.
-             */
-            $words = preg_split(
-                '/[^\p{L}\p{N}]+/u',
-                $value
+        foreach ($identityValues as $value) {
+            $this->appendKeywords(
+                $keywords,
+                $value,
+                true
             );
-
-            foreach ($words as $word) {
-                $word = trim($word);
-
-                if (
-                    mb_strlen($word) >= 3 &&
-                    !$this->isStopWord($word)
-                ) {
-                    $keywords[] = $word;
-                }
-            }
         }
 
+        /*
+         * Description can contain useful capabilities,
+         * specifications and product terminology, but
+         * should not dominate the profile.
+         */
+        $this->appendKeywords(
+            $keywords,
+            $product->description,
+            false
+        );
+
         return collect($keywords)
-            ->filter()
+            ->map(
+                fn ($keyword) =>
+                    $this->normalizeKeyword($keyword)
+            )
+            ->filter(
+                fn ($keyword) =>
+                    $this->isValidKeyword($keyword)
+            )
             ->unique()
             ->values()
-            ->take(100)
+            ->take(self::MAX_KEYWORDS)
             ->all();
     }
 
+    /**
+     * Add a full phrase plus meaningful words.
+     */
+    private function appendKeywords(
+        array &$keywords,
+        mixed $value,
+        bool $keepFullPhrase = true
+    ): void {
+        if ($value === null) {
+            return;
+        }
+
+        $value = $this->normalizeKeyword(
+            (string) $value
+        );
+
+        if ($value === '') {
+            return;
+        }
+
+        /*
+         * Full phrases are valuable because they are
+         * more specific than individual words.
+         *
+         * Example:
+         * "network security appliance"
+         * is stronger than "network".
+         */
+        if (
+            $keepFullPhrase &&
+            $this->isValidPhrase($value)
+        ) {
+            $keywords[] = $value;
+        }
+
+        $words = preg_split(
+            '/[^\p{L}\p{N}\-_]+/u',
+            $value,
+            -1,
+            PREG_SPLIT_NO_EMPTY
+        );
+
+        foreach ($words as $word) {
+            $word = $this->normalizeKeyword(
+                $word
+            );
+
+            if (
+                $this->isValidKeyword($word)
+            ) {
+                $keywords[] = $word;
+            }
+        }
+
+        /*
+         * Description itself is not stored as one huge
+         * keyword. Only meaningful terms are extracted.
+         */
+    }
+
+    /**
+     * Normalize catalog terms before storing/matching.
+     */
+    private function normalizeKeyword(
+        string $value
+    ): string {
+        $value = Str::lower(
+            trim($value)
+        );
+
+        /*
+         * Collapse repeated whitespace.
+         */
+        $value = preg_replace(
+            '/\s+/u',
+            ' ',
+            $value
+        );
+
+        return trim(
+            (string) $value
+        );
+    }
+
+    /**
+     * Validate a complete phrase.
+     */
+    private function isValidPhrase(
+        string $phrase
+    ): bool {
+        if ($phrase === '') {
+            return false;
+        }
+
+        if (
+            mb_strlen($phrase) <
+            self::MIN_KEYWORD_LENGTH
+        ) {
+            return false;
+        }
+
+        /*
+         * A phrase made entirely from stop words
+         * provides no useful matching signal.
+         */
+        $words = preg_split(
+            '/[^\p{L}\p{N}\-_]+/u',
+            $phrase,
+            -1,
+            PREG_SPLIT_NO_EMPTY
+        );
+
+        if (!$words) {
+            return false;
+        }
+
+        foreach ($words as $word) {
+            if (
+                $this->isValidKeyword(
+                    $this->normalizeKeyword($word)
+                )
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Validate a standalone keyword.
+     */
+    private function isValidKeyword(
+        string $keyword
+    ): bool {
+        if ($keyword === '') {
+            return false;
+        }
+
+        if (
+            mb_strlen($keyword) <
+            self::MIN_KEYWORD_LENGTH
+        ) {
+            return false;
+        }
+
+        /*
+         * Ignore values containing only punctuation.
+         */
+        if (
+            !preg_match(
+                '/[\p{L}\p{N}]/u',
+                $keyword
+            )
+        ) {
+            return false;
+        }
+
+        if ($this->isStopWord($keyword)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Generic terms that should not independently
+     * influence opportunity/tender matching.
+     */
     private function isStopWord(
         string $word
     ): bool {
+        $word = $this->normalizeKeyword(
+            $word
+        );
+
         return in_array(
-            Str::lower($word),
+            $word,
             [
+                /*
+                 * English.
+                 */
                 'the',
                 'and',
                 'for',
@@ -235,10 +440,72 @@ class CatalogSyncService
                 'was',
                 'were',
                 'will',
+                'can',
+                'has',
+                'have',
+                'had',
+
+                /*
+                 * Generic commercial words.
+                 */
                 'product',
                 'products',
                 'service',
                 'services',
+                'item',
+                'items',
+                'solution',
+                'solutions',
+                'system',
+                'systems',
+                'supply',
+                'supplies',
+                'supplier',
+                'suppliers',
+                'company',
+                'project',
+                'projects',
+                'required',
+                'requirement',
+                'requirements',
+
+                /*
+                 * Common Arabic filler / generic words.
+                 */
+                'من',
+                'في',
+                'على',
+                'الى',
+                'إلى',
+                'عن',
+                'مع',
+                'هذا',
+                'هذه',
+                'ذلك',
+                'تلك',
+                'التي',
+                'الذي',
+
+                /*
+                 * Generic Arabic commercial terms.
+                 */
+                'منتج',
+                'منتجات',
+                'خدمة',
+                'خدمات',
+                'توريد',
+                'مورد',
+                'المورد',
+                'شركة',
+                'مشروع',
+                'مشاريع',
+                'نظام',
+                'انظمة',
+                'أنظمة',
+                'حل',
+                'حلول',
+                'مطلوب',
+                'المطلوب',
             ],
             true
         );

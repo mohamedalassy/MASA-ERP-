@@ -56,7 +56,7 @@ class TenderDocumentIntelligenceService
             'needs_human_review' => true,
 
             'analysis_meta' => [
-                'engine' => 'rules_catalog_v1',
+                'engine' => 'rules_catalog_v2',
                 'catalog_profiles_scanned' => $catalog->count(),
                 'matched_catalog_profiles' => count($catalogMatches),
                 'requirements_count' => count($requirements),
@@ -110,8 +110,10 @@ class TenderDocumentIntelligenceService
 
         $patterns = [
             '/\b\d{4}-\d{2}-\d{2}\b/u',
-            '/\b\d{2}\/\d{2}\/\d{4}\b/u',
-            '/\b\d{2}-\d{2}-\d{4}\b/u',
+            '/\b\d{1,2}\/\d{1,2}\/\d{4}\b/u',
+            '/\b\d{1,2}-\d{1,2}-\d{4}\b/u',
+            '/\b\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/iu',
+            '/\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b/iu',
         ];
 
         foreach ($patterns as $pattern) {
@@ -189,26 +191,36 @@ class TenderDocumentIntelligenceService
         $matches = [];
 
         foreach ($catalog as $profile) {
-            $keywords = $this->profileKeywords(
-                $profile
-            );
-
+            $keywords = $this->profileKeywords($profile);
             $matchedKeywords = [];
+            $matchedWeight = 0.0;
+            $totalWeight = 0.0;
 
             foreach ($keywords as $keyword) {
-                $normalizedKeyword = $this->normalize(
-                    $keyword
-                );
+                $normalizedKeyword = $this->normalize($keyword);
 
                 if (
-                    $normalizedKeyword !== '' &&
-                    mb_strlen($normalizedKeyword) >= 2 &&
-                    mb_stripos(
+                    $normalizedKeyword === '' ||
+                    mb_strlen($normalizedKeyword) < 3
+                ) {
+                    continue;
+                }
+
+                $weight = $this->keywordWeight(
+                    $normalizedKeyword,
+                    $profile
+                );
+
+                $totalWeight += $weight;
+
+                if (
+                    $this->textContainsTerm(
                         $normalizedText,
                         $normalizedKeyword
-                    ) !== false
+                    )
                 ) {
                     $matchedKeywords[] = $keyword;
+                    $matchedWeight += $weight;
                 }
             }
 
@@ -220,46 +232,59 @@ class TenderDocumentIntelligenceService
                 continue;
             }
 
-            $keywordCount = max(
-                count($keywords),
-                1
+            $weightedCoverage = $totalWeight > 0
+                ? ($matchedWeight / $totalWeight) * 100
+                : 0;
+
+            /*
+             * Evidence strength rewards several independent
+             * matching signals but does not allow a few generic
+             * words to produce an automatic 100% match.
+             */
+            $evidenceStrength = min(
+                100,
+                count($matchedKeywords) * 12
             );
 
-            $coverage = min(
-                100,
-                (int) round(
-                    (
-                        count($matchedKeywords) /
-                        $keywordCount
-                    ) * 100
-                )
+            $identityBonus = $this->identityMatchBonus(
+                $normalizedText,
+                $profile
             );
 
             $confidence = min(
                 100,
-                45 +
-                (count($matchedKeywords) * 12) +
-                (int) round($coverage * 0.25)
+                (int) round(
+                    ($weightedCoverage * 0.65) +
+                    ($evidenceStrength * 0.25) +
+                    $identityBonus
+                )
             );
+
+            /*
+             * A weak one-word match is not enough to qualify
+             * a catalog item unless it is a strong identity term.
+             */
+            if (
+                count($matchedKeywords) === 1 &&
+                $identityBonus === 0 &&
+                $confidence < 45
+            ) {
+                continue;
+            }
 
             $matches[] = [
                 'id' => $profile->id,
-
                 'name' => $profile->name,
-
                 'type' => $profile->type,
-
                 'description' => $profile->description,
-
                 'matched_keywords' => $matchedKeywords,
-
-                'keyword_matches' => count(
-                    $matchedKeywords
+                'keyword_matches' => count($matchedKeywords),
+                'coverage' => min(
+                    100,
+                    (int) round($weightedCoverage)
                 ),
-
-                'coverage' => $coverage,
-
                 'confidence' => $confidence,
+                'identity_bonus' => $identityBonus,
             ];
         }
 
@@ -269,10 +294,137 @@ class TenderDocumentIntelligenceService
                 $b['confidence'] <=> $a['confidence']
         );
 
-        return array_slice(
-            $matches,
-            0,
-            20
+        return array_slice($matches, 0, 20);
+    }
+
+    private function textContainsTerm(
+        string $text,
+        string $term
+    ): bool {
+        $quoted = preg_quote($term, '/');
+
+        /*
+         * Unicode letter/number boundaries prevent a short
+         * catalog term from matching inside an unrelated word.
+         */
+        return preg_match(
+            '/(?<![\p{L}\p{N}])' .
+            $quoted .
+            '(?![\p{L}\p{N}])/iu',
+            $text
+        ) === 1;
+    }
+
+    private function keywordWeight(
+        string $keyword,
+        $profile
+    ): float {
+        $name = $this->normalize(
+            (string) ($profile->name ?? '')
+        );
+
+        if ($keyword === $name) {
+            return 4.0;
+        }
+
+        /*
+         * Codes/models and multi-word phrases are normally
+         * more discriminating than generic standalone words.
+         */
+        if (
+            preg_match('/[\d\-_]/u', $keyword) &&
+            preg_match('/\p{L}/u', $keyword)
+        ) {
+            return 3.5;
+        }
+
+        if (str_contains($keyword, ' ')) {
+            return 3.0;
+        }
+
+        if ($this->isGenericCatalogTerm($keyword)) {
+            return 0.5;
+        }
+
+        return 1.5;
+    }
+
+    private function identityMatchBonus(
+        string $text,
+        $profile
+    ): int {
+        $bonus = 0;
+
+        $name = $this->normalize(
+            (string) ($profile->name ?? '')
+        );
+
+        if (
+            mb_strlen($name) >= 3 &&
+            $this->textContainsTerm($text, $name)
+        ) {
+            $bonus += 12;
+        }
+
+        $description = $this->normalize(
+            (string) ($profile->description ?? '')
+        );
+
+        /*
+         * CatalogSyncService builds the description from
+         * product identity fields separated by pipes.
+         * Matching distinctive identity segments earns a
+         * small bonus, capped to avoid score inflation.
+         */
+        $segments = preg_split(
+            '/\s*\|\s*/u',
+            $description,
+            -1,
+            PREG_SPLIT_NO_EMPTY
+        );
+
+        foreach ($segments as $segment) {
+            $segment = $this->normalize($segment);
+
+            if (
+                mb_strlen($segment) >= 4 &&
+                !$this->isGenericCatalogTerm($segment) &&
+                $this->textContainsTerm($text, $segment)
+            ) {
+                $bonus += 4;
+            }
+
+            if ($bonus >= 20) {
+                break;
+            }
+        }
+
+        return min(20, $bonus);
+    }
+
+    private function isGenericCatalogTerm(
+        string $term
+    ): bool {
+        return in_array(
+            $this->normalize($term),
+            [
+                'camera',
+                'cameras',
+                'network',
+                'surveillance',
+                'system',
+                'systems',
+                'product',
+                'products',
+                'service',
+                'services',
+                'solution',
+                'solutions',
+                'supply',
+                'project',
+                'projects',
+            ],
+            true
         );
     }
 

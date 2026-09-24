@@ -37,5 +37,16 @@ return [
     'google_places' => [
     'api_key' => env('GOOGLE_PLACES_API_KEY'),
 ],
+'ai_sales_geocoding' => [
+    'provider' => env('AI_SALES_GEOCODING_PROVIDER', 'nominatim'),
+    'nominatim_url' => env(
+        'AI_SALES_NOMINATIM_URL',
+        'https://nominatim.openstreetmap.org'
+    ),
+    'user_agent' => env(
+        'AI_SALES_GEOCODING_USER_AGENT',
+        'MASA-ERP-AI-Sales/1.0'
+    ),
+],
 
 ];
