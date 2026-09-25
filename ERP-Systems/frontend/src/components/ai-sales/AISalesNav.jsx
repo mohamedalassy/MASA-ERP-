@@ -6,6 +6,7 @@ import {
   Handshake,
   FileSearch,
   MapPinned,
+  RadioTower,
   Mail,
   ListChecks,
   ChartNoAxesCombined,
@@ -26,6 +27,10 @@ const items = [
   ["ai-sales-opportunities", "Opportunities", Handshake],
   ["ai-sales-tenders", "Tenders", FileSearch],
   ["ai-sales-map", "Map", MapPinned],
+
+  // Real market buying signals
+  ["ai-sales-signals", "Signals", RadioTower],
+
   ["ai-sales-communications", "Messages", Mail],
   ["ai-sales-tasks", "Tasks", ListChecks],
   ["ai-sales-analytics", "Reports", ChartNoAxesCombined],

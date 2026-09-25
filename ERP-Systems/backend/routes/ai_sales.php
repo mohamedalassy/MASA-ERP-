@@ -59,6 +59,17 @@ Route::prefix('ai-sales')->group(function () {
         'update'
     ]);
 
+    /*
+    |--------------------------------------------------------------------------
+    | Buying Signals Radar
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/signals', [
+        AiSalesSignalController::class,
+        'index'
+    ]);
+
     Route::post('/companies/{company}/signals', [
         AiSalesSignalController::class,
         'store'

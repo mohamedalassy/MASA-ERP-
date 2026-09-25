@@ -93,6 +93,11 @@ class PayrollEngine
         $gross=round($monthlyWage+$ot,2);
         $gosi=$this->gosi->calculate($employee,$basic,$housing,Carbon::create($year,$month)->endOfMonth()->toDateString());
         $deductions=round($absence+$late+$unpaid+$gosi['employee'],2);
+        if ($deductions > $gross) {
+            throw ValidationException::withMessages([
+                'deductions' => ["خصومات الموظف {$employee->id} تتجاوز إجمالي راتبه في هذه الفترة."],
+            ]);
+        }
 
         return HrPayroll::create([
             HrFieldResolver::employeeKey('hr_payrolls')=>$employee->id,
@@ -177,8 +182,28 @@ class PayrollEngine
         $gosiPay=$this->posting->requireAccount(self::GOSI_PAYABLE,'التأمينات المستحقة');
         $eosbProvision=$this->posting->requireAccount(self::EOSB_PROVISION,'مخصص نهاية الخدمة');
         $eosbExpense=(float)$run->total_eosb_accrual>0?$this->posting->requireAccount(self::EOSB_EXPENSE,'مصروف نهاية الخدمة'):null;
+        $payrolls=DB::table('hr_payrolls')->where('payroll_run_id',$run->id)->get();
+        if ($payrolls->isEmpty()) {
+            throw ValidationException::withMessages(['journal'=>['لا توجد رواتب في تشغيل الرواتب للترحيل.']]);
+        }
+        foreach ($payrolls as $payroll) {
+            if ((float)$payroll->loan_deduction > 0 || (float)$payroll->loans_deductions > 0) {
+                throw ValidationException::withMessages([
+                    'journal'=>['يوجد خصم قرض يحتاج إلى حساب ذمم قروض الموظفين قبل ترحيل الرواتب.'],
+                ]);
+            }
+            $expense=round((float)$payroll->gross_salary - (float)$payroll->absence_deduction
+                - (float)$payroll->late_deduction - (float)$payroll->other_deductions,2);
+            $expected=round((float)$payroll->net_salary + (float)$payroll->gosi_deduction,2);
+            if ($expense < 0 || abs($expense - $expected) > 0.01) {
+                throw ValidationException::withMessages([
+                    'journal'=>["خصومات الراتب غير متسقة في سجل الراتب {$payroll->id}؛ أعد حساب التشغيل قبل الترحيل."],
+                ]);
+            }
+        }
         $lines=[];
-        foreach(DB::table('hr_payrolls')->where('payroll_run_id',$run->id)->groupBy('cost_center_id')->selectRaw('cost_center_id,SUM(gross_salary) amount')->get() as $g){
+        foreach(DB::table('hr_payrolls')->where('payroll_run_id',$run->id)->groupBy('cost_center_id')
+            ->selectRaw('cost_center_id,SUM(gross_salary - absence_deduction - late_deduction - other_deductions) amount')->get() as $g){
             if((float)$g->amount>0)$lines[]=['account_id'=>$salary->id,'debit'=>round((float)$g->amount,2),'credit'=>0,'cost_center_id'=>$g->cost_center_id?:null,'description'=>'مصروف رواتب الفترة'];
         }
         $ge=round((float)$run->total_gosi_employer,2);$gp=round((float)$run->total_gosi_employee,2);$eo=round((float)$run->total_eosb_accrual,2);

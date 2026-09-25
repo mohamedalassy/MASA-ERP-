@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Services;
-
+use Illuminate\Validation\ValidationException;
 use App\Models\GosiRateSchedule;
 use App\Models\HrEmployee;
 use Carbon\Carbon;
@@ -42,7 +42,12 @@ class GosiCalculator
         $rates = $this->ratesFor($scheme, $date);
 
         if (!$rates) {
-            return $this->zero($scheme);
+            throw ValidationException::withMessages([
+                'gosi_rates' => [
+                    "لا توجد نسبة تأمينات سارية للموظف {$employee->id} "
+                    . "بنظام {$scheme} بتاريخ {$date->toDateString()}.",
+                ],
+            ]);
         }
 
         $ceiling = (float) $rates->wage_ceiling;

@@ -115,14 +115,32 @@ class HrPayrollController extends Controller
             ], 422);
         }
 
-        $payrollRun->update(['status' => 'draft']);
+        if ($payrollRun->wps_submitted_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لا يمكن إعادة حساب تشغيل تم تقديم ملف حماية الأجور له.',
+            ], 422);
+        }
 
-        $run = $this->engine->run(
-            (int) $payrollRun->period_year,
-            (int) $payrollRun->period_month,
-            $payrollRun->branch_id,
-            $request->user()?->id
-        );
+        $run = DB::transaction(function () use ($payrollRun, $request) {
+            $payrollRun->update([
+                'status' => 'draft',
+                'approved_by' => null,
+                'approved_at' => null,
+                'wps_file_path' => null,
+                'wps_generated_at' => null,
+                'wps_submitted_at' => null,
+                'wps_validation_status' => null,
+                'wps_validation_errors' => null,
+            ]);
+
+            return $this->engine->run(
+                (int) $payrollRun->period_year,
+                (int) $payrollRun->period_month,
+                $payrollRun->branch_id,
+                $request->user()?->id
+            );
+        });
 
         return response()->json([
             'success' => true,
