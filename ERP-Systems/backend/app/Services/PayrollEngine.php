@@ -217,7 +217,6 @@ class PayrollEngine
                 sprintf('قيد رواتب شهر %02d/%d',$run->period_month,$run->period_year),
                 Carbon::create($run->period_year,$run->period_month)->endOfMonth()->toDateString(),$userId,'قيد آلي من تشغيل الرواتب.');
             $run->update(['status'=>'posted','finance_journal_entry_id'=>$entry->id,'posted_at'=>now()]);
-            DB::table('hr_payrolls')->where('payroll_run_id',$run->id)->update(['status'=>'posted']);
             return $run->fresh();
         });
     }

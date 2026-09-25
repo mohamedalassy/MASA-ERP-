@@ -19,6 +19,10 @@ class PayrollEmployeeSetupController extends Controller
             'branch_id' => ['nullable', 'integer', 'exists:hr_branches,id'],
             'hire_date' => ['required', 'date'],
             'nationality_type' => ['required', Rule::in(['saudi', 'gcc', 'expat'])],
+            'national_id' => ['nullable', 'digits:10', Rule::unique('hr_employees', 'national_id')],
+            'iqama_number' => ['nullable', 'digits:10', Rule::unique('hr_employees', 'iqama_number')],
+            'iban' => ['nullable', 'regex:/^SA[0-9]{22}$/i'],
+            'bank_name' => ['nullable', 'string', 'max:255'],
             'gosi_subscribed' => ['required', 'boolean'],
             'gosi_first_registration_date' => ['nullable', 'required_if:gosi_subscribed,1', 'date'],
             'contract_number' => ['nullable', 'string', 'max:80'],
@@ -38,6 +42,10 @@ class PayrollEmployeeSetupController extends Controller
                 'branch_id' => $data['branch_id'] ?? null,
                 'hire_date' => $data['hire_date'],
                 'nationality_type' => $data['nationality_type'],
+                'national_id' => $data['national_id'] ?? null,
+                'iqama_number' => $data['iqama_number'] ?? null,
+                'iban' => $data['iban'] ?? null,
+                'bank_name' => $data['bank_name'] ?? null,
                 'gosi_subscribed' => $data['gosi_subscribed'],
                 'gosi_first_registration_date' => $data['gosi_first_registration_date'] ?? null,
                 'employment_type' => 'full_time',
@@ -45,6 +53,7 @@ class PayrollEmployeeSetupController extends Controller
                 'is_active' => true,
                 'created_by' => $request->user()?->id,
             ]);
+
             $employee->contracts()->create([
                 'contract_number' => $data['contract_number'] ?? null,
                 'contract_type' => 'employment',
@@ -57,9 +66,50 @@ class PayrollEmployeeSetupController extends Controller
                 'currency' => 'SAR',
                 'status' => 'active',
             ]);
+
             return $employee;
         });
 
-        return response()->json(['success' => true, 'data' => $employee->load('contracts')], 201);
+        return response()->json([
+            'success' => true,
+            'data' => $employee->load('contracts'),
+        ], 201);
+    }
+
+    public function updateWpsDetails(Request $request, HrEmployee $employee)
+    {
+        $data = $request->validate([
+            'national_id' => [
+                'nullable',
+                'digits:10',
+                Rule::unique('hr_employees', 'national_id')->ignore($employee->id),
+            ],
+            'iqama_number' => [
+                'nullable',
+                'digits:10',
+                Rule::unique('hr_employees', 'iqama_number')->ignore($employee->id),
+            ],
+            'iban' => ['nullable', 'regex:/^SA[0-9]{22}$/i'],
+            'bank_name' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if (
+            empty($data['national_id'] ?? $employee->national_id) &&
+            empty($data['iqama_number'] ?? $employee->iqama_number)
+        ) {
+            return response()->json([
+                'message' => 'أدخل رقم الهوية أو الإقامة.',
+            ], 422);
+        }
+
+        $employee->update([
+            ...$data,
+            'updated_by' => $request->user()?->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $employee->fresh(),
+        ]);
     }
 }

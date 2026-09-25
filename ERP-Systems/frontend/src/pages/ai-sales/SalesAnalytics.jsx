@@ -1,2 +1,38 @@
-import {Shell,Btn,Kpi,Panel,Score,CompanyRows,companies,uiIcons} from "./shared";
-export default function SalesAnalytics({onNavigate,activeView="ai-sales-analytics"}){return <Shell activeView={activeView} onNavigate={onNavigate} title="Sales Analytics" subtitle="Track discovery quality, conversion, pipeline and team execution."><><div className="kpi-grid analytics-kpis"><Kpi type="leads" title="Discovered" value="1,248" delta="12%" note="30 days"/><Kpi type="companies" title="Qualified" value="428" delta="21%" note="34% rate"/><Kpi type="opportunities" title="Opportunities" value="320" delta="24%" note="74.7% of qualified"/><Kpi type="pipeline" title="Pipeline" value="SAR 12.8M" delta="28%" note="Open value"/><Kpi type="rate" title="Win Rate" value="28%" delta="6%" note="Closed deals"/></div><div className="workspace-2"><Panel title="Conversion Trend"><div className="line-chart">{[35,48,43,61,55,72,68,82,76,91,86,96].map((h,i)=><i key={i} style={{height:h+"%"}}/>)}</div></Panel><Panel title="Performance by Service">{[["Product A",82],["Product B",74],["Service A",66],["Service B",58],["Digital Services",39]].map(x=><div className="performance-row" key={x[0]}><span>{x[0]}</span><i><u style={{width:x[1]+"%"}}/></i><b>{x[1]}%</b></div>)}</Panel></div></></Shell>}
+import { useEffect, useState } from "react";
+import { RefreshCw } from "lucide-react";
+import { Shell, Btn, Kpi, Panel } from "./shared";
+import { aiSalesRequest } from "./aiSalesApi";
+const money=n=>new Intl.NumberFormat("en-US",{maximumFractionDigits:0}).format(Number(n||0));
+
+export default function SalesAnalytics({onNavigate,activeView="ai-sales-analytics"}) {
+  const [data,setData]=useState(null),[error,setError]=useState("");
+  const load=()=>aiSalesRequest("/analytics").then(setData).catch(e=>setError(e?.message||"Unable to load analytics."));
+  useEffect(()=>{load()},[]);
+  const funnel=data?.funnel||{};
+  const pipeline=(data?.pipeline_by_stage||[]).reduce((s,x)=>s+Number(x.value||0),0);
+
+  return <Shell activeView={activeView} onNavigate={onNavigate} title="Sales Analytics"
+    subtitle="Live funnel, pipeline, regions and buying-signal analytics.">
+    {error&&<div className="ai-error">{error}</div>}
+    <div className="kpi-grid analytics-kpis">
+      <Kpi type="companies" title="Companies" value={funnel.companies??"..."}/>
+      <Kpi type="leads" title="Leads" value={funnel.leads??"..."}/>
+      <Kpi type="opportunities" title="Opportunities" value={funnel.opportunities??"..."}/>
+      <Kpi type="pipeline" title="Pipeline" value={`SAR ${money(pipeline)}`}/>
+      <Kpi type="rate" title="Won" value={funnel.won??"..."}/>
+    </div>
+    <div className="workspace-2">
+      <Panel title="Pipeline by Stage" action={<Btn secondary onClick={load}><RefreshCw size={14}/> Refresh</Btn>}>
+        {(data?.pipeline_by_stage||[]).length?(data.pipeline_by_stage.map(x=><div className="performance-row" key={x.stage}>
+          <span>{x.stage||"Unknown"}</span><i><u style={{width:`${Math.min(100,Number(x.count||0)*15)}%`}}/></i>
+          <b>{x.count} • SAR {money(x.value)}</b>
+        </div>)):<p>No pipeline data yet.</p>}
+      </Panel>
+      <Panel title="Signals by Type">
+        {(data?.signals_by_type||[]).length?data.signals_by_type.map(x=><div className="performance-row" key={x.type}>
+          <span>{x.type}</span><i><u style={{width:`${Math.min(100,Number(x.count||0)*20)}%`}}/></i><b>{x.count}</b>
+        </div>):<p>No signal data yet.</p>}
+      </Panel>
+    </div>
+  </Shell>;
+}

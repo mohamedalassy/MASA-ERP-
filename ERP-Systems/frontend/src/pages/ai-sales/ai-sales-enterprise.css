@@ -27,3 +27,1468 @@
 .command-pro{min-height:520px;border:1px solid var(--line);border-radius:14px;background:radial-gradient(circle at 50% 0,#f0edff,#fff 45%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.command-orb{background:linear-gradient(145deg,#6657f5,#8b7cf6);color:#fff;box-shadow:0 20px 50px #6657f544}.command-pro>small{color:#6657f5;font-weight:900}.command-pro h1{font-size:30px;margin:6px}.command-pro>p{color:var(--muted);max-width:650px}.command-box{display:flex;width:min(760px,85%);padding:6px;border:1px solid #dedbea;background:#fff;border-radius:11px;box-shadow:0 10px 30px #153b6c15}.command-box input{flex:1;border:0;outline:0;padding:10px}.prompt-cards,.agent-status{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.prompt-cards button{background:#fff;border:1px solid var(--line);padding:7px 9px;border-radius:7px}.agent-status span{background:#f6f9fc;border:1px solid var(--line);padding:7px 9px;border-radius:7px}.agent-status i{display:inline-block;width:6px;height:6px;background:#18b76d;border-radius:50%;margin-right:5px}
 .settings-grid article{display:grid;grid-template-columns:35px 1fr auto;align-items:center}.settings-grid article>span{font-size:18px;color:#b5c5d9}.analytics-kpis{margin-bottom:10px}
 @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.dash-3{grid-template-columns:1fr 1fr}.signal-cards,.playbook-grid,.settings-grid{grid-template-columns:1fr 1fr}}@media(max-width:800px){.kpi-grid,.mini-kpis,.dash-3,.workspace-2,.workspace-3,.signal-dashboard{grid-template-columns:1fr}.ai-hero aside{display:none}.playbook-grid,.settings-grid,.signal-cards{grid-template-columns:1fr}.messenger{grid-template-columns:1fr}.messenger>aside{display:none}.page-title{align-items:flex-start;flex-direction:column}.account-hero{grid-template-columns:55px 1fr}.account-hero>.ent-btn,.account-score{grid-column:1/-1}.map-layout{grid-template-columns:1fr}}
+/* ================================================================
+   MASA AI SALES — FINAL UI FOUNDATION
+   ================================================================ */
+
+.ai-enterprise {
+  --masa-primary: #6657f5;
+  --masa-primary-dark: #5546e8;
+  --masa-primary-soft: #f2f0ff;
+
+  --masa-text: #101c38;
+  --masa-muted: #71809a;
+
+  --masa-border: #dfe5ee;
+  --masa-border-focus: #8d82f8;
+
+  --masa-surface: #ffffff;
+  --masa-surface-soft: #f7f8fc;
+
+  --masa-danger: #d92d20;
+  --masa-success: #079455;
+
+  --masa-radius-sm: 8px;
+  --masa-radius: 11px;
+  --masa-radius-lg: 14px;
+
+  --masa-shadow-focus:
+    0 0 0 3px rgba(102, 87, 245, 0.12);
+}
+
+/* ------------------------------------------------
+   Forms
+------------------------------------------------ */
+
+.ai-enterprise .pro-form {
+  gap: 6px;
+}
+
+.ai-enterprise .pro-form label {
+  margin-top: 7px;
+  margin-bottom: 2px;
+
+  color: #344054;
+
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+/* ALL FIELD TYPES */
+
+.ai-enterprise .pro-form input,
+.ai-enterprise .pro-form select,
+.ai-enterprise .pro-form textarea,
+.ai-enterprise .filterbar input,
+.ai-enterprise .msg-search input,
+.ai-enterprise .command-box input {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--masa-border);
+
+  border-radius: var(--masa-radius-sm);
+
+  background: var(--masa-surface);
+
+  color: var(--masa-text);
+
+  font-family: inherit;
+  font-size: 12px;
+
+  outline: none;
+
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+
+.ai-enterprise .pro-form input,
+.ai-enterprise .pro-form select {
+  min-height: 40px;
+
+  padding: 0 12px;
+}
+
+.ai-enterprise .pro-form textarea {
+  min-height: 105px;
+
+  padding: 10px 12px;
+
+  line-height: 1.55;
+
+  resize: vertical;
+}
+
+/* FOCUS */
+
+.ai-enterprise .pro-form input:focus,
+.ai-enterprise .pro-form select:focus,
+.ai-enterprise .pro-form textarea:focus,
+.ai-enterprise .filterbar input:focus,
+.ai-enterprise .msg-search input:focus,
+.ai-enterprise .command-box input:focus {
+  border-color: var(--masa-border-focus);
+
+  box-shadow: var(--masa-shadow-focus);
+}
+
+/* PLACEHOLDERS */
+
+.ai-enterprise input::placeholder,
+.ai-enterprise textarea::placeholder {
+  color: #98a2b3;
+}
+
+/* DISABLED */
+
+.ai-enterprise input:disabled,
+.ai-enterprise select:disabled,
+.ai-enterprise textarea:disabled {
+  cursor: not-allowed;
+
+  background: #f2f4f7;
+
+  color: #98a2b3;
+}
+
+/* SELECT */
+
+.ai-enterprise .pro-form select {
+  cursor: pointer;
+
+  appearance: auto;
+}
+
+/* DATE / DATETIME */
+
+.ai-enterprise input[type="date"],
+.ai-enterprise input[type="datetime-local"],
+.ai-enterprise input[type="time"] {
+  color-scheme: light;
+}
+
+/* NUMBER */
+
+.ai-enterprise input[type="number"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------
+   Buttons
+------------------------------------------------ */
+
+.ai-enterprise .ent-btn {
+  min-height: 36px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  padding: 8px 13px;
+
+  border-radius: 9px;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease,
+    background 0.14s ease,
+    border-color 0.14s ease;
+}
+
+.ai-enterprise .ent-btn:not(:disabled):hover {
+  background: var(--masa-primary-dark);
+
+  border-color: var(--masa-primary-dark);
+
+  box-shadow:
+    0 5px 14px rgba(102, 87, 245, 0.18);
+
+  transform: translateY(-1px);
+}
+
+.ai-enterprise .ent-btn.secondary:hover {
+  background: var(--masa-primary-soft);
+
+  color: var(--masa-primary);
+
+  border-color: #cfc9ff;
+}
+
+.ai-enterprise .ent-btn:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.55;
+
+  transform: none;
+
+  box-shadow: none;
+}
+
+/* ------------------------------------------------
+   Panels
+------------------------------------------------ */
+
+.ai-enterprise .ent-panel {
+  border-color: #e2e7ef;
+
+  border-radius: var(--masa-radius-lg);
+
+  padding: 13px 14px;
+
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.02);
+}
+
+.ai-enterprise .ent-panel > header {
+  min-height: 30px;
+
+  padding-bottom: 10px;
+
+  margin-bottom: 12px;
+}
+
+.ai-enterprise .ent-panel > header h3 {
+  color: #17233c;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* ------------------------------------------------
+   Search
+------------------------------------------------ */
+
+.ai-enterprise .msg-search {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  min-height: 40px;
+
+  padding: 0 11px;
+
+  border: 1px solid #e3e8ef;
+
+  border-radius: 9px;
+
+  background: #f8f9fc;
+
+  color: #7c8798;
+}
+
+.ai-enterprise .msg-search input {
+  min-width: 0;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  box-shadow: none;
+}
+
+.ai-enterprise .msg-search input:focus {
+  border: 0;
+
+  box-shadow: none;
+}
+
+/* ------------------------------------------------
+   Error / Success states
+------------------------------------------------ */
+
+.ai-enterprise .ai-error {
+  margin-bottom: 12px;
+
+  padding: 11px 13px;
+
+  border: 1px solid #fecdca;
+
+  border-radius: 9px;
+
+  background: #fef3f2;
+
+  color: #b42318;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------
+   Tables / Rows
+------------------------------------------------ */
+
+.ai-enterprise .task-row {
+  min-height: 46px;
+
+  padding: 9px 7px;
+
+  border-radius: 8px;
+
+  transition: background 0.14s ease;
+}
+
+.ai-enterprise .task-row:hover {
+  background: #fafaff;
+}
+
+.ai-enterprise .data-table .tr:not(.th) {
+  transition: background 0.14s ease;
+}
+
+.ai-enterprise .data-table .tr:not(.th):hover {
+  background: #fafaff;
+}
+
+/* ------------------------------------------------
+   Playbooks
+------------------------------------------------ */
+
+.ai-enterprise .playbook-grid article {
+  position: relative;
+
+  padding: 17px;
+
+  border-color: #e1e6ef;
+
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.ai-enterprise .playbook-grid article:hover {
+  border-color: #cec8ff;
+
+  box-shadow:
+    0 8px 22px rgba(51, 44, 120, 0.08);
+
+  transform: translateY(-2px);
+}
+
+/* ------------------------------------------------
+   Page title
+------------------------------------------------ */
+
+.ai-enterprise .page-title {
+  margin-top: 8px;
+
+  margin-bottom: 16px;
+}
+
+.ai-enterprise .page-title h1 {
+  color: #101828;
+
+  font-size: 27px;
+
+  font-weight: 800;
+}
+
+.ai-enterprise .page-title p {
+  max-width: 720px;
+
+  color: #667085;
+
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------
+   Responsive forms
+------------------------------------------------ */
+
+@media (max-width: 800px) {
+  .ai-enterprise .pro-form input,
+  .ai-enterprise .pro-form select {
+    min-height: 43px;
+  }
+
+  .ai-enterprise .workspace-2 {
+    gap: 14px;
+  }
+
+  .ai-enterprise .page-title h1 {
+    font-size: 23px;
+  }
+}
+/* ================================================================
+   MASA BRAND COLOR OVERRIDE
+   Charts / Analytics / Decorative greens -> MASA Purple
+   ================================================================ */
+
+.ai-enterprise {
+  --masa-purple: #6657f5;
+  --masa-purple-dark: #5546e8;
+  --masa-purple-medium: #7c6df7;
+  --masa-purple-light: #a99ffb;
+  --masa-purple-soft: #f0edff;
+}
+
+/* KPI mini charts */
+.ai-enterprise .spark i {
+  background: var(--masa-purple) !important;
+}
+
+/* KPI icons that were green */
+.ai-enterprise .companies .kpi-icon {
+  background: var(--masa-purple-soft) !important;
+  color: var(--masa-purple) !important;
+}
+
+/* Progress bars */
+.ai-enterprise .regions u,
+.ai-enterprise .territory-row u,
+.ai-enterprise .performance-row u {
+  background: var(--masa-purple) !important;
+}
+
+/* Opportunity / deal health */
+.ai-enterprise .deal-health i {
+  background: var(--masa-purple) !important;
+}
+
+/* General meters */
+.ai-enterprise .meter i {
+  background: linear-gradient(
+    90deg,
+    var(--masa-purple-light),
+    var(--masa-purple)
+  ) !important;
+}
+
+/* Playbook progress */
+.ai-enterprise .play-progress i {
+  background: var(--masa-purple) !important;
+}
+
+/* Analytics bars */
+.ai-enterprise .line-chart i {
+  background: linear-gradient(
+    180deg,
+    var(--masa-purple),
+    #c5befd
+  ) !important;
+}
+
+/* Signal ring */
+.ai-enterprise .signal-ring > div {
+  border-color: #ebe8ff !important;
+  border-top-color: var(--masa-purple) !important;
+  border-right-color: var(--masa-purple-medium) !important;
+}
+
+/* Command / agent online dot
+   Decorative status inside AI interface */
+.ai-enterprise .agent-status i {
+  background: var(--masa-purple) !important;
+}
+
+/* Decorative insight green */
+.ai-enterprise .insight .good {
+  background: var(--masa-purple-soft) !important;
+  color: var(--masa-purple) !important;
+}
+
+/* Decorative green class used in charts */
+.ai-enterprise .donut .green,
+.ai-enterprise .green:not(.score) {
+  background: var(--masa-purple-medium) !important;
+}
+
+/* Funnel green segment */
+.ai-enterprise .f2 {
+  background: var(--masa-purple-medium) !important;
+}
+/* ================================================================
+   MASA PURPLE VISUAL SYSTEM — FINAL OVERRIDE
+   Decorative charts/analytics use MASA purple.
+   Semantic success states remain green.
+   ================================================================ */
+
+.ai-enterprise {
+  --masa-purple-900: #493ccf;
+  --masa-purple-800: #5546e8;
+  --masa-purple-700: #6657f5;
+  --masa-purple-600: #7567f6;
+  --masa-purple-500: #877af7;
+  --masa-purple-400: #9d93f9;
+  --masa-purple-300: #b7affb;
+  --masa-purple-200: #d2ccfd;
+  --masa-purple-100: #ebe8ff;
+  --masa-purple-50: #f5f3ff;
+}
+
+/* KPI / mini charts */
+.ai-enterprise .spark i,
+.ai-enterprise .deal-health i,
+.ai-enterprise .play-progress i,
+.ai-enterprise .regions u,
+.ai-enterprise .territory-row u,
+.ai-enterprise .performance-row u {
+  background: var(--masa-purple-700) !important;
+}
+
+.ai-enterprise .kpi-main em {
+  color: var(--masa-purple-700) !important;
+}
+
+.ai-enterprise .companies .kpi-icon {
+  background: var(--masa-purple-100) !important;
+  color: var(--masa-purple-700) !important;
+}
+
+/* Donut: purple family only */
+.ai-enterprise .donut {
+  background: conic-gradient(
+    var(--masa-purple-900) 0 32%,
+    var(--masa-purple-700) 32% 56%,
+    var(--masa-purple-600) 56% 74%,
+    var(--masa-purple-500) 74% 86%,
+    var(--masa-purple-400) 86% 94%,
+    var(--masa-purple-300) 94% 100%
+  ) !important;
+}
+
+.ai-enterprise .donut-wrap li:nth-child(1) i { background: var(--masa-purple-900) !important; }
+.ai-enterprise .donut-wrap li:nth-child(2) i { background: var(--masa-purple-700) !important; }
+.ai-enterprise .donut-wrap li:nth-child(3) i { background: var(--masa-purple-600) !important; }
+.ai-enterprise .donut-wrap li:nth-child(4) i { background: var(--masa-purple-500) !important; }
+.ai-enterprise .donut-wrap li:nth-child(5) i { background: var(--masa-purple-400) !important; }
+.ai-enterprise .donut-wrap li:nth-child(6) i { background: var(--masa-purple-300) !important; }
+
+/* Generic decorative chart legend colors */
+.ai-enterprise .donut-wrap .blue,
+.ai-enterprise .donut-wrap .green,
+.ai-enterprise .donut-wrap .orange,
+.ai-enterprise .donut-wrap .pink,
+.ai-enterprise .donut-wrap .purple {
+  background-color: var(--masa-purple-700);
+}
+
+/* Funnel: purple scale */
+.ai-enterprise .f0 { background: var(--masa-purple-900) !important; }
+.ai-enterprise .f1 { background: var(--masa-purple-800) !important; }
+.ai-enterprise .f2 { background: var(--masa-purple-700) !important; }
+.ai-enterprise .f3 { background: var(--masa-purple-500) !important; }
+.ai-enterprise .f4 { background: var(--masa-purple-300) !important; }
+
+/* Analytics bars / meters */
+.ai-enterprise .line-chart i {
+  background: linear-gradient(
+    180deg,
+    var(--masa-purple-700),
+    var(--masa-purple-300)
+  ) !important;
+}
+
+.ai-enterprise .meter i {
+  background: linear-gradient(
+    90deg,
+    var(--masa-purple-400),
+    var(--masa-purple-700)
+  ) !important;
+}
+
+/* Signal visualizations */
+.ai-enterprise .signal-ring > div {
+  border-color: var(--masa-purple-100) !important;
+  border-top-color: var(--masa-purple-700) !important;
+  border-right-color: var(--masa-purple-500) !important;
+}
+
+.ai-enterprise .signal-cards em {
+  color: var(--masa-purple-700) !important;
+}
+
+/* Decorative insight / timeline / AI status */
+.ai-enterprise .insight .good {
+  background: var(--masa-purple-100) !important;
+  color: var(--masa-purple-700) !important;
+}
+
+.ai-enterprise .timeline i {
+  background: var(--masa-purple-700) !important;
+  border-color: var(--masa-purple-100) !important;
+}
+
+.ai-enterprise .agent-status i {
+  background: var(--masa-purple-700) !important;
+}
+
+/* Map decorative bubbles stay on brand */
+.ai-enterprise .bubble,
+.ai-enterprise .map-pin {
+  background: var(--masa-purple-700) !important;
+}
+
+/* Keep semantic success states green intentionally:
+   .score.green, success alerts, Active/Approved/Won/Synced states. */
+
+/* ================================================================
+   MASA AI SALES — INTERACTION & INPUT POLISH V2
+   Search / Inputs / Selects / Textareas / Icons / States
+   ================================================================ */
+
+.ai-enterprise {
+  --masa-field-h: 42px;
+  --masa-field-bg: #ffffff;
+  --masa-field-border: #dfe4ec;
+  --masa-field-hover: #cfc9ff;
+  --masa-field-focus: #6657f5;
+  --masa-field-placeholder: #98a2b3;
+  --masa-field-disabled: #f4f5f8;
+  --masa-purple-ring: 0 0 0 3px rgba(102, 87, 245, 0.12);
+}
+
+/* ---------- Unified field shell ---------- */
+.ai-enterprise .pro-form input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.ai-enterprise .pro-form select,
+.ai-enterprise .pro-form textarea,
+.ai-enterprise .filterbar input,
+.ai-enterprise .filterbar select,
+.ai-enterprise .command-box input,
+.ai-enterprise .messenger footer input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--masa-field-border);
+  border-radius: 10px;
+  background: var(--masa-field-bg);
+  color: #182230;
+  font: 500 12px/1.45 Inter, Arial, sans-serif;
+  outline: none;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease, transform .16s ease;
+}
+
+.ai-enterprise .pro-form input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.ai-enterprise .pro-form select,
+.ai-enterprise .filterbar input,
+.ai-enterprise .filterbar select,
+.ai-enterprise .command-box input,
+.ai-enterprise .messenger footer input {
+  min-height: var(--masa-field-h);
+  padding: 0 12px;
+}
+
+.ai-enterprise .pro-form textarea {
+  min-height: 118px;
+  padding: 11px 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.ai-enterprise .pro-form input:hover,
+.ai-enterprise .pro-form select:hover,
+.ai-enterprise .pro-form textarea:hover,
+.ai-enterprise .filterbar input:hover,
+.ai-enterprise .filterbar select:hover,
+.ai-enterprise .command-box input:hover {
+  border-color: var(--masa-field-hover);
+}
+
+.ai-enterprise .pro-form input:focus,
+.ai-enterprise .pro-form select:focus,
+.ai-enterprise .pro-form textarea:focus,
+.ai-enterprise .filterbar input:focus,
+.ai-enterprise .filterbar select:focus,
+.ai-enterprise .command-box input:focus,
+.ai-enterprise .messenger footer input:focus {
+  border-color: var(--masa-field-focus);
+  box-shadow: var(--masa-purple-ring);
+  background: #fff;
+}
+
+.ai-enterprise input::placeholder,
+.ai-enterprise textarea::placeholder {
+  color: var(--masa-field-placeholder);
+  opacity: 1;
+  font-weight: 500;
+}
+
+.ai-enterprise input:disabled,
+.ai-enterprise select:disabled,
+.ai-enterprise textarea:disabled {
+  background: var(--masa-field-disabled) !important;
+  color: #98a2b3 !important;
+  cursor: not-allowed !important;
+  border-color: #e4e7ec !important;
+  box-shadow: none !important;
+}
+
+/* ---------- Labels / helper text ---------- */
+.ai-enterprise .pro-form label {
+  color: #344054;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .01em;
+  margin: 7px 0 2px;
+}
+
+.ai-enterprise .pro-form small,
+.ai-enterprise .field-help {
+  color: #7c8798;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+/* ---------- Selects ---------- */
+.ai-enterprise .pro-form select,
+.ai-enterprise .filterbar select {
+  cursor: pointer;
+  padding-right: 34px;
+  accent-color: #6657f5;
+}
+
+.ai-enterprise .pro-form select option,
+.ai-enterprise .filterbar select option {
+  color: #182230;
+  background: #fff;
+}
+
+/* ---------- Search ---------- */
+.ai-enterprise .msg-search {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid var(--masa-field-border);
+  border-radius: 10px;
+  background: #fafaff;
+  color: #8176e8;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.ai-enterprise .msg-search:focus-within {
+  border-color: var(--masa-field-focus);
+  box-shadow: var(--masa-purple-ring);
+  background: #fff;
+}
+
+.ai-enterprise .msg-search svg {
+  flex: 0 0 auto;
+  color: #7668ef;
+  stroke-width: 2;
+}
+
+.ai-enterprise .msg-search input {
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.ai-enterprise .filterbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ai-enterprise .filterbar input { flex: 1; }
+
+/* ---------- Command input ---------- */
+.ai-enterprise .command-box {
+  width: min(780px, 88%);
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px 5px 14px;
+  border: 1px solid #dcd8f4;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(64, 53, 135, .08);
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.ai-enterprise .command-box:focus-within {
+  border-color: #8d82f8;
+  box-shadow: 0 0 0 3px rgba(102,87,245,.11), 0 12px 30px rgba(64,53,135,.10);
+}
+
+.ai-enterprise .command-box input {
+  min-height: 40px;
+  padding: 0 6px;
+  border: 0;
+  box-shadow: none;
+}
+
+/* ---------- Native date/time controls ---------- */
+.ai-enterprise input[type="date"],
+.ai-enterprise input[type="datetime-local"],
+.ai-enterprise input[type="time"] {
+  color-scheme: light;
+  cursor: pointer;
+}
+
+.ai-enterprise input[type="date"]::-webkit-calendar-picker-indicator,
+.ai-enterprise input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.ai-enterprise input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: .65;
+}
+
+/* ---------- Checkbox / radio / range ---------- */
+.ai-enterprise input[type="checkbox"],
+.ai-enterprise input[type="radio"],
+.ai-enterprise input[type="range"] {
+  accent-color: #6657f5;
+}
+
+.ai-enterprise input[type="checkbox"],
+.ai-enterprise input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* ---------- Icons ---------- */
+.ai-enterprise button svg,
+.ai-enterprise .ent-btn svg,
+.ai-enterprise .kpi-icon svg,
+.ai-enterprise .tender-icon svg,
+.ai-enterprise .account-logo svg,
+.ai-enterprise .signal-cards svg {
+  flex: 0 0 auto;
+  stroke-width: 1.9;
+}
+
+.ai-enterprise .kpi-icon,
+.ai-enterprise .tender-icon,
+.ai-enterprise .account-logo {
+  transition: transform .16s ease, background .16s ease, color .16s ease;
+}
+
+.ai-enterprise .ent-kpi:hover .kpi-icon,
+.ai-enterprise .tender-row:hover .tender-icon {
+  transform: translateY(-1px);
+}
+
+/* ---------- Buttons ---------- */
+.ai-enterprise button,
+.ai-enterprise .ent-btn {
+  font-family: inherit;
+}
+
+.ai-enterprise .ent-btn {
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  gap: 7px;
+}
+
+.ai-enterprise .ent-btn:focus-visible,
+.ai-enterprise button:focus-visible {
+  outline: none;
+  box-shadow: var(--masa-purple-ring);
+}
+
+.ai-enterprise .ent-btn.secondary {
+  background: #fff;
+  color: #4b4477;
+  border-color: #ddd9ee;
+}
+
+.ai-enterprise .ent-btn.secondary:hover {
+  background: #f6f4ff;
+  color: #594bd7;
+  border-color: #c9c2ff;
+}
+
+/* ---------- Selected chips / prompt buttons ---------- */
+.ai-enterprise .select-cards button,
+.ai-enterprise .prompt-cards button {
+  min-height: 34px;
+  border: 1px solid #e0e3eb;
+  border-radius: 9px;
+  background: #fff;
+  color: #536075;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.ai-enterprise .select-cards button:hover,
+.ai-enterprise .prompt-cards button:hover {
+  border-color: #c8c1ff;
+  background: #f7f5ff;
+  color: #5b4ee0;
+}
+
+.ai-enterprise .select-cards button.selected {
+  border-color: #9d92fa;
+  background: #efedff;
+  color: #594bd7;
+  box-shadow: 0 0 0 2px rgba(102,87,245,.07);
+}
+
+/* ---------- Validation states ---------- */
+.ai-enterprise .field-error,
+.ai-enterprise .pro-form .is-invalid {
+  border-color: #f04438 !important;
+  box-shadow: 0 0 0 3px rgba(240,68,56,.09) !important;
+}
+
+.ai-enterprise .field-error-text {
+  color: #d92d20;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ai-enterprise .is-valid {
+  border-color: #8d82f8 !important;
+}
+
+/* ---------- Scrollbars inside AI workspace ---------- */
+.ai-enterprise * {
+  scrollbar-width: thin;
+  scrollbar-color: #c9c3f7 #f4f3fb;
+}
+
+.ai-enterprise *::-webkit-scrollbar { width: 8px; height: 8px; }
+.ai-enterprise *::-webkit-scrollbar-track { background: #f4f3fb; }
+.ai-enterprise *::-webkit-scrollbar-thumb { background: #c9c3f7; border-radius: 999px; }
+.ai-enterprise *::-webkit-scrollbar-thumb:hover { background: #a99ff0; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 800px) {
+  .ai-enterprise { --masa-field-h: 44px; }
+  .ai-enterprise .filterbar { flex-direction: column; align-items: stretch; }
+  .ai-enterprise .command-box { width: 100%; }
+  .ai-enterprise .pro-form textarea { min-height: 130px; }
+}
+
+
+
+/* ================================================================
+   MASA AI SALES — COMMAND CENTER V2
+   ================================================================ */
+
+.ai-enterprise .command-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ai-enterprise .command-v2-hero {
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #ddd9ff;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(102,87,245,.14), transparent 30%),
+    linear-gradient(135deg,#fbfaff,#f4f1ff);
+}
+
+.ai-enterprise .command-v2-orb {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(145deg,#5546e8,#7c6df7);
+  box-shadow: 0 12px 28px rgba(102,87,245,.22);
+}
+
+.ai-enterprise .command-v2-copy small,
+.ai-enterprise .command-results header small {
+  color: #6657f5;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.ai-enterprise .command-v2-copy h2 {
+  margin: 4px 0;
+  font-size: 20px;
+  color: #15132b;
+}
+
+.ai-enterprise .command-v2-copy p {
+  margin: 0;
+  color: #667085;
+}
+
+.ai-enterprise .command-v2-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 1px solid #dcd7ff;
+  border-radius: 999px;
+  background: #fff;
+  color: #5c527f;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.ai-enterprise .command-v2-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #6657f5;
+  box-shadow: 0 0 0 4px #efedff;
+}
+
+.ai-enterprise .command-v2-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 7px 7px 13px;
+  border: 1px solid #dddfea;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(37,34,63,.05);
+}
+
+.ai-enterprise .command-v2-search > svg {
+  flex: 0 0 auto;
+  color: #8b84ad;
+}
+
+.ai-enterprise .command-v2-search input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #101828;
+  font: 600 12px Inter,Arial,sans-serif;
+}
+
+.ai-enterprise .command-v2-search:focus-within {
+  border-color: #958afb;
+  box-shadow: 0 0 0 3px rgba(102,87,245,.1);
+}
+
+.ai-enterprise .command-clear {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 7px;
+  background: #f4f2ff;
+  color: #6657f5;
+  cursor: pointer;
+  font-size: 17px;
+}
+
+.ai-enterprise .command-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.ai-enterprise .command-suggestions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid #e1dfff;
+  border-radius: 9px;
+  background: #fff;
+  color: #554b7b;
+  font: 800 10px Inter,Arial,sans-serif;
+  cursor: pointer;
+  transition: .15s ease;
+}
+
+.ai-enterprise .command-suggestions button:hover {
+  color: #6657f5;
+  border-color: #bdb5ff;
+  background: #f7f5ff;
+  transform: translateY(-1px);
+}
+
+.ai-enterprise .command-welcome,
+.ai-enterprise .command-empty {
+  min-height: 230px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  padding: 30px;
+  border: 1px dashed #d9d5f4;
+  border-radius: 14px;
+  background: #fcfbff;
+  color: #776f9b;
+  text-align: center;
+}
+
+.ai-enterprise .command-welcome > svg {
+  color: #6657f5;
+}
+
+.ai-enterprise .command-welcome strong,
+.ai-enterprise .command-empty strong {
+  color: #24203f;
+  font-size: 13px;
+}
+
+.ai-enterprise .command-welcome span,
+.ai-enterprise .command-empty span {
+  color: #7b8495;
+}
+
+.ai-enterprise .command-results {
+  overflow: hidden;
+  border: 1px solid #e1e4ec;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.ai-enterprise .command-results > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eceef3;
+  background: #fcfcfe;
+}
+
+.ai-enterprise .command-results h3 {
+  margin: 2px 0 0;
+  color: #18152d;
+  font-size: 13px;
+  text-transform: capitalize;
+}
+
+.ai-enterprise .command-run-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #7b8495;
+  font-size: 9px;
+}
+
+.ai-enterprise .command-run-meta span {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-enterprise .command-run-meta time {
+  padding-left: 7px;
+  border-left: 1px solid #e5e7eb;
+}
+
+.ai-enterprise .command-result-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 9px;
+  padding: 10px;
+}
+
+.ai-enterprise .command-account-card {
+  padding: 12px;
+  border: 1px solid #e6e7ee;
+  border-radius: 11px;
+  background: #fff;
+  transition: .15s ease;
+}
+
+.ai-enterprise .command-account-card:hover {
+  border-color: #cbc5ff;
+  box-shadow: 0 7px 20px rgba(65,55,140,.07);
+  transform: translateY(-1px);
+}
+
+.ai-enterprise .command-account-head {
+  display: grid;
+  grid-template-columns: 35px 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.ai-enterprise .command-company-icon,
+.ai-enterprise .command-list-icon {
+  display: grid;
+  place-items: center;
+  color: #6657f5;
+  background: #f0edff;
+}
+
+.ai-enterprise .command-company-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+}
+
+.ai-enterprise .command-account-head strong,
+.ai-enterprise .command-account-head span {
+  display: block;
+}
+
+.ai-enterprise .command-account-head strong {
+  color: #17152b;
+  font-size: 11px;
+}
+
+.ai-enterprise .command-account-head span {
+  margin-top: 2px;
+  color: #7c8596;
+  font-size: 8px;
+}
+
+.ai-enterprise .command-account-meta {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.ai-enterprise .command-account-meta span {
+  padding: 7px;
+  border-radius: 8px;
+  background: #f8f8fc;
+}
+
+.ai-enterprise .command-account-meta small,
+.ai-enterprise .command-account-meta b {
+  display: block;
+}
+
+.ai-enterprise .command-account-meta small {
+  color: #8a91a0;
+  font-size: 8px;
+}
+
+.ai-enterprise .command-account-meta b {
+  margin-top: 2px;
+  color: #423c68;
+  font-size: 11px;
+}
+
+.ai-enterprise .command-open-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6657f5;
+  font: 800 9px Inter,Arial,sans-serif;
+  cursor: pointer;
+}
+
+.ai-enterprise .command-list {
+  padding: 4px 12px 10px;
+}
+
+.ai-enterprise .command-list-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto auto;
+  gap: 9px;
+  align-items: center;
+  min-height: 56px;
+  border-bottom: 1px solid #eef0f4;
+}
+
+.ai-enterprise .command-list-row:last-child {
+  border-bottom: 0;
+}
+
+.ai-enterprise .command-list-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.ai-enterprise .command-list-main strong,
+.ai-enterprise .command-list-main span,
+.ai-enterprise .command-list-score small,
+.ai-enterprise .command-list-score b,
+.ai-enterprise .command-list-value small,
+.ai-enterprise .command-list-value b {
+  display: block;
+}
+
+.ai-enterprise .command-list-main strong {
+  color: #201d38;
+  font-size: 10px;
+}
+
+.ai-enterprise .command-list-main span {
+  max-width: 650px;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #7c8494;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-enterprise .command-list-score,
+.ai-enterprise .command-list-value {
+  text-align: right;
+}
+
+.ai-enterprise .command-list-score small,
+.ai-enterprise .command-list-value small {
+  color: #98a0ad;
+  font-size: 7px;
+}
+
+.ai-enterprise .command-list-score b,
+.ai-enterprise .command-list-value b {
+  margin-top: 2px;
+  color: #4f4779;
+  font-size: 10px;
+}
+
+.ai-enterprise .command-probability {
+  min-width: 42px;
+  padding: 5px 7px;
+  border-radius: 7px;
+  background: #f0edff;
+  color: #6657f5;
+  font-size: 9px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.ai-enterprise .command-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 9px;
+  padding: 12px;
+}
+
+.ai-enterprise .command-summary-grid article {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid #e7e7ef;
+  border-radius: 10px;
+}
+
+.ai-enterprise .command-summary-grid article > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #f0edff;
+  color: #6657f5;
+}
+
+.ai-enterprise .command-summary-grid small,
+.ai-enterprise .command-summary-grid strong {
+  display: block;
+}
+
+.ai-enterprise .command-summary-grid small {
+  color: #818999;
+  font-size: 8px;
+}
+
+.ai-enterprise .command-summary-grid strong {
+  margin-top: 2px;
+  color: #211e3c;
+  font-size: 17px;
+}
+
+.ai-enterprise .command-loading {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 9px;
+}
+
+.ai-enterprise .command-skeleton {
+  height: 115px;
+  border-radius: 12px;
+  background: linear-gradient(90deg,#f3f2fa 25%,#faf9ff 50%,#f3f2fa 75%);
+  background-size: 200% 100%;
+  animation: masaCommandSkeleton 1.3s infinite linear;
+}
+
+@keyframes masaCommandSkeleton {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (max-width: 1000px) {
+  .ai-enterprise .command-result-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  .ai-enterprise .command-summary-grid {
+    grid-template-columns: repeat(2,1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .ai-enterprise .command-v2-hero {
+    grid-template-columns: 48px 1fr;
+  }
+  .ai-enterprise .command-v2-status {
+    grid-column: 1/-1;
+    justify-self: start;
+  }
+  .ai-enterprise .command-v2-search {
+    flex-wrap: wrap;
+  }
+  .ai-enterprise .command-v2-search input {
+    min-width: calc(100% - 55px);
+  }
+  .ai-enterprise .command-v2-search .ent-btn {
+    width: 100%;
+  }
+  .ai-enterprise .command-result-grid,
+  .ai-enterprise .command-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .ai-enterprise .command-results > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+/* MASA AI Sales — Search, Filters & Data Workspace */
+.ai-enterprise .ai-filter-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) 190px auto auto;gap:8px;align-items:center;margin-bottom:12px}
+.ai-enterprise .ai-search-field,.ai-enterprise .ai-select-field{height:38px;display:flex;align-items:center;gap:8px;border:1px solid #dfe3ec;border-radius:9px;background:#fff;padding:0 10px;transition:.15s ease}
+.ai-enterprise .ai-search-field:focus-within,.ai-enterprise .ai-select-field:focus-within{border-color:#958afb;box-shadow:0 0 0 3px rgba(102,87,245,.10)}
+.ai-enterprise .ai-search-field>svg,.ai-enterprise .ai-select-field>svg{color:#8b84ad;flex:0 0 auto}
+.ai-enterprise .ai-search-field input,.ai-enterprise .ai-select-field select{min-width:0;flex:1;height:36px;border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important;color:#25223f;font:600 11px Inter,Arial,sans-serif}
+.ai-enterprise .ai-search-field button{width:25px;height:25px;display:grid;place-items:center;border:0;border-radius:7px;background:#f2f0ff;color:#6657f5;cursor:pointer}
+.ai-enterprise .ai-select-field select{cursor:pointer}
+.ai-enterprise .ai-text-action{display:inline-flex!important;align-items:center;gap:5px!important;color:#6657f5!important;font-weight:800!important;cursor:pointer!important}
+.ai-enterprise .ai-company-table .tr{min-height:40px;font-size:10px;transition:background .14s ease,transform .14s ease}
+.ai-enterprise .ai-company-table .tr:not(.th){cursor:pointer}
+.ai-enterprise .ai-company-table .tr:not(.th):hover{background:#faf9ff}
+.ai-enterprise .ai-company-table .th{min-height:32px;background:#f7f7fb;color:#667085}
+.ai-enterprise .ai-company-name{display:flex;align-items:center;gap:7px}
+.ai-enterprise .ai-company-name>span{width:25px;height:25px;display:grid;place-items:center;border-radius:7px;background:#f0edff;color:#6657f5}
+.ai-enterprise .ai-location-cell{display:flex;align-items:center;gap:4px;color:#667085}
+.ai-enterprise .ai-status-chip{justify-self:start;padding:4px 8px;border:1px solid #ddd8ff;border-radius:999px;background:#f4f2ff;color:#6657f5;font-size:8px;font-weight:800;text-transform:capitalize}
+.ai-enterprise .ai-table-footer{padding:11px 4px 2px;color:#7c8494;font-size:9px}
+.ai-enterprise .ai-table-footer b{color:#6657f5}
+.ai-enterprise .ai-empty-state{min-height:210px;display:grid;place-items:center;align-content:center;gap:7px;border:1px dashed #dcd8f1;border-radius:12px;background:#fcfbff;color:#81799f;text-align:center}
+.ai-enterprise .ai-empty-state svg{color:#6657f5}.ai-enterprise .ai-empty-state strong{color:#292542;font-size:12px}.ai-enterprise .ai-empty-state span{color:#7c8494}
+.ai-enterprise .ai-table-skeleton{display:grid;gap:7px}.ai-enterprise .ai-table-skeleton i{height:39px;border-radius:8px;background:linear-gradient(90deg,#f3f2f8 25%,#fbfaff 50%,#f3f2f8 75%);background-size:200% 100%;animation:masaTableSkeleton 1.25s linear infinite}
+@keyframes masaTableSkeleton{from{background-position:200% 0}to{background-position:-200% 0}}
+.ai-enterprise .select-cards button{min-height:38px;border-color:#e0e2eb;background:#fff;color:#596579;font-weight:700;transition:.15s ease}
+.ai-enterprise .select-cards button:hover{border-color:#c8c1ff;background:#faf9ff;color:#6657f5}
+.ai-enterprise .select-cards button.selected{border-color:#9d93fb;background:#f0edff;color:#5b4de8;box-shadow:0 0 0 2px rgba(102,87,245,.06)}
+@media(max-width:900px){.ai-enterprise .ai-filter-toolbar{grid-template-columns:1fr 1fr}.ai-enterprise .ai-filter-toolbar .ent-btn{width:100%}}
+@media(max-width:620px){.ai-enterprise .ai-filter-toolbar{grid-template-columns:1fr}.ai-enterprise .ai-company-table{overflow:auto}.ai-enterprise .ai-company-table .tr{min-width:650px}}
+

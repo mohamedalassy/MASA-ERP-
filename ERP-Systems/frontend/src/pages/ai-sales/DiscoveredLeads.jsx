@@ -1,453 +1,80 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, RefreshCw, Sparkles, SlidersHorizontal, X } from "lucide-react";
+import { Shell, Btn, Kpi, Panel, Score } from "./shared";
+import { aiSalesRequest } from "./aiSalesApi";
 
-import {
-  Shell,
-  Btn,
-  Kpi,
-  Panel,
-  Score,
-} from "./shared";
-
-const API =
-  "http://127.0.0.1:8000/api/ai-sales";
-
-export default function DiscoveredLeads({
-  onNavigate,
-  activeView = "ai-sales-discovered",
-}) {
+export default function DiscoveredLeads({ onNavigate, activeView = "ai-sales-discovered" }) {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [search, setSearch] = useState("");
   const [minScore, setMinScore] = useState(0);
 
-  /*
-  |--------------------------------------------------------------------------
-  | API Request
-  |--------------------------------------------------------------------------
-  */
-
-  async function request(path, options = {}) {
-    const response = await fetch(`${API}${path}`, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-      ...options,
-    });
-
-    const data = await response
-      .json()
-      .catch(() => null);
-
-    if (!response.ok) {
-      throw new Error(
-        data?.message ||
-          data?.error ||
-          `Request failed (${response.status})`
-      );
-    }
-
-    return data;
-  }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Load Discovered Companies
-  |--------------------------------------------------------------------------
-  */
+  const getScore = (c) => Number(c?.score?.overall_score ?? c?.latest_score?.overall_score ?? c?.overall_score ?? c?.score?.overall ?? c?.score ?? 0);
 
   async function loadCompanies() {
-    setLoading(true);
-    setError("");
-
+    setLoading(true); setError("");
     try {
-      const data = await request(
-        "/companies?status=discovered&per_page=100"
-      );
-
-      const rows = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.data)
-          ? data.data
-          : Array.isArray(data?.companies)
-            ? data.companies
-            : [];
-
-      setCompanies(rows);
-    } catch (err) {
-      console.error(
-        "Failed to load discovered companies:",
-        err
-      );
-
-      setError(
-        err.message ||
-          "Unable to load discovered companies."
-      );
-    } finally {
-      setLoading(false);
-    }
+      const data = await aiSalesRequest("/companies?status=discovered&per_page=100");
+      setCompanies(Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : Array.isArray(data?.companies) ? data.companies : []);
+    } catch (e) { setError(e?.message || "Unable to load discovered companies."); }
+    finally { setLoading(false); }
   }
 
-  useEffect(() => {
-    loadCompanies();
-  }, []);
+  useEffect(() => { loadCompanies(); }, []);
 
-  /*
-  |--------------------------------------------------------------------------
-  | Normalize Score
-  |--------------------------------------------------------------------------
-  */
-
-  function getScore(company) {
-    return Number(
-      company?.score?.overall_score ??
-        company?.latest_score?.overall_score ??
-        company?.overall_score ??
-        company?.score?.overall ??
-        company?.score ??
-        0
-    );
-  }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Search / Filter
-  |--------------------------------------------------------------------------
-  */
-
-  const filteredCompanies = useMemo(() => {
-    const term = search
-      .trim()
-      .toLowerCase();
-
-    return companies.filter((company) => {
-      const score = getScore(company);
-
-      const haystack = [
-        company.name,
-        company.industry,
-        company.category,
-        company.city,
-        company.region,
-        company.country,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      const matchesSearch =
-        !term || haystack.includes(term);
-
-      const matchesScore =
-        score >= minScore;
-
-      return matchesSearch && matchesScore;
+  const filtered = useMemo(() => {
+    const term=search.trim().toLowerCase();
+    return companies.filter(c => {
+      const hay=[c.name,c.industry,c.category,c.city,c.region,c.country].filter(Boolean).join(" ").toLowerCase();
+      return (!term || hay.includes(term)) && getScore(c)>=minScore;
     });
-  }, [companies, search, minScore]);
+  }, [companies,search,minScore]);
 
-  /*
-  |--------------------------------------------------------------------------
-  | KPIs
-  |--------------------------------------------------------------------------
-  */
-
-  const totalCompanies = companies.length;
-
-  const qualifiedCompanies =
-    companies.filter(
-      (company) => getScore(company) >= 60
-    ).length;
-
-  const hotCompanies =
-    companies.filter(
-      (company) => getScore(company) >= 85
-    ).length;
-
-  /*
-  |--------------------------------------------------------------------------
-  | Open Company 360
-  |--------------------------------------------------------------------------
-  */
+  const qualified=companies.filter(c=>getScore(c)>=60).length;
+  const hot=companies.filter(c=>getScore(c)>=85).length;
 
   function openCompany(company) {
-    if (!company?.id) {
-      return;
-    }
-
-    sessionStorage.setItem(
-      "ai-sales-selected-company",
-      JSON.stringify(company)
-    );
-
+    if (!company?.id) return;
+    sessionStorage.setItem("ai-sales-selected-company", JSON.stringify(company));
     onNavigate?.("ai-sales-company");
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Render
-  |--------------------------------------------------------------------------
-  */
+  return <Shell activeView={activeView} onNavigate={onNavigate} title="Discovered Leads" subtitle="Review AI discoveries, evidence, scores and recommended next actions.">
+    <div className="mini-kpis">
+      <Kpi type="leads" title="Discovered" value={companies.length} note="AI discovered companies"/>
+      <Kpi type="companies" title="Qualified" value={qualified} note="Score ≥ 60"/>
+      <Kpi type="opportunities" title="Hot Leads" value={hot} note="Score ≥ 85"/>
+    </div>
 
-  return (
-    <Shell
-      activeView={activeView}
-      onNavigate={onNavigate}
-      title="Discovered Leads"
-      subtitle="Review AI discoveries, evidence, scores and recommended next actions."
-    >
-      <>
-        <div className="mini-kpis">
-          <Kpi
-            type="leads"
-            title="Discovered"
-            value={totalCompanies}
-            delta=""
-            note="AI discovered companies"
-          />
-
-          <Kpi
-            type="companies"
-            title="Qualified"
-            value={qualifiedCompanies}
-            delta=""
-            note="Score ≥ 60"
-          />
-
-          <Kpi
-            type="opportunities"
-            title="Hot Leads"
-            value={hotCompanies}
-            delta=""
-            note="Score ≥ 85"
-          />
+    <Panel title="Lead Intelligence" action={<button type="button" className="ai-text-action" onClick={loadCompanies} disabled={loading}><RefreshCw size={13}/>{loading?"Refreshing...":"Refresh"}</button>}>
+      <div className="ai-filter-toolbar">
+        <div className="ai-search-field">
+          <Search size={16}/>
+          <input type="search" placeholder="Search companies, sectors or cities..." value={search} onChange={e=>setSearch(e.target.value)}/>
+          {search && <button type="button" onClick={()=>setSearch("")} aria-label="Clear search"><X size={14}/></button>}
         </div>
+        <div className="ai-select-field">
+          <SlidersHorizontal size={15}/>
+          <select value={minScore} onChange={e=>setMinScore(Number(e.target.value))}>
+            <option value={0}>All Scores</option><option value={60}>Qualified ≥ 60</option><option value={75}>Strong ≥ 75</option><option value={85}>Hot ≥ 85</option>
+          </select>
+        </div>
+        <Btn secondary onClick={loadCompanies} disabled={loading}><RefreshCw size={14}/>Refresh</Btn>
+        <Btn onClick={()=>onNavigate?.("ai-sales-discover")}><Sparkles size={14}/>Discover More</Btn>
+      </div>
 
-        <Panel
-          title="Lead Intelligence"
-          action={
-            <button
-              type="button"
-              onClick={loadCompanies}
-              disabled={loading}
-              style={{
-                border: 0,
-                background: "transparent",
-                color: "#6657F5",
-                cursor: loading
-                  ? "default"
-                  : "pointer",
-                fontWeight: 700,
-              }}
-            >
-              {loading
-                ? "Refreshing..."
-                : "Refresh"}
-            </button>
-          }
-        >
-          <div className="filterbar">
-            <input
-              type="search"
-              placeholder="Search companies, sectors or cities..."
-              value={search}
-              onChange={(event) =>
-                setSearch(event.target.value)
-              }
-            />
+      {error && <div className="ai-error">{error}</div>}
 
-            <select
-              value={minScore}
-              onChange={(event) =>
-                setMinScore(
-                  Number(event.target.value)
-                )
-              }
-            >
-              <option value={0}>
-                All Scores
-              </option>
-
-              <option value={60}>
-                Qualified ≥ 60
-              </option>
-
-              <option value={75}>
-                Strong ≥ 75
-              </option>
-
-              <option value={85}>
-                Hot ≥ 85
-              </option>
-            </select>
-
-            <Btn
-              secondary
-              onClick={loadCompanies}
-              disabled={loading}
-            >
-              Refresh
-            </Btn>
-
-            <Btn
-              onClick={() =>
-                onNavigate?.("ai-sales-discover")
-              }
-            >
-              + Discover More
-            </Btn>
-          </div>
-
-          {error && (
-            <div
-              style={{
-                margin: "14px 0",
-                padding: 14,
-                borderRadius: 10,
-                border: "1px solid #fecaca",
-                background: "#fef2f2",
-                color: "#b91c1c",
-              }}
-            >
-              {error}
-            </div>
-          )}
-
-          {loading ? (
-            <div
-              style={{
-                padding: 30,
-                textAlign: "center",
-                opacity: 0.65,
-              }}
-            >
-              Loading discovered companies...
-            </div>
-          ) : filteredCompanies.length === 0 ? (
-            <div
-              style={{
-                padding: 30,
-                textAlign: "center",
-                border:
-                  "1px dashed #d9dce7",
-                borderRadius: 12,
-                marginTop: 14,
-              }}
-            >
-              <strong>
-                No discovered companies found.
-              </strong>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  opacity: 0.65,
-                }}
-              >
-                Run AI Discovery or change the
-                current filters.
-              </div>
-            </div>
-          ) : (
-            <div className="data-table">
-              <div className="tr th">
-                <span>Company</span>
-                <span>Industry</span>
-                <span>Location</span>
-                <span>AI Score</span>
-                <span>Status</span>
-              </div>
-
-              {filteredCompanies.map(
-                (company) => {
-                  const score =
-                    getScore(company);
-
-                  return (
-                    <div
-                      className="tr"
-                      key={company.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() =>
-                        openCompany(company)
-                      }
-                      onKeyDown={(event) => {
-                        if (
-                          event.key ===
-                            "Enter" ||
-                          event.key === " "
-                        ) {
-                          event.preventDefault();
-                          openCompany(company);
-                        }
-                      }}
-                      style={{
-                        cursor: "pointer",
-                      }}
-                    >
-                      <b>
-                        {company.name ||
-                          "Unnamed Company"}
-                      </b>
-
-                      <span>
-                        {company.industry ||
-                          company.category ||
-                          "—"}
-                      </span>
-
-                      <span>
-                        {[
-                          company.city,
-                          company.region,
-                        ]
-                          .filter(Boolean)
-                          .join(", ") || "—"}
-                      </span>
-
-                      <Score n={score} />
-
-                      <span
-                        style={{
-                          textTransform:
-                            "capitalize",
-                        }}
-                      >
-                        {company.status ||
-                          "discovered"}
-                      </span>
-                    </div>
-                  );
-                }
-              )}
-            </div>
-          )}
-
-          {!loading &&
-            filteredCompanies.length > 0 && (
-              <div
-                style={{
-                  marginTop: 12,
-                  fontSize: 12,
-                  opacity: 0.6,
-                }}
-              >
-                Showing{" "}
-                {filteredCompanies.length} of{" "}
-                {companies.length} discovered
-                companies.
-              </div>
-            )}
-        </Panel>
-      </>
-    </Shell>
-  );
+      {loading ? <div className="ai-table-skeleton">{[1,2,3,4,5].map(i=><i key={i}/>)}</div> :
+       !filtered.length ? <div className="ai-empty-state"><Search size={22}/><strong>No discovered companies found</strong><span>Run AI Discovery or change the current filters.</span></div> :
+       <div className="data-table ai-company-table">
+         <div className="tr th"><span>Company</span><span>Industry</span><span>Location</span><span>AI Score</span><span>Status</span></div>
+         {filtered.map(c=><div className="tr" key={c.id} role="button" tabIndex={0} onClick={()=>openCompany(c)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openCompany(c)}}}>
+           <b>{c.name||"Unnamed Company"}</b><span>{c.industry||c.category||"—"}</span><span>{[c.city,c.region].filter(Boolean).join(", ")||"—"}</span><Score n={getScore(c)}/><span className="ai-status-chip">{c.status||"discovered"}</span>
+         </div>)}
+       </div>}
+      {!loading && filtered.length>0 && <div className="ai-table-footer">Showing <b>{filtered.length}</b> of {companies.length} discovered companies</div>}
+    </Panel>
+  </Shell>;
 }

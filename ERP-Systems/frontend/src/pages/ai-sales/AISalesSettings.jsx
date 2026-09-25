@@ -6,6 +6,7 @@ import {
   PackageSearch,
   RefreshCw,
   Sparkles,
+  BookOpenCheck,
 } from "lucide-react";
 
 import {
@@ -212,6 +213,36 @@ export default function AISalesSettings({
       title="AI Sales Settings"
       subtitle="Configure catalog intelligence, scoring, discovery, territories and governance."
     >
+    <div
+  style={{
+    display: "flex",
+    justifyContent: "flex-end",
+    marginBottom: 16,
+  }}
+>
+  <button
+    type="button"
+    onClick={() => onNavigate?.("ai-sales-playbooks")}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      padding: "10px 16px",
+      border: 0,
+      borderRadius: 10,
+      background: "#6657F5",
+      color: "#ffffff",
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: "pointer",
+      boxShadow: "0 5px 14px rgba(102,87,245,.18)",
+    }}
+  >
+    <BookOpenCheck size={16} />
+    Sales Playbooks
+  </button>
+</div>
       {/* ================================================================
           ERP CATALOG INTELLIGENCE
       ================================================================= */}

@@ -228,12 +228,13 @@ class AiSalesAdvancedController extends Controller
                     ->orderByDesc('count')
                     ->get(),
             'monthly_discovery' =>
-                AiSalesCompany::selectRaw(
-                    "DATE_FORMAT(discovered_at,'%Y-%m') month, COUNT(*) count"
-                )->whereNotNull('discovered_at')
-                    ->groupBy('month')
-                    ->orderBy('month')
-                    ->get(),
+            AiSalesCompany::selectRaw(
+                "strftime('%Y-%m', discovered_at) as month, COUNT(*) as count"
+            )
+                ->whereNotNull('discovered_at')
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get(),
         ]);
     }
 
