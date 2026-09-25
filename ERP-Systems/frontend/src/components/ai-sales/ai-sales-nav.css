@@ -4,3 +4,6 @@
 .ai-icon-nav button span{height:25px;display:grid;place-items:center}.ai-icon-nav button small{font-size:9px;font-weight:800}
 .ai-icon-nav button:hover{background:#f7f5ff;color:#6657f5}.ai-icon-nav button.active{color:#6657f5;background:#f0edff}
 .ai-icon-nav button.active:after{content:"";position:absolute;bottom:-5px;left:18%;right:18%;height:2px;background:#6657f5;border-radius:4px}
+
+/* MASA Arabic nav final */
+.ai-icon-nav{direction:rtl;padding:7px 10px;gap:4px}.ai-icon-nav button{min-width:76px;padding:8px 8px 7px}.ai-icon-nav button small{font-size:11px;font-weight:800;line-height:1.45;white-space:nowrap}

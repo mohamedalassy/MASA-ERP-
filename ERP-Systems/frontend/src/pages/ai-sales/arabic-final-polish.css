@@ -1,0 +1,114 @@
+/* MASA AI SALES — Arabic RTL + Typography Final Polish
+   Append this block to the END of ai-sales-enterprise.css */
+
+.ai-enterprise.ai-ar{
+  direction:rtl;
+  text-align:right;
+  font-family:"Noto Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif;
+  font-size:14px;
+  line-height:1.65;
+}
+.ai-enterprise.ai-ar .page-title{direction:rtl}
+.ai-enterprise.ai-ar .page-title h1{font-size:29px;letter-spacing:0;line-height:1.35}
+.ai-enterprise.ai-ar .page-title p{font-size:14px;line-height:1.7}
+.ai-enterprise.ai-ar .page-title small{font-size:12px}
+.ai-enterprise.ai-ar .ent-btn{font-size:13px;min-height:38px;padding:8px 14px}
+.ai-enterprise.ai-ar .ent-panel>header h3{font-size:15px}
+.ai-enterprise.ai-ar .ent-panel>header button{font-size:12px}
+.ai-enterprise.ai-ar .kpi-main>span,.ai-enterprise.ai-ar .kpi-main small{font-size:11px}
+.ai-enterprise.ai-ar .kpi-main strong{font-size:21px}
+.ai-enterprise.ai-ar .kpi-main em{font-size:11px}
+.ai-enterprise.ai-ar .data-table .tr,
+.ai-enterprise.ai-ar .follow-table>div,
+.ai-enterprise.ai-ar .op-table>div{font-size:12px;min-height:40px}
+.ai-enterprise.ai-ar .data-table .th{font-size:11px;min-height:34px}
+.ai-enterprise.ai-ar .score{font-size:11px;padding:4px 9px}
+.ai-enterprise.ai-ar .filterbar input,
+.ai-enterprise.ai-ar .pro-form input,
+.ai-enterprise.ai-ar .pro-form select,
+.ai-enterprise.ai-ar .pro-form textarea,
+.ai-enterprise.ai-ar .msg-search input,
+.ai-enterprise.ai-ar .command-box input,
+.ai-enterprise.ai-ar .ai-search-field input,
+.ai-enterprise.ai-ar .ai-select-field select{font-size:13px!important;text-align:right}
+.ai-enterprise.ai-ar .pro-form label{font-size:13px}
+.ai-enterprise.ai-ar .select-cards button{font-size:12px;padding:8px 11px}
+.ai-enterprise.ai-ar .agent-stats span{font-size:11px}
+.ai-enterprise.ai-ar .agent-stats b{font-size:20px}
+.ai-enterprise.ai-ar .insight b,.ai-enterprise.ai-ar .insight small{font-size:11px}
+.ai-enterprise.ai-ar .insight time{font-size:10px}
+.ai-enterprise.ai-ar .regions>div{font-size:11px}
+.ai-enterprise.ai-ar .funnel span{font-size:11px}
+.ai-enterprise.ai-ar .service-pills span,.ai-enterprise.ai-ar .signal-list b{font-size:11px}
+.ai-enterprise.ai-ar .tender-row small,
+.ai-enterprise.ai-ar .task-row small,
+.ai-enterprise.ai-ar .messenger aside small,
+.ai-enterprise.ai-ar .messenger time{font-size:10px}
+.ai-enterprise.ai-ar .playbook-grid article>span,.ai-enterprise.ai-ar .settings-grid article>span{font-size:12px}
+.ai-enterprise.ai-ar .command-v2-copy small,.ai-enterprise.ai-ar .command-results header small{font-size:11px}
+.ai-enterprise.ai-ar .command-v2-copy h2{font-size:23px}
+.ai-enterprise.ai-ar .command-v2-copy p{font-size:13px}
+.ai-enterprise.ai-ar .command-suggestions button{font-size:12px}
+.ai-enterprise.ai-ar .command-account-head strong{font-size:13px}
+.ai-enterprise.ai-ar .command-account-head span{font-size:10px}
+.ai-enterprise.ai-ar .command-account-meta small{font-size:10px}
+.ai-enterprise.ai-ar .command-account-meta b{font-size:13px}
+.ai-enterprise.ai-ar .command-open-link{font-size:11px}
+.ai-enterprise.ai-ar .command-list-main strong{font-size:12px}
+.ai-enterprise.ai-ar .command-list-main span{font-size:10px}
+.ai-enterprise.ai-ar .command-list-score small,.ai-enterprise.ai-ar .command-list-value small{font-size:9px}
+.ai-enterprise.ai-ar .command-list-score b,.ai-enterprise.ai-ar .command-list-value b{font-size:12px}
+.ai-enterprise.ai-ar .command-run-meta{font-size:10px}
+.ai-enterprise.ai-ar .command-probability{font-size:11px}
+.ai-enterprise.ai-ar .ai-status-chip{font-size:10px}
+.ai-enterprise.ai-ar .ai-table-footer{font-size:11px}
+
+/* RTL geometry */
+.ai-enterprise.ai-ar .ai-hero,
+.ai-enterprise.ai-ar .account-hero,
+.ai-enterprise.ai-ar .command-v2-hero{direction:rtl}
+.ai-enterprise.ai-ar .ai-hero:after{right:auto;left:26%}
+.ai-enterprise.ai-ar .ai-hero button{margin-right:0;margin-left:6px}
+.ai-enterprise.ai-ar .messenger>aside{border-right:0;border-left:1px solid var(--line)}
+.ai-enterprise.ai-ar .messenger aside button{text-align:right}
+.ai-enterprise.ai-ar .outgoing{margin-left:0;margin-right:auto}
+.ai-enterprise.ai-ar .message-studio{align-items:flex-start;text-align:right}
+.ai-enterprise.ai-ar .agent-status i{margin-right:0;margin-left:5px}
+.ai-enterprise.ai-ar .command-list-score,
+.ai-enterprise.ai-ar .command-list-value{text-align:left}
+.ai-enterprise.ai-ar .command-run-meta time{padding-left:0;padding-right:7px;border-left:0;border-right:1px solid #e5e7eb}
+.ai-enterprise.ai-ar table{text-align:right!important}
+.ai-enterprise.ai-ar th{text-align:right!important}
+.ai-enterprise.ai-ar input::placeholder,
+.ai-enterprise.ai-ar textarea::placeholder{text-align:right}
+
+/* Keep numeric/technical fragments readable */
+.ai-enterprise.ai-ar .score,
+.ai-enterprise.ai-ar time,
+.ai-enterprise.ai-ar [data-ltr],
+.ai-enterprise.ai-ar input[type="email"],
+.ai-enterprise.ai-ar input[type="url"],
+.ai-enterprise.ai-ar input[type="number"]{unicode-bidi:plaintext}
+
+/* MASA purple for analytical/decorative states; semantic success remains green */
+.ai-enterprise.ai-ar .spark i,
+.ai-enterprise.ai-ar .regions u,
+.ai-enterprise.ai-ar .territory-row u,
+.ai-enterprise.ai-ar .performance-row u,
+.ai-enterprise.ai-ar .deal-health i,
+.ai-enterprise.ai-ar .play-progress i,
+.ai-enterprise.ai-ar .timeline i{background:#6657f5!important}
+.ai-enterprise.ai-ar .meter i{background:linear-gradient(90deg,#a99ffb,#6657f5)!important}
+.ai-enterprise.ai-ar .signal-ring>div{border-color:#ebe8ff!important;border-top-color:#6657f5!important;border-right-color:#7c6df7!important}
+.ai-enterprise.ai-ar .donut{background:conic-gradient(#5546e8 0 32%,#6657f5 32% 56%,#786af7 56% 74%,#8d80f8 74% 86%,#a79df9 86% 94%,#c1bafd 94% 100%)!important}
+
+/* Arabic nav readability */
+.ai-icon-nav[dir="rtl"] small{font-size:11px!important;font-weight:700;white-space:nowrap}
+.ai-icon-nav[dir="rtl"] button{min-width:70px}
+
+/* Better responsive Arabic layout */
+@media(max-width:800px){
+  .ai-enterprise.ai-ar{font-size:13px}
+  .ai-enterprise.ai-ar .page-title{align-items:flex-start;gap:10px}
+  .ai-enterprise.ai-ar .page-title h1{font-size:24px}
+}

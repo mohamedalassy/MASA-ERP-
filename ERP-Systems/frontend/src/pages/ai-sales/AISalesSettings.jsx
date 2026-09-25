@@ -181,27 +181,27 @@ export default function AISalesSettings({
 
   const settings = [
     [
-      "Services & Industries",
+      "الخدمات والقطاعات",
       "Define ERP offerings, services, solutions and target verticals.",
     ],
     [
-      "AI Scoring Model",
+      "نموذج تقييم الذكاء",
       "Control fit, intent, timing and confidence weights.",
     ],
     [
-      "Territories",
+      "المناطق",
       "Regions, coverage rules and sales ownership.",
     ],
     [
-      "Discovery Sources",
+      "مصادر الاكتشاف",
       "Public sources, connectors and verification rules.",
     ],
     [
-      "Communication Governance",
+      "حوكمة الاتصالات",
       "Approvals, opt-out and rate limits.",
     ],
     [
-      "Team Permissions",
+      "صلاحيات الفريق",
       "Control review, approval and outreach access.",
     ],
   ];
@@ -210,8 +210,8 @@ export default function AISalesSettings({
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="AI Sales Settings"
-      subtitle="Configure catalog intelligence, scoring, discovery, territories and governance."
+      title="إعدادات المبيعات الذكية"
+      subtitle="اضبط ذكاء الكتالوج والتقييم والاكتشاف والمناطق والحوكمة."
     >
     <div
   style={{
@@ -248,8 +248,8 @@ export default function AISalesSettings({
       ================================================================= */}
 
       <Panel
-        title="ERP Catalog Intelligence"
-        subtitle="Synchronize ERP products with the AI Sales intelligence layer."
+        title="ذكاء كتالوج ERP"
+        subtitle="زامن منتجات ERP مع طبقة ذكاء المبيعات."
         action={
           <Btn
             onClick={syncCatalog}
@@ -265,8 +265,8 @@ export default function AISalesSettings({
             />
 
             {syncing
-              ? "Synchronizing..."
-              : "Sync ERP Catalog"}
+              ? "جارٍ المزامنة..."
+              : "مزامنة كتالوج ERP"}
           </Btn>
         }
       >
@@ -375,7 +375,7 @@ export default function AISalesSettings({
           }}
         >
           <Kpi
-            label="Catalog Profiles"
+            label="ملفات الكتالوج"
             value={
               loading
                 ? "..."
@@ -385,7 +385,7 @@ export default function AISalesSettings({
           />
 
           <Kpi
-            label="Product Profiles"
+            label="ملفات المنتجات"
             value={
               loading
                 ? "..."
@@ -395,7 +395,7 @@ export default function AISalesSettings({
           />
 
           <Kpi
-            label="Linked ERP Products"
+            label="منتجات ERP المرتبطة"
             value={
               loading
                 ? "..."
@@ -405,7 +405,7 @@ export default function AISalesSettings({
           />
 
           <Kpi
-            label="Service Profiles"
+            label="ملفات الخدمات"
             value={
               loading
                 ? "..."
@@ -428,28 +428,28 @@ export default function AISalesSettings({
             }}
           >
             <SyncMetric
-              label="Products Scanned"
+              label="المنتجات المفحوصة"
               value={
                 syncResult?.products_scanned ?? 0
               }
             />
 
             <SyncMetric
-              label="Profiles Created"
+              label="ملفات تم إنشاؤها"
               value={
                 syncResult?.profiles_created ?? 0
               }
             />
 
             <SyncMetric
-              label="Profiles Updated"
+              label="ملفات تم تحديثها"
               value={
                 syncResult?.profiles_updated ?? 0
               }
             />
 
             <SyncMetric
-              label="Total Profiles"
+              label="إجمالي الملفات"
               value={
                 syncResult?.total_profiles ??
                 stats.total
@@ -501,8 +501,8 @@ export default function AISalesSettings({
               <RefreshCw size={15} />
 
               {loading
-                ? "Loading..."
-                : "Refresh"}
+                ? "جارٍ التحميل..."
+                : "تحديث"}
             </Btn>
           </div>
 
@@ -569,11 +569,11 @@ export default function AISalesSettings({
                       textAlign: "left",
                     }}
                   >
-                    <Th>Profile</Th>
-                    <Th>Type</Th>
-                    <Th>ERP Link</Th>
-                    <Th>Keywords</Th>
-                    <Th>Status</Th>
+                    <Th>الملف</Th>
+                    <Th>النوع</Th>
+                    <Th>ربط ERP</Th>
+                    <Th>الكلمات المفتاحية</Th>
+                    <Th>الحالة</Th>
                   </tr>
                 </thead>
 
@@ -602,7 +602,7 @@ export default function AISalesSettings({
                               }}
                             >
                               {profile.name ||
-                                "Unnamed Profile"}
+                                "ملف بدون اسم"}
                             </div>
 
                             {profile.description && (
@@ -721,8 +721,8 @@ export default function AISalesSettings({
                               }}
                             >
                               {profile.is_active
-                                ? "Active"
-                                : "Inactive"}
+                                ? "نشط"
+                                : "غير نشط"}
                             </span>
                           </Td>
                         </tr>

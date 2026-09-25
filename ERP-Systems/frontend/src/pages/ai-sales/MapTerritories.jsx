@@ -144,20 +144,20 @@ function PopupContent({ company, onNavigate }) {
       <div style={{ marginTop: 4, fontSize: 11, color: "#667085" }}>
         {[company.city, company.region, company.industry]
           .filter(Boolean)
-          .join(" • ") || "Company"}
+          .join(" • ") || "الشركة"}
       </div>
 
       <div style={styles.popupGrid}>
-        <PopupStat label="AI Score" value={`${number(company.ai_score)}/100`} />
-        <PopupStat label="Leads" value={number(company.leads)} />
-        <PopupStat label="Opps" value={number(company.opportunities)} />
-        <PopupStat label="Signals" value={number(company.signals)} />
+        <PopupStat label="درجة الذكاء" value={`${number(company.ai_score)}/100`} />
+        <PopupStat label="العملاء المحتملون" value={number(company.leads)} />
+        <PopupStat label="الفرص" value={number(company.opportunities)} />
+        <PopupStat label="الإشارات" value={number(company.signals)} />
         <PopupStat
           label="Pipeline"
           value={`${currency} ${money(company.pipeline_value)}`}
         />
         <PopupStat
-          label="Weighted"
+          label="المرجح"
           value={`${currency} ${money(company.weighted_pipeline)}`}
         />
       </div>
@@ -393,8 +393,8 @@ export default function MapTerritories({ onNavigate }) {
 
   return (
     <Shell
-      title="Map & Territories"
-      subtitle="Geographic sales intelligence, coverage and pipeline concentration"
+      title="الخريطة والمناطق"
+      subtitle="ذكاء المبيعات الجغرافي والتغطية وتركيز مسار المبيعات"
     >
       <div style={styles.page}>
         <div style={styles.toolbar}>
@@ -408,7 +408,7 @@ export default function MapTerritories({ onNavigate }) {
           <div style={styles.toolbarActions}>
             <button style={styles.refresh} onClick={load} disabled={loading}>
               <RefreshCw size={15} />
-              {loading ? "Refreshing..." : "Refresh"}
+              {loading ? "جارٍ التحديث..." : "تحديث"}
             </button>
             <button style={styles.primaryButton} onClick={openCreate}>
               <Plus size={15} />
@@ -420,12 +420,12 @@ export default function MapTerritories({ onNavigate }) {
         {error && <div style={styles.error}>{error}</div>}
 
         <div style={styles.kpis}>
-          <Metric icon={Route} label="Active Territories" value={number(summary.territories)} hint="Configured coverage" />
-          <Metric icon={Building2} label="Companies" value={number(summary.companies)} hint="Discovered accounts" />
-          <Metric icon={Users} label="Leads" value={number(summary.leads)} hint="Converted leads" />
+          <Metric icon={Route} label="المناطق النشطة" value={number(summary.territories)} hint="التغطية المهيأة" />
+          <Metric icon={Building2} label="الشركات" value={number(summary.companies)} hint="الحسابات المكتشفة" />
+          <Metric icon={Users} label="العملاء المحتملون" value={number(summary.leads)} hint="العملاء المحولون" />
           <Metric icon={CircleDollarSign} label="Pipeline" value={`SAR ${money(summary.pipeline_value)}`} hint={`Weighted SAR ${money(summary.weighted_value)}`} />
-          <Metric icon={Signal} label="Signals" value={number(summary.signals)} hint="Buying signals" />
-          <Metric icon={TrendingUp} label="Avg AI Score" value={`${number(summary.average_ai_score)}/100`} hint="Latest scoring" />
+          <Metric icon={Signal} label="الإشارات" value={number(summary.signals)} hint="إشارات الشراء" />
+          <Metric icon={TrendingUp} label="متوسط درجة الذكاء" value={`${number(summary.average_ai_score)}/100`} hint="أحدث تقييم" />
         </div>
 
         <div style={styles.mainGrid}>
@@ -434,7 +434,7 @@ export default function MapTerritories({ onNavigate }) {
               <div style={styles.cardHeaderCopy}>
                 <b>Sales Territory Map</b>
                 <span>
-                  {selected ? selected.name : "Select a territory"}
+                  {selected ? selected.name : "اختر منطقة"}
                 </span>
               </div>
               <MapPin size={18} />
@@ -447,7 +447,7 @@ export default function MapTerritories({ onNavigate }) {
                   style={styles.mapFilterInput}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search company or city"
+                  placeholder="ابحث عن شركة أو مدينة"
                 />
               </div>
 
@@ -495,10 +495,10 @@ export default function MapTerritories({ onNavigate }) {
                 <Layers3 size={14} />
                 Layers
               </div>
-              <LayerButton active={layers.companies} onClick={() => toggleLayer("companies")} label="Companies" />
-              <LayerButton active={layers.leads} onClick={() => toggleLayer("leads")} label="Leads" />
-              <LayerButton active={layers.opportunities} onClick={() => toggleLayer("opportunities")} label="Opportunities" />
-              <LayerButton active={layers.signals} onClick={() => toggleLayer("signals")} label="Signals" />
+              <LayerButton active={layers.companies} onClick={() => toggleLayer("companies")} label="الشركات" />
+              <LayerButton active={layers.leads} onClick={() => toggleLayer("leads")} label="العملاء المحتملون" />
+              <LayerButton active={layers.opportunities} onClick={() => toggleLayer("opportunities")} label="الفرص" />
+              <LayerButton active={layers.signals} onClick={() => toggleLayer("signals")} label="الإشارات" />
               <LayerButton active={layers.pipeline} onClick={() => toggleLayer("pipeline")} label="Pipeline" />
               <div style={{ flex: 1 }} />
               <button style={styles.mapAction} onClick={fitTerritory}>
@@ -637,7 +637,7 @@ export default function MapTerritories({ onNavigate }) {
 
               <div style={styles.realMapLegend}>
                 <MapPin size={14} />
-                <span>{selected?.name || "Territory"}</span>
+                <span>{selected?.name || "المنطقة"}</span>
                 <b>{number(visibleCompanies.length)} visible</b>
                 <span>•</span>
                 <b>{number(mappedTotal)} mapped</b>
@@ -655,11 +655,11 @@ export default function MapTerritories({ onNavigate }) {
             </div>
 
             <div style={styles.legendStrip}>
-              <LegendDot color={PURPLE} label="Company" />
-              <LegendDot color="#16a34a" label="Lead" />
-              <LegendDot color="#ea580c" label="Opportunity" />
-              <LegendDot color="#dc2626" label="Signal" />
-              <LegendDot color="#f59e0b" label="Pipeline concentration" />
+              <LegendDot color={PURPLE} label="الشركة" />
+              <LegendDot color="#16a34a" label="عميل محتمل" />
+              <LegendDot color="#ea580c" label="فرصة" />
+              <LegendDot color="#dc2626" label="إشارة" />
+              <LegendDot color="#f59e0b" label="تركيز مسار المبيعات" />
               <span style={styles.legendNote}>
                 Overlapping city-level coordinates are offset for display only.
               </span>
@@ -727,7 +727,7 @@ export default function MapTerritories({ onNavigate }) {
                   </button>
                 ))
               ) : (
-                <Empty text="No active territories configured." />
+                <Empty text="لا توجد مناطق نشطة مهيأة." />
               )}
             </div>
           </section>
@@ -736,12 +736,12 @@ export default function MapTerritories({ onNavigate }) {
         {selected && (
           <>
             <div style={styles.detailGrid}>
-              <Detail label="Companies" value={number(selected.companies)} />
-              <Detail label="Leads" value={number(selected.leads)} />
-              <Detail label="Opportunities" value={number(selected.opportunities)} />
+              <Detail label="الشركات" value={number(selected.companies)} />
+              <Detail label="العملاء المحتملون" value={number(selected.leads)} />
+              <Detail label="الفرص" value={number(selected.opportunities)} />
               <Detail label="Pipeline" value={`SAR ${money(selected.pipeline_value)}`} />
-              <Detail label="Weighted" value={`SAR ${money(selected.weighted_value)}`} />
-              <Detail label="AI Score" value={`${number(selected.average_ai_score)}/100`} />
+              <Detail label="المرجح" value={`SAR ${money(selected.weighted_value)}`} />
+              <Detail label="درجة الذكاء" value={`${number(selected.average_ai_score)}/100`} />
             </div>
 
             <div style={styles.bottomGrid}>
@@ -771,7 +771,7 @@ export default function MapTerritories({ onNavigate }) {
                     </div>
                   ))
                 ) : (
-                  <Empty text="No city-level company data in this territory." />
+                  <Empty text="لا توجد بيانات شركات على مستوى المدن في هذه المنطقة." />
                 )}
               </section>
 
@@ -802,7 +802,7 @@ export default function MapTerritories({ onNavigate }) {
                         <span>
                           {[company.city, company.industry]
                             .filter(Boolean)
-                            .join(" • ") || "Company"}
+                            .join(" • ") || "الشركة"}
                         </span>
                       </div>
                       <div style={styles.companyMetrics}>
@@ -813,7 +813,7 @@ export default function MapTerritories({ onNavigate }) {
                     </button>
                   ))
                 ) : (
-                  <Empty text="No companies matched this territory yet." />
+                  <Empty text="لا توجد شركات مطابقة لهذه المنطقة حتى الآن." />
                 )}
               </section>
             </div>
@@ -875,7 +875,7 @@ export default function MapTerritories({ onNavigate }) {
                 <div>
                   <div style={styles.eyebrow}>TERRITORY MANAGEMENT</div>
                   <h3 style={styles.modalTitle}>
-                    {editing ? "Edit Territory" : "Create Territory"}
+                    {editing ? "تعديل المنطقة" : "إنشاء منطقة"}
                   </h3>
                 </div>
                 <button
@@ -888,7 +888,7 @@ export default function MapTerritories({ onNavigate }) {
               </div>
 
               <div style={styles.formGrid}>
-                <Field label="Territory Name *">
+                <Field label="اسم المنطقة *">
                   <input
                     style={styles.input}
                     value={form.name}
@@ -897,15 +897,15 @@ export default function MapTerritories({ onNavigate }) {
                     required
                   />
                 </Field>
-                <Field label="Country">
+                <Field label="الدولة">
                   <input
                     style={styles.input}
                     value={form.country}
                     onChange={(e) => setForm({ ...form, country: e.target.value })}
-                    placeholder="Country"
+                    placeholder="الدولة"
                   />
                 </Field>
-                <Field label="Region">
+                <Field label="المنطقة">
                   <input
                     style={styles.input}
                     value={form.region}
@@ -913,7 +913,7 @@ export default function MapTerritories({ onNavigate }) {
                     placeholder="Region / State / Province"
                   />
                 </Field>
-                <Field label="Sales Target">
+                <Field label="هدف المبيعات">
                   <input
                     style={styles.input}
                     type="number"
@@ -926,22 +926,22 @@ export default function MapTerritories({ onNavigate }) {
                     placeholder="0.00"
                   />
                 </Field>
-                <Field label="Cities" wide>
+                <Field label="المدن" wide>
                   <input
                     style={styles.input}
                     value={form.cities}
                     onChange={(e) => setForm({ ...form, cities: e.target.value })}
-                    placeholder="Comma separated: City A, City B, City C"
+                    placeholder="افصل المدن بفواصل"
                   />
                 </Field>
-                <Field label="Industries" wide>
+                <Field label="القطاعات" wide>
                   <input
                     style={styles.input}
                     value={form.industries}
                     onChange={(e) =>
                       setForm({ ...form, industries: e.target.value })
                     }
-                    placeholder="Optional, comma separated"
+                    placeholder="اختياري، مفصول بفواصل"
                   />
                 </Field>
               </div>
@@ -966,10 +966,10 @@ export default function MapTerritories({ onNavigate }) {
                   disabled={saving}
                 >
                   {saving
-                    ? "Saving..."
+                    ? "جارٍ الحفظ..."
                     : editing
-                    ? "Save Changes"
-                    : "Create Territory"}
+                    ? "حفظ التغييرات"
+                    : "إنشاء منطقة"}
                 </button>
               </div>
             </form>

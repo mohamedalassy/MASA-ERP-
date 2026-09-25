@@ -257,7 +257,7 @@ export default function TenderRadar({
 
   function statusLabel(value) {
     if (!value) {
-      return "Open";
+      return "مفتوح";
     }
 
     return String(value)
@@ -951,8 +951,8 @@ export default function TenderRadar({
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="Tenders & Projects"
-      subtitle="Discover, analyze and qualify tenders against your ERP catalog before committing sales resources."
+      title="المنافسات والمشاريع"
+      subtitle="اكتشف المنافسات والمشاريع وحللها وقارنها بكتالوج ERP قبل تخصيص موارد المبيعات."
     >
       <>
         {/* Messages */}
@@ -998,7 +998,7 @@ export default function TenderRadar({
         <div className="mini-kpis">
           <Kpi
             type="opportunities"
-            title="Matched Tenders"
+            title="المنافسات المطابقة"
             value={tenders.length}
             delta=""
             note={`${stats.open} currently open`}
@@ -1006,28 +1006,28 @@ export default function TenderRadar({
 
           <Kpi
             type="pipeline"
-            title="Potential Value"
+            title="القيمة المحتملة"
             value={formatMoney(
               stats.potentialValue
             )}
             delta=""
-            note="Total tender value"
+            note="إجمالي قيمة المنافسات"
           />
 
           <Kpi
             type="rate"
-            title="High Fit"
+            title="ملاءمة مرتفعة"
             value={stats.highFit}
             delta=""
-            note="Score ≥ 85"
+            note="الدرجة ≥ 85"
           />
 
           <Kpi
             type="leads"
-            title="Urgent Deadlines"
+            title="مواعيد عاجلة"
             value={stats.urgent}
             delta=""
-            note="Due within 7 days"
+            note="خلال 7 أيام"
           />
         </div>
 
@@ -1155,8 +1155,8 @@ export default function TenderRadar({
               />
 
               {showAnalyzer
-                ? "Close Analyzer"
-                : "Analyze Tender"}
+                ? "إغلاق المحلل"
+                : "تحليل المنافسة"}
             </span>
           </Btn>
         </div>
@@ -1388,10 +1388,10 @@ The successful bidder shall provide 24/7 support.`}
                         />
 
                         {analyzing
-                          ? "Analyzing..."
+                          ? "جارٍ التحليل..."
                           : analysis
-                            ? "Analyze Again"
-                            : "Analyze Against ERP Catalog"}
+                            ? "إعادة التحليل"
+                            : "تحليل مقابل كتالوج ERP"}
                       </span>
                     </Btn>
 
@@ -1602,7 +1602,7 @@ The successful bidder shall provide 24/7 support.`}
 
                         <strong>
                           {recommendation.label ||
-                            "Human Review Required"}
+                            "مراجعة بشرية مطلوبة"}
                         </strong>
                       </div>
 
@@ -1616,7 +1616,7 @@ The successful bidder shall provide 24/7 support.`}
                         }}
                       >
                         {recommendation.reason ||
-                          "Review the analysis before making a commercial decision."}
+                          "راجع التحليل قبل اتخاذ قرار تجاري."}
                       </p>
                     </div>
 
@@ -1647,7 +1647,7 @@ The successful bidder shall provide 24/7 support.`}
                         }}
                       >
                         {analysis.summary ||
-                          "No summary available."}
+                          "لا يوجد ملخص متاح."}
                       </p>
                     </div>
                   </div>
@@ -1739,7 +1739,7 @@ The successful bidder shall provide 24/7 support.`}
                             }}
                           >
                             {commercial.currency ||
-                              "Not detected"}
+                              "غير مكتشف"}
                           </div>
                         </div>
 
@@ -2123,7 +2123,7 @@ The successful bidder shall provide 24/7 support.`}
                                       }}
                                     >
                                       {match.name ||
-                                        "Catalog Item"}
+                                        "عنصر الكتالوج"}
                                     </strong>
 
                                     <div
@@ -2332,7 +2332,7 @@ The successful bidder shall provide 24/7 support.`}
                                     }}
                                   >
                                     {risk.type ||
-                                      "Risk"}
+                                      "المخاطر"}
                                   </strong>
 
                                   <span
@@ -2363,7 +2363,7 @@ The successful bidder shall provide 24/7 support.`}
                                   }}
                                 >
                                   {risk.message ||
-                                    "Review required."}
+                                    "المراجعة مطلوبة."}
                                 </div>
                               </div>
                             );
@@ -2465,7 +2465,7 @@ The successful bidder shall provide 24/7 support.`}
                           value={
                             analysisForm.title
                           }
-                          placeholder="Tender title"
+                          placeholder="عنوان المنافسة"
                           onChange={(e) =>
                             setAnalysisForm(
                               (
@@ -2492,7 +2492,7 @@ The successful bidder shall provide 24/7 support.`}
                           value={
                             analysisForm.reference
                           }
-                          placeholder="Reference"
+                          placeholder="المرجع"
                           onChange={(e) =>
                             setAnalysisForm(
                               (
@@ -2519,7 +2519,7 @@ The successful bidder shall provide 24/7 support.`}
                           value={
                             analysisForm.issuer
                           }
-                          placeholder="Issuing organization"
+                          placeholder="الجهة الطارحة"
                           onChange={(e) =>
                             setAnalysisForm(
                               (
@@ -2546,7 +2546,7 @@ The successful bidder shall provide 24/7 support.`}
                           value={
                             analysisForm.industry
                           }
-                          placeholder="Sector"
+                          placeholder="القطاع"
                           onChange={(e) =>
                             setAnalysisForm(
                               (
@@ -2573,7 +2573,7 @@ The successful bidder shall provide 24/7 support.`}
                           value={
                             analysisForm.region
                           }
-                          placeholder="Region"
+                          placeholder="المنطقة"
                           onChange={(e) =>
                             setAnalysisForm(
                               (
@@ -2605,7 +2605,7 @@ The successful bidder shall provide 24/7 support.`}
                           value={
                             analysisForm.source_url
                           }
-                          placeholder="Tender source URL"
+                          placeholder="رابط مصدر المنافسة"
                           onChange={(e) =>
                             setAnalysisForm(
                               (
@@ -2654,8 +2654,8 @@ The successful bidder shall provide 24/7 support.`}
                             />
 
                             {savingAnalysis
-                              ? "Saving..."
-                              : "Save Analyzed Tender"}
+                              ? "جارٍ الحفظ..."
+                              : "حفظ المنافسة المحللة"}
                           </span>
                         </Btn>
                       </div>
@@ -2670,7 +2670,7 @@ The successful bidder shall provide 24/7 support.`}
         {/* Tender Radar */}
 
         <Panel
-          title="Tender Intelligence"
+          title="ذكاء المنافسات"
           action={
             <div
               style={{
@@ -2696,8 +2696,8 @@ The successful bidder shall provide 24/7 support.`}
                 }}
               >
                 {loading
-                  ? "Loading..."
-                  : "Refresh"}
+                  ? "جارٍ التحميل..."
+                  : "تحديث"}
               </button>
 
               <button
@@ -2725,8 +2725,8 @@ The successful bidder shall provide 24/7 support.`}
                 }}
               >
                 {showForm
-                  ? "Cancel"
-                  : "+ Add Tender"}
+                  ? "إلغاء"
+                  : "+ إضافة منافسة"}
               </button>
             </div>
           }
@@ -2769,7 +2769,7 @@ The successful bidder shall provide 24/7 support.`}
                     value={
                       form.title
                     }
-                    placeholder="Enter tender title"
+                    placeholder="أدخل عنوان المنافسة"
                     onChange={(e) =>
                       setForm(
                         (
@@ -2796,7 +2796,7 @@ The successful bidder shall provide 24/7 support.`}
                     value={
                       form.reference
                     }
-                    placeholder="Tender reference"
+                    placeholder="مرجع المنافسة"
                     onChange={(e) =>
                       setForm(
                         (
@@ -2823,7 +2823,7 @@ The successful bidder shall provide 24/7 support.`}
                     value={
                       form.issuer
                     }
-                    placeholder="Issuing organization"
+                    placeholder="الجهة الطارحة"
                     onChange={(e) =>
                       setForm(
                         (
@@ -2877,7 +2877,7 @@ The successful bidder shall provide 24/7 support.`}
                     value={
                       form.region
                     }
-                    placeholder="Region"
+                    placeholder="المنطقة"
                     onChange={(e) =>
                       setForm(
                         (
@@ -3104,7 +3104,7 @@ The successful bidder shall provide 24/7 support.`}
                     value={
                       form.source_url
                     }
-                    placeholder="Tender source URL"
+                    placeholder="رابط مصدر المنافسة"
                     onChange={(e) =>
                       setForm(
                         (
@@ -3149,8 +3149,8 @@ The successful bidder shall provide 24/7 support.`}
                   disabled={saving}
                 >
                   {saving
-                    ? "Saving..."
-                    : "Add Tender"}
+                    ? "جارٍ الحفظ..."
+                    : "إضافة منافسة"}
                 </Btn>
               </div>
             </div>
@@ -3189,7 +3189,7 @@ The successful bidder shall provide 24/7 support.`}
               <input
                 type="text"
                 value={search}
-                placeholder="Search tenders, issuers, references, industries or regions..."
+                placeholder="ابحث في المنافسات أو الجهات أو المراجع أو القطاعات أو المناطق..."
                 onChange={(e) =>
                   setSearch(
                     e.target.value
@@ -3263,13 +3263,13 @@ The successful bidder shall provide 24/7 support.`}
 
               <h3>
                 {tenders.length
-                  ? "No matching tenders"
-                  : "No tenders yet"}
+                  ? "لا توجد منافسات مطابقة"
+                  : "لا توجد منافسات حتى الآن"}
               </h3>
 
               <p>
                 {tenders.length
-                  ? "Change the search or status filter."
+                  ? "غيّر البحث أو فلتر الحالة."
                   : "Analyze a tender against your ERP catalog or add one manually."}
               </p>
 

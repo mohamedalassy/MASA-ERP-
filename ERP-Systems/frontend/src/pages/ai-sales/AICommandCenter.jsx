@@ -15,10 +15,10 @@ import { Shell, Btn, Score } from "./shared";
 import { aiSalesRequest } from "./aiSalesApi";
 
 const SUGGESTIONS = [
-  { label: "Show top accounts", command: "show top accounts", icon: Building2 },
-  { label: "Latest signals", command: "show latest signals", icon: RadioTower },
-  { label: "Opportunities", command: "show opportunities", icon: Handshake },
-  { label: "Leads", command: "show leads", icon: UsersRound },
+  { label: "عرض أهم الحسابات", command: "show top accounts", icon: Building2 },
+  { label: "أحدث الإشارات", command: "show latest signals", icon: RadioTower },
+  { label: "الفرص", command: "show opportunities", icon: Handshake },
+  { label: "العملاء المحتملون", command: "show leads", icon: UsersRound },
 ];
 
 const money = (value, currency = "SAR") => {
@@ -40,7 +40,7 @@ function EmptyState({ intent }) {
   return (
     <div className="command-empty">
       <div><Search size={22} /></div>
-      <strong>No results found</strong>
+      <strong>لا توجد نتائج</strong>
       <span>No matching {String(intent || "records").replaceAll("_", " ")} are available yet.</span>
     </div>
   );
@@ -56,14 +56,14 @@ function TopAccounts({ rows, onNavigate }) {
             <div className="command-company-icon"><Building2 size={18} /></div>
             <div>
               <strong>{row.name || "Unnamed company"}</strong>
-              <span>{[row.industry, row.city, row.region].filter(Boolean).join(" • ") || "Company intelligence"}</span>
+              <span>{[row.industry, row.city, row.region].filter(Boolean).join(" • ") || "ذكاء الشركة"}</span>
             </div>
             <Score n={scoreOf(row)} />
           </div>
           <div className="command-account-meta">
-            <span><small>Fit</small><b>{row?.latest_score?.fit_score ?? row?.latestScore?.fit_score ?? "—"}</b></span>
-            <span><small>Intent</small><b>{row?.latest_score?.intent_score ?? row?.latestScore?.intent_score ?? "—"}</b></span>
-            <span><small>Timing</small><b>{row?.latest_score?.timing_score ?? row?.latestScore?.timing_score ?? "—"}</b></span>
+            <span><small>الملاءمة</small><b>{row?.latest_score?.fit_score ?? row?.latestScore?.fit_score ?? "—"}</b></span>
+            <span><small>النية</small><b>{row?.latest_score?.intent_score ?? row?.latestScore?.intent_score ?? "—"}</b></span>
+            <span><small>التوقيت</small><b>{row?.latest_score?.timing_score ?? row?.latestScore?.timing_score ?? "—"}</b></span>
           </div>
           <button type="button" className="command-open-link" onClick={() => onNavigate?.("ai-sales-companies")}>
             Open companies <ArrowRight size={13} />
@@ -82,11 +82,11 @@ function Signals({ rows }) {
         <article className="command-list-row" key={row.id}>
           <div className="command-list-icon"><RadioTower size={17} /></div>
           <div className="command-list-main">
-            <strong>{row.title || row.type || "Signal"}</strong>
+            <strong>{row.title || row.type || "إشارة"}</strong>
             <span>{companyName(row)}{row.description ? ` • ${row.description}` : ""}</span>
           </div>
           <div className="command-list-score">
-            <small>Strength</small>
+            <small>القوة</small>
             <b>{row.strength ?? "—"}</b>
           </div>
         </article>
@@ -107,7 +107,7 @@ function Opportunities({ rows }) {
             <span>{companyName(row)} • {row.stage || "Open opportunity"}</span>
           </div>
           <div className="command-list-value">
-            <small>Value</small>
+            <small>القيمة</small>
             <b>{money(row.value ?? row.estimated_value, row.currency || "SAR")}</b>
           </div>
           <div className="command-probability">{Number(row.probability || 0)}%</div>
@@ -126,10 +126,10 @@ function Leads({ rows }) {
           <div className="command-list-icon"><Target size={17} /></div>
           <div className="command-list-main">
             <strong>{companyName(row)}</strong>
-            <span>{row.status || "Lead"}{row.source ? ` • ${row.source}` : ""}</span>
+            <span>{row.status || "عميل محتمل"}{row.source ? ` • ${row.source}` : ""}</span>
           </div>
           <div className="command-list-score">
-            <small>Score</small>
+            <small>الدرجة</small>
             <b>{row.score ?? row.ai_score ?? "—"}</b>
           </div>
         </article>
@@ -140,10 +140,10 @@ function Leads({ rows }) {
 
 function Summary({ data }) {
   const cards = [
-    ["Companies", data?.companies ?? 0, Building2],
-    ["Leads", data?.leads ?? 0, UsersRound],
-    ["Opportunities", data?.opportunities ?? 0, Handshake],
-    ["Recommendations", data?.open_recommendations ?? 0, Lightbulb],
+    ["الشركات", data?.companies ?? 0, Building2],
+    ["العملاء المحتملون", data?.leads ?? 0, UsersRound],
+    ["الفرص", data?.opportunities ?? 0, Handshake],
+    ["التوصيات", data?.open_recommendations ?? 0, Lightbulb],
   ];
   return (
     <div className="command-summary-grid">
@@ -184,7 +184,7 @@ export default function AICommandCenter({ onNavigate, activeView = "ai-sales-com
       setLastCommand(value);
       setLastRunAt(new Date());
     } catch (e) {
-      setError(e?.message || "Unable to run command.");
+      setError(e?.message || "تعذر تنفيذ الأمر.");
     } finally {
       setLoading(false);
     }
@@ -203,16 +203,16 @@ export default function AICommandCenter({ onNavigate, activeView = "ai-sales-com
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="AI Command Center"
-      subtitle="Query your live AI Sales intelligence and turn ERP data into focused sales actions."
+      title="مركز أوامر الذكاء الاصطناعي"
+      subtitle="استعلم من ذكاء المبيعات المباشر وحوّل بيانات ERP إلى إجراءات مبيعات مركزة."
     >
       <section className="command-v2">
         <div className="command-v2-hero">
           <div className="command-v2-orb"><Sparkles size={31} /></div>
           <div className="command-v2-copy">
             <small>MASA SALES INTELLIGENCE</small>
-            <h2>What should AI Sales inspect?</h2>
-            <p>Search live companies, signals, leads and opportunities from one command workspace.</p>
+            <h2>ما الذي تريد من المبيعات الذكية تحليله؟</h2>
+            <p>ابحث في الشركات والإشارات والعملاء والفرص مباشرة من مساحة أوامر واحدة.</p>
           </div>
           <div className="command-v2-status">
             <i />
@@ -226,13 +226,13 @@ export default function AICommandCenter({ onNavigate, activeView = "ai-sales-com
             value={command}
             onChange={(e) => setCommand(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && run()}
-            placeholder="Ask MASA AI Sales about accounts, signals, leads or opportunities..."
+            placeholder="اسأل ماسة AI عن الحسابات أو الإشارات أو العملاء أو الفرص..."
           />
           {command && !loading && (
             <button type="button" className="command-clear" onClick={() => setCommand("")}>×</button>
           )}
           <Btn onClick={() => run()} disabled={loading || !command.trim()}>
-            {loading ? "Analyzing..." : "Run Command"}
+            {loading ? "جارٍ التحليل..." : "تشغيل الأمر"}
           </Btn>
         </div>
 
@@ -250,8 +250,8 @@ export default function AICommandCenter({ onNavigate, activeView = "ai-sales-com
         {!result && !loading && (
           <div className="command-welcome">
             <Sparkles size={24} />
-            <strong>Start with a command</strong>
-            <span>Use one of the suggested commands above or type your own request.</span>
+            <strong>ابدأ بأمر</strong>
+            <span>استخدم أحد الأوامر المقترحة أو اكتب طلبك مباشرة.</span>
           </div>
         )}
 

@@ -11,24 +11,24 @@ export default function SalesAnalytics({onNavigate,activeView="ai-sales-analytic
   const funnel=data?.funnel||{};
   const pipeline=(data?.pipeline_by_stage||[]).reduce((s,x)=>s+Number(x.value||0),0);
 
-  return <Shell activeView={activeView} onNavigate={onNavigate} title="Sales Analytics"
-    subtitle="Live funnel, pipeline, regions and buying-signal analytics.">
+  return <Shell activeView={activeView} onNavigate={onNavigate} title="تحليلات المبيعات"
+    subtitle="تحليلات مباشرة للقمع ومسار المبيعات والمناطق وإشارات الشراء.">
     {error&&<div className="ai-error">{error}</div>}
     <div className="kpi-grid analytics-kpis">
-      <Kpi type="companies" title="Companies" value={funnel.companies??"..."}/>
-      <Kpi type="leads" title="Leads" value={funnel.leads??"..."}/>
-      <Kpi type="opportunities" title="Opportunities" value={funnel.opportunities??"..."}/>
+      <Kpi type="companies" title="الشركات" value={funnel.companies??"..."}/>
+      <Kpi type="leads" title="العملاء المحتملون" value={funnel.leads??"..."}/>
+      <Kpi type="opportunities" title="الفرص" value={funnel.opportunities??"..."}/>
       <Kpi type="pipeline" title="Pipeline" value={`SAR ${money(pipeline)}`}/>
-      <Kpi type="rate" title="Won" value={funnel.won??"..."}/>
+      <Kpi type="rate" title="فائز" value={funnel.won??"..."}/>
     </div>
     <div className="workspace-2">
-      <Panel title="Pipeline by Stage" action={<Btn secondary onClick={load}><RefreshCw size={14}/> Refresh</Btn>}>
+      <Panel title="مسار المبيعات حسب المرحلة" action={<Btn secondary onClick={load}><RefreshCw size={14}/> Refresh</Btn>}>
         {(data?.pipeline_by_stage||[]).length?(data.pipeline_by_stage.map(x=><div className="performance-row" key={x.stage}>
           <span>{x.stage||"Unknown"}</span><i><u style={{width:`${Math.min(100,Number(x.count||0)*15)}%`}}/></i>
           <b>{x.count} • SAR {money(x.value)}</b>
         </div>)):<p>No pipeline data yet.</p>}
       </Panel>
-      <Panel title="Signals by Type">
+      <Panel title="الإشارات حسب النوع">
         {(data?.signals_by_type||[]).length?data.signals_by_type.map(x=><div className="performance-row" key={x.type}>
           <span>{x.type}</span><i><u style={{width:`${Math.min(100,Number(x.count||0)*20)}%`}}/></i><b>{x.count}</b>
         </div>):<p>No signal data yet.</p>}

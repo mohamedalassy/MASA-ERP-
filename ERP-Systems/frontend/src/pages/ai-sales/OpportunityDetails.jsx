@@ -633,8 +633,8 @@ export default function OpportunityDetails({
       <Shell
         activeView={activeView}
         onNavigate={onNavigate}
-        title="Opportunity Workspace"
-        subtitle="Loading commercial intelligence and deal data..."
+        title="مساحة عمل الفرصة"
+        subtitle="جارٍ تحميل الذكاء التجاري وبيانات الصفقة..."
       >
         <div
           style={{
@@ -660,10 +660,10 @@ export default function OpportunityDetails({
       <Shell
         activeView={activeView}
         onNavigate={onNavigate}
-        title="Opportunity Workspace"
-        subtitle="Commercial intelligence, stakeholders, tasks and deal health."
+        title="مساحة عمل الفرصة"
+        subtitle="الذكاء التجاري وأصحاب المصلحة والمهام وصحة الصفقة."
       >
-        <Panel title="Opportunity">
+        <Panel title="فرصة">
           <div
             style={{
               padding: 35,
@@ -700,7 +700,7 @@ export default function OpportunityDetails({
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="Opportunity Workspace"
+      title="مساحة عمل الفرصة"
       subtitle="Commercial intelligence, qualification, pipeline health and next best action."
     >
       <>
@@ -767,7 +767,7 @@ export default function OpportunityDetails({
               {" "}
 
               {company?.name ||
-                "Unknown Company"}
+                "شركة غير معروفة"}
 
               {company?.city
                 ? ` • ${company.city}`
@@ -807,52 +807,52 @@ export default function OpportunityDetails({
         <div className="mini-kpis">
           <Kpi
             type="opportunities"
-            title="Deal Value"
+            title="قيمة الصفقة"
             value={formatMoney(
               opportunity.value,
               opportunity.currency
             )}
             delta=""
-            note="Estimated opportunity"
+            note="القيمة التقديرية للفرصة"
           />
 
           <Kpi
             type="rate"
-            title="Probability"
+            title="الاحتمالية"
             value={`${
               opportunity.probability ??
               0
             }%`}
             delta=""
-            note="Win probability"
+            note="احتمالية الفوز"
           />
 
           <Kpi
             type="companies"
-            title="Weighted Value"
+            title="القيمة المرجحة"
             value={formatMoney(
               weightedValue,
               opportunity.currency
             )}
             delta=""
-            note="Value × probability"
+            note="القيمة × الاحتمالية"
           />
 
           <Kpi
             type="leads"
-            title="Stage"
+            title="المرحلة"
             value={capitalize(
               opportunity.stage
             )}
             delta=""
-            note="Pipeline stage"
+            note="مرحلة مسار المبيعات"
           />
         </div>
 
         {/* Main Intelligence */}
 
         <div className="workspace-3">
-          <Panel title="Account Signals">
+          <Panel title="إشارات الحساب">
             {signals.length ? (
               <div className="signal-list">
                 {signals.map(
@@ -881,7 +881,7 @@ export default function OpportunityDetails({
             )}
           </Panel>
 
-          <Panel title="Matched Products & Services">
+          <Panel title="المنتجات والخدمات المطابقة">
             {matchedItems.length ? (
               <>
                 <div className="service-pills">
@@ -919,7 +919,7 @@ export default function OpportunityDetails({
             )}
           </Panel>
 
-          <Panel title="Next Best Action">
+          <Panel title="أفضل إجراء تالٍ">
             <h2>
               {opportunity.next_best_action ||
                 (overallScore >= 80
@@ -950,7 +950,7 @@ export default function OpportunityDetails({
         {/* Deal Management */}
 
         <div className="workspace-2">
-          <Panel title="Deal Management">
+          <Panel title="إدارة الصفقة">
             <div
               style={{
                 display: "grid",
@@ -1141,8 +1141,8 @@ export default function OpportunityDetails({
                 disabled={saving}
               >
                 {saving
-                  ? "Saving..."
-                  : "Save Opportunity"}
+                  ? "جارٍ الحفظ..."
+                  : "حفظ الفرصة"}
               </Btn>
 
               {lead?.id && (
@@ -1160,7 +1160,7 @@ export default function OpportunityDetails({
 
           {/* Commercial Intelligence */}
 
-          <Panel title="Commercial Intelligence">
+          <Panel title="الذكاء التجاري">
             <div className="intel-grid">
               <span>
                 <small>

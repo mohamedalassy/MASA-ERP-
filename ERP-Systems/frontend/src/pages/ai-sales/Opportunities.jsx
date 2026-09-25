@@ -18,27 +18,27 @@ import { aiSalesRequest } from "./aiSalesApi";
 const STAGES = [
   {
     id: "new",
-    label: "New",
+    label: "جديد",
   },
   {
     id: "qualified",
-    label: "Qualified",
+    label: "مؤهل",
   },
   {
     id: "proposal",
-    label: "Proposal",
+    label: "عرض",
   },
   {
     id: "negotiation",
-    label: "Negotiation",
+    label: "تفاوض",
   },
   {
     id: "won",
-    label: "Won",
+    label: "فائز",
   },
   {
     id: "lost",
-    label: "Lost",
+    label: "خاسر",
   },
 ];
 
@@ -395,8 +395,8 @@ export default function Opportunities({
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="Opportunities Pipeline"
-      subtitle="Track AI-qualified deals from discovery through qualification, proposal, negotiation and close."
+      title="مسار الفرص"
+      subtitle="تابع الصفقات المؤهلة من الاكتشاف حتى التأهيل والعرض والتفاوض والإغلاق."
     >
       <>
         {/* Error */}
@@ -423,7 +423,7 @@ export default function Opportunities({
         <div className="mini-kpis">
           <Kpi
             type="opportunities"
-            title="Total Pipeline"
+            title="إجمالي المسار"
             value={formatMoney(
               stats.totalPipeline
             )}
@@ -433,39 +433,39 @@ export default function Opportunities({
 
           <Kpi
             type="rate"
-            title="Weighted Pipeline"
+            title="المسار المرجح"
             value={formatMoney(
               stats.weightedPipeline
             )}
             delta=""
-            note="Probability adjusted"
+            note="معدّل حسب الاحتمالية"
           />
 
           <Kpi
             type="companies"
-            title="Open Deals"
+            title="الصفقات المفتوحة"
             value={
               stats.openDeals
             }
             delta=""
-            note="Active opportunities"
+            note="الفرص النشطة"
           />
 
           <Kpi
             type="leads"
-            title="Won Value"
+            title="قيمة الصفقات الفائزة"
             value={formatMoney(
               stats.wonValue
             )}
             delta=""
-            note="Closed won revenue"
+            note="إيرادات الصفقات المغلقة بنجاح"
           />
         </div>
 
         {/* Pipeline */}
 
         <Panel
-          title="Sales Pipeline"
+          title="مسار المبيعات"
           action={
             <button
               type="button"
@@ -485,8 +485,8 @@ export default function Opportunities({
               }}
             >
               {loading
-                ? "Loading..."
-                : "Refresh"}
+                ? "جارٍ التحميل..."
+                : "تحديث"}
             </button>
           }
         >
@@ -515,7 +515,7 @@ export default function Opportunities({
             <input
               type="text"
               value={search}
-              placeholder="Search opportunities, companies, industries or locations..."
+              placeholder="ابحث عن فرصة أو شركة أو قطاع أو موقع..."
               onChange={(e) =>
                 setSearch(
                   e.target.value
@@ -819,7 +819,7 @@ export default function Opportunities({
                                       }}
                                     >
                                       {company?.name ||
-                                        "Unknown Company"}
+                                        "شركة غير معروفة"}
                                     </span>
 
                                     <small

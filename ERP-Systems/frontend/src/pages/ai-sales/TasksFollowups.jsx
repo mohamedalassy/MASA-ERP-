@@ -33,29 +33,29 @@ export default function TasksFollowups({onNavigate,activeView="ai-sales-tasks"})
   };
 
   return <Shell activeView={activeView} onNavigate={onNavigate}
-    title="Tasks & Follow-ups" subtitle="Real work queue connected to AI Sales accounts.">
+    title="المهام والمتابعات" subtitle="قائمة عمل حقيقية مرتبطة بحسابات المبيعات الذكية.">
     {error&&<div className="ai-error">{error}</div>}
     <div className="mini-kpis">
-      <Kpi type="leads" title="Open" value={stats.open}/>
-      <Kpi type="opportunities" title="High Priority" value={stats.high}/>
-      <Kpi type="rate" title="Completed" value={stats.done}/>
+      <Kpi type="leads" title="مفتوح" value={stats.open}/>
+      <Kpi type="opportunities" title="أولوية مرتفعة" value={stats.high}/>
+      <Kpi type="rate" title="مكتمل" value={stats.done}/>
     </div>
     <div className="workspace-2">
-      <Panel title="Work Queue" action={<Btn secondary onClick={load}><RefreshCw size={14}/> Refresh</Btn>}>
+      <Panel title="قائمة العمل" action={<Btn secondary onClick={load}><RefreshCw size={14}/> Refresh</Btn>}>
         {tasks.length?tasks.map(x=><div className="task-row" key={x.id}>
-          <button>✓</button><div><b>{x.title}</b><small>{x.company?.name||x.type||"Task"}</small></div>
-          <span>{x.due_at?new Date(x.due_at).toLocaleString():"No due date"}</span>
+          <button>✓</button><div><b>{x.title}</b><small>{x.company?.name||x.type||"المهمة"}</small></div>
+          <span>{x.due_at?new Date(x.due_at).toLocaleString():"بدون تاريخ استحقاق"}</span>
           <em className={x.priority}>{x.priority||"medium"}</em>
         </div>):<p>No tasks yet.</p>}
       </Panel>
-      <Panel title="New Task"><form className="pro-form" onSubmit={save}>
-        <label>Company</label><select value={form.company_id} onChange={e=>setForm({...form,company_id:e.target.value})}>
-          <option value="">No company</option>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+      <Panel title="مهمة جديدة"><form className="pro-form" onSubmit={save}>
+        <label>الشركة</label><select value={form.company_id} onChange={e=>setForm({...form,company_id:e.target.value})}>
+          <option value="">بدون شركة</option>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <label>Title</label><input required value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/>
-        <label>Type</label><input value={form.type} onChange={e=>setForm({...form,type:e.target.value})}/>
-        <label>Priority</label><select value={form.priority} onChange={e=>setForm({...form,priority:e.target.value})}>
-          <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option>
+        <label>النوع</label><input value={form.type} onChange={e=>setForm({...form,type:e.target.value})}/>
+        <label>الأولوية</label><select value={form.priority} onChange={e=>setForm({...form,priority:e.target.value})}>
+          <option value="low">منخفض</option><option value="medium">متوسط</option><option value="high">مرتفع</option><option value="urgent">عاجل</option>
         </select>
         <label>Due At</label><input type="datetime-local" value={form.due_at} onChange={e=>setForm({...form,due_at:e.target.value})}/>
         <Btn type="submit">

@@ -36,12 +36,12 @@ export default function AIMessageComposer({onNavigate,activeView="ai-sales-messa
   };
 
   return <Shell activeView={activeView} onNavigate={onNavigate}
-    title="AI Message Studio"
-    subtitle="Generate contextual drafts from real company scores and buying signals.">
+    title="استوديو الرسائل الذكية"
+    subtitle="أنشئ مسودات سياقية من درجات الشركات وإشارات الشراء الحقيقية.">
     {error&&<div className="ai-error">{error}</div>}
     <div className="workspace-2">
-      <Panel title="Message Context"><div className="pro-form">
-        <label>Company</label>
+      <Panel title="سياق الرسالة"><div className="pro-form">
+        <label>الشركة</label>
         <select value={companyId} onChange={e=>setCompanyId(e.target.value)}>
           <option value="">Select company</option>
           {companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
@@ -61,12 +61,12 @@ export default function AIMessageComposer({onNavigate,activeView="ai-sales-messa
           <option value="professional">Professional</option><option value="consultative">Consultative</option>
           <option value="concise">Concise</option><option value="friendly">Friendly</option>
         </select>
-        <Btn onClick={generate} disabled={loading}><Sparkles size={14}/>{loading?"Generating...":"Generate Draft"}</Btn>
+        <Btn onClick={generate} disabled={loading}><Sparkles size={14}/>{loading?"جارٍ الإنشاء...":"إنشاء مسودة"}</Btn>
       </div></Panel>
       <div className="message-studio">
         <small>AI ASSISTED DRAFT</small>
-        <h3>{draft?.subject||"Generate a contextual outreach draft"}</h3>
-        <p style={{whiteSpace:"pre-wrap"}}>{draft?.body||"The generated message will appear here. It stays a draft until a user approves it."}</p>
+        <h3>{draft?.subject||"إنشاء مسودة تواصل سياقية"}</h3>
+        <p style={{whiteSpace:"pre-wrap"}}>{draft?.body||"ستظهر الرسالة هنا وتبقى مسودة حتى يعتمدها المستخدم."}</p>
         {draft&&<div style={{display:"flex",gap:8}}>
           <Btn secondary onClick={generate}><RefreshCw size={14}/> Regenerate</Btn>
           {draft.status==="approved"

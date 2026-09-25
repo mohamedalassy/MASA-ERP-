@@ -569,7 +569,7 @@ export default function LeadDetails({
       <Shell
         activeView={activeView}
         onNavigate={onNavigate}
-        title="Lead Intelligence"
+        title="ذكاء العملاء المحتملين"
         subtitle="Loading qualification and account intelligence..."
       >
         <div
@@ -596,10 +596,10 @@ export default function LeadDetails({
       <Shell
         activeView={activeView}
         onNavigate={onNavigate}
-        title="Lead Intelligence"
+        title="ذكاء العملاء المحتملين"
         subtitle="Qualification, contacts, activity, signals and next best action in one view."
       >
-        <Panel title="Lead">
+        <Panel title="عميل محتمل">
           <div
             style={{
               padding: 30,
@@ -650,7 +650,7 @@ export default function LeadDetails({
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="Lead Intelligence"
+      title="ذكاء العملاء المحتملين"
       subtitle="Qualification, contacts, activity, signals and next best action in one view."
     >
       <>
@@ -689,7 +689,7 @@ export default function LeadDetails({
 
             <h2>
               {company?.name ||
-                "Unnamed Company"}
+                "شركة بدون اسم"}
             </h2>
 
             <p>
@@ -733,7 +733,7 @@ export default function LeadDetails({
         <div className="mini-kpis">
           <Kpi
             type="leads"
-            title="Priority"
+            title="الأولوية"
             value={
               lead.priority
                 ? lead.priority
@@ -748,14 +748,14 @@ export default function LeadDetails({
 
           <Kpi
             type="companies"
-            title="Status"
+            title="الحالة"
             value={
               lead.status
                 ? lead.status
                     .charAt(0)
                     .toUpperCase() +
                   lead.status.slice(1)
-                : "New"
+                : "جديد"
             }
             delta=""
             note="Lead status"
@@ -763,7 +763,7 @@ export default function LeadDetails({
 
           <Kpi
             type="opportunities"
-            title="Opportunities"
+            title="الفرص"
             value={
               opportunities.length
             }
@@ -773,7 +773,7 @@ export default function LeadDetails({
 
           <Kpi
             type="rate"
-            title="Confidence"
+            title="الثقة"
             value={
               scoreData
                 ?.confidence_score ??
@@ -784,14 +784,14 @@ export default function LeadDetails({
               0
             }
             delta=""
-            note="Data confidence"
+            note="موثوقية البيانات"
           />
         </div>
 
         {/* Intelligence */}
 
         <div className="workspace-3">
-          <Panel title="Account Signals">
+          <Panel title="إشارات الحساب">
             {signals.length ? (
               <div className="signal-list">
                 {signals.map(
@@ -822,7 +822,7 @@ export default function LeadDetails({
             )}
           </Panel>
 
-          <Panel title="Recommended Products & Services">
+          <Panel title="المنتجات والخدمات المقترحة">
             {catalogMatches.length ? (
               <>
                 <div className="service-pills">
@@ -863,7 +863,7 @@ export default function LeadDetails({
             )}
           </Panel>
 
-          <Panel title="Next Best Action">
+          <Panel title="أفضل إجراء تالٍ">
             {overallScore >= 85 ? (
               <>
                 <h2>
@@ -916,7 +916,7 @@ export default function LeadDetails({
         {/* Contact + Qualification */}
 
         <div className="workspace-2">
-          <Panel title="Lead Contact">
+          <Panel title="جهة اتصال العميل">
             <div className="intel-grid">
               <span>
                 <small>
@@ -925,7 +925,7 @@ export default function LeadDetails({
 
                 <b>
                   {lead.contact_name ||
-                    "Not identified"}
+                    "غير محدد"}
                 </b>
               </span>
 
@@ -962,7 +962,7 @@ export default function LeadDetails({
             </div>
           </Panel>
 
-          <Panel title="Qualification">
+          <Panel title="التأهيل">
             <div className="intel-grid">
               <span>
                 <small>
@@ -1052,7 +1052,7 @@ export default function LeadDetails({
 
         <div className="workspace-2">
           <Panel
-            title="Linked Opportunities"
+            title="الفرص المرتبطة"
             action={
               <button
                 type="button"
@@ -1072,8 +1072,8 @@ export default function LeadDetails({
                 }}
               >
                 {showOpportunityForm
-                  ? "Cancel"
-                  : "+ Create Opportunity"}
+                  ? "إلغاء"
+                  : "+ إنشاء فرصة"}
               </button>
             }
           >
@@ -1271,8 +1271,8 @@ export default function LeadDetails({
                     }
                   >
                     {creatingOpportunity
-                      ? "Creating..."
-                      : "Create Opportunity"}
+                      ? "جارٍ الإنشاء..."
+                      : "إنشاء فرصة"}
                   </Btn>
                 </div>
               </div>
@@ -1403,7 +1403,7 @@ export default function LeadDetails({
 
           {/* Account Intelligence */}
 
-          <Panel title="Account Intelligence">
+          <Panel title="ذكاء الحساب">
             <div className="intel-grid">
               <span>
                 <small>

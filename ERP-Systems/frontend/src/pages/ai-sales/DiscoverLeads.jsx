@@ -3,30 +3,30 @@ import { Shell, Btn, Panel, uiIcons } from "./shared";
 import { aiSalesRequest } from "./aiSalesApi";
 
 const REGIONS = [
-  "Eastern Province",
-  "Riyadh",
-  "Makkah",
-  "Madinah",
-  "Qassim",
-  "Asir",
-  "Tabuk",
-  "Hail",
-  "Northern Borders",
-  "Jazan",
-  "Najran",
-  "Al Bahah",
-  "Al Jouf",
+  "المنطقة الشرقية",
+  "الرياض",
+  "مكة المكرمة",
+  "المدينة المنورة",
+  "القصيم",
+  "عسير",
+  "تبوك",
+  "حائل",
+  "الحدود الشمالية",
+  "جازان",
+  "نجران",
+  "الباحة",
+  "الجوف",
 ];
 
 const SIGNALS = [
-  { id: "new_business", label: "New Business" },
-  { id: "expansion", label: "Expansion" },
-  { id: "new_branch", label: "New Branch" },
-  { id: "hiring", label: "Hiring" },
-  { id: "projects", label: "Projects" },
-  { id: "funding", label: "Funding" },
-  { id: "tender", label: "Tenders" },
-  { id: "procurement", label: "Procurement" },
+  { id: "new_business", label: "نشاط جديد" },
+  { id: "expansion", label: "توسع" },
+  { id: "new_branch", label: "فرع جديد" },
+  { id: "hiring", label: "توظيف" },
+  { id: "projects", label: "مشاريع" },
+  { id: "funding", label: "تمويل" },
+  { id: "tender", label: "المنافسات" },
+  { id: "procurement", label: "مشتريات" },
 ];
 
 export default function DiscoverLeads({
@@ -50,7 +50,7 @@ export default function DiscoverLeads({
     "expansion",
   ]);
 
-  const [region, setRegion] = useState("Eastern Province");
+  const [region, setRegion] = useState("المنطقة الشرقية");
 
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogSyncing, setCatalogSyncing] = useState(false);
@@ -73,7 +73,7 @@ export default function DiscoverLeads({
     const name = newTarget.name.trim();
 
     if (!name) {
-      setError("Enter a target name.");
+      setError("أدخل اسم الهدف.");
       return;
     }
 
@@ -126,7 +126,7 @@ export default function DiscoverLeads({
 
       setError(
         err.message ||
-          "Unable to create target profile."
+          "تعذر إنشاء ملف الهدف."
       );
     }
   }
@@ -178,7 +178,7 @@ export default function DiscoverLeads({
 
       setError(
         err.message ||
-          "Unable to load AI Sales catalog."
+          "تعذر تحميل كتالوج المبيعات الذكية."
       );
     } finally {
       setCatalogLoading(false);
@@ -209,7 +209,7 @@ export default function DiscoverLeads({
 
       setError(
         err.message ||
-          "Unable to sync ERP catalog."
+          "تعذرت مزامنة كتالوج ERP."
       );
     } finally {
       setCatalogSyncing(false);
@@ -257,14 +257,14 @@ export default function DiscoverLeads({
   async function startDiscovery() {
     if (!selectedProfiles.length) {
       setError(
-        "Select at least one product or service before starting discovery."
+        "اختر منتجًا أو خدمة واحدة على الأقل قبل بدء الاكتشاف."
       );
 
       return;
     }
 
     if (!region) {
-      setError("Select a target region.");
+      setError("اختر المنطقة المستهدفة.");
       return;
     }
 
@@ -282,7 +282,7 @@ export default function DiscoverLeads({
             catalog_profile_ids:
               selectedProfiles,
 
-            country: "Saudi Arabia",
+            country: "المملكة العربية السعودية",
 
             region,
 
@@ -307,7 +307,7 @@ export default function DiscoverLeads({
 
       setError(
         err.message ||
-          "AI Discovery could not be completed."
+          "تعذر إكمال الاكتشاف بالذكاء الاصطناعي."
       );
     } finally {
       setDiscovering(false);
@@ -357,8 +357,8 @@ export default function DiscoverLeads({
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="Discover New Leads"
-      subtitle="Build a precise target market and let AI surface companies with real buying signals."
+      title="اكتشاف عملاء محتملين جدد"
+      subtitle="حدد سوقك المستهدف بدقة ودع الذكاء الاصطناعي يكشف الشركات ذات إشارات الشراء الحقيقية."
     >
       <div className="workspace-2">
         {/* =====================================================
@@ -366,7 +366,7 @@ export default function DiscoverLeads({
         ===================================================== */}
 
         <Panel
-          title="Discovery Configuration"
+          title="إعدادات الاكتشاف"
           action={
             <button
               type="button"
@@ -387,8 +387,8 @@ export default function DiscoverLeads({
               }}
             >
               {catalogSyncing
-                ? "Syncing..."
-                : "Sync ERP Catalog"}
+                ? "جارٍ المزامنة..."
+                : "مزامنة كتالوج ERP"}
             </button>
           }
         >
@@ -584,7 +584,7 @@ export default function DiscoverLeads({
 
                 <input
                   type="text"
-                  placeholder="Target name"
+                  placeholder="اسم الهدف"
                   value={newTarget.name}
                   onChange={(e) =>
                     setNewTarget(
@@ -629,7 +629,7 @@ export default function DiscoverLeads({
                 </select>
 
                 <textarea
-                  placeholder="What does this product or service provide?"
+                  placeholder="ما الذي يقدمه هذا المنتج أو الخدمة؟"
                   value={
                     newTarget.description
                   }
@@ -648,7 +648,7 @@ export default function DiscoverLeads({
 
                 <input
                   type="text"
-                  placeholder="Keywords separated by commas"
+                  placeholder="الكلمات المفتاحية مفصولة بفواصل"
                   value={newTarget.keywords}
                   onChange={(e) =>
                     setNewTarget(
@@ -802,8 +802,8 @@ export default function DiscoverLeads({
               }
             >
               {discovering
-                ? "AI is scanning the market..."
-                : "Start AI Discovery →"}
+                ? "الذكاء الاصطناعي يفحص السوق..."
+                : "بدء الاكتشاف بالذكاء الاصطناعي ←"}
             </Btn>
           </div>
         </Panel>
@@ -823,8 +823,8 @@ export default function DiscoverLeads({
 
           <h2>
             {discovering
-              ? "Scanning the market..."
-              : "Ready to scan the market"}
+              ? "جارٍ فحص السوق..."
+              : "جاهز لفحص السوق"}
           </h2>
 
           <p>

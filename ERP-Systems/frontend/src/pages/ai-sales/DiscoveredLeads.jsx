@@ -40,27 +40,27 @@ export default function DiscoveredLeads({ onNavigate, activeView = "ai-sales-dis
     onNavigate?.("ai-sales-company");
   }
 
-  return <Shell activeView={activeView} onNavigate={onNavigate} title="Discovered Leads" subtitle="Review AI discoveries, evidence, scores and recommended next actions.">
+  return <Shell activeView={activeView} onNavigate={onNavigate} title="العملاء المكتشفون" subtitle="راجع اكتشافات الذكاء والأدلة والدرجات والإجراءات التالية المقترحة.">
     <div className="mini-kpis">
-      <Kpi type="leads" title="Discovered" value={companies.length} note="AI discovered companies"/>
-      <Kpi type="companies" title="Qualified" value={qualified} note="Score ≥ 60"/>
-      <Kpi type="opportunities" title="Hot Leads" value={hot} note="Score ≥ 85"/>
+      <Kpi type="leads" title="مكتشف" value={companies.length} note="شركات اكتشفها الذكاء الاصطناعي"/>
+      <Kpi type="companies" title="مؤهل" value={qualified} note="الدرجة ≥ 60"/>
+      <Kpi type="opportunities" title="عملاء ساخنون" value={hot} note="الدرجة ≥ 85"/>
     </div>
 
-    <Panel title="Lead Intelligence" action={<button type="button" className="ai-text-action" onClick={loadCompanies} disabled={loading}><RefreshCw size={13}/>{loading?"Refreshing...":"Refresh"}</button>}>
+    <Panel title="ذكاء العملاء المحتملين" action={<button type="button" className="ai-text-action" onClick={loadCompanies} disabled={loading}><RefreshCw size={13}/>{loading?"جارٍ التحديث...":"تحديث"}</button>}>
       <div className="ai-filter-toolbar">
         <div className="ai-search-field">
           <Search size={16}/>
-          <input type="search" placeholder="Search companies, sectors or cities..." value={search} onChange={e=>setSearch(e.target.value)}/>
+          <input type="search" placeholder="ابحث عن شركة أو قطاع أو مدينة..." value={search} onChange={e=>setSearch(e.target.value)}/>
           {search && <button type="button" onClick={()=>setSearch("")} aria-label="Clear search"><X size={14}/></button>}
         </div>
         <div className="ai-select-field">
           <SlidersHorizontal size={15}/>
           <select value={minScore} onChange={e=>setMinScore(Number(e.target.value))}>
-            <option value={0}>All Scores</option><option value={60}>Qualified ≥ 60</option><option value={75}>Strong ≥ 75</option><option value={85}>Hot ≥ 85</option>
+            <option value={0}>كل الدرجات</option><option value={60}>Qualified ≥ 60</option><option value={75}>Strong ≥ 75</option><option value={85}>Hot ≥ 85</option>
           </select>
         </div>
-        <Btn secondary onClick={loadCompanies} disabled={loading}><RefreshCw size={14}/>Refresh</Btn>
+        <Btn secondary onClick={loadCompanies} disabled={loading}><RefreshCw size={14}/>تحديث</Btn>
         <Btn onClick={()=>onNavigate?.("ai-sales-discover")}><Sparkles size={14}/>Discover More</Btn>
       </div>
 
@@ -69,9 +69,9 @@ export default function DiscoveredLeads({ onNavigate, activeView = "ai-sales-dis
       {loading ? <div className="ai-table-skeleton">{[1,2,3,4,5].map(i=><i key={i}/>)}</div> :
        !filtered.length ? <div className="ai-empty-state"><Search size={22}/><strong>No discovered companies found</strong><span>Run AI Discovery or change the current filters.</span></div> :
        <div className="data-table ai-company-table">
-         <div className="tr th"><span>Company</span><span>Industry</span><span>Location</span><span>AI Score</span><span>Status</span></div>
+         <div className="tr th"><span>الشركة</span><span>القطاع</span><span>الموقع</span><span>درجة الذكاء</span><span>الحالة</span></div>
          {filtered.map(c=><div className="tr" key={c.id} role="button" tabIndex={0} onClick={()=>openCompany(c)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openCompany(c)}}}>
-           <b>{c.name||"Unnamed Company"}</b><span>{c.industry||c.category||"—"}</span><span>{[c.city,c.region].filter(Boolean).join(", ")||"—"}</span><Score n={getScore(c)}/><span className="ai-status-chip">{c.status||"discovered"}</span>
+           <b>{c.name||"شركة بدون اسم"}</b><span>{c.industry||c.category||"—"}</span><span>{[c.city,c.region].filter(Boolean).join(", ")||"—"}</span><Score n={getScore(c)}/><span className="ai-status-chip">{c.status||"discovered"}</span>
          </div>)}
        </div>}
       {!loading && filtered.length>0 && <div className="ai-table-footer">Showing <b>{filtered.length}</b> of {companies.length} discovered companies</div>}

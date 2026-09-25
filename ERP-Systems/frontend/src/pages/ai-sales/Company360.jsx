@@ -412,8 +412,8 @@ export default function Company360({
       <Shell
         activeView={activeView}
         onNavigate={onNavigate}
-        title="Company 360"
-        subtitle="Loading account intelligence..."
+        title="ملف الشركة 360°"
+        subtitle="جارٍ تحميل ذكاء الحساب..."
       >
         <div
           style={{
@@ -439,10 +439,10 @@ export default function Company360({
       <Shell
         activeView={activeView}
         onNavigate={onNavigate}
-        title="Company 360"
-        subtitle="Everything your sales team needs before contacting a target account."
+        title="ملف الشركة 360°"
+        subtitle="كل ما يحتاجه فريق المبيعات قبل التواصل مع الحساب المستهدف."
       >
-        <Panel title="Company">
+        <Panel title="الشركة">
           <div
             style={{
               padding: 30,
@@ -483,8 +483,8 @@ export default function Company360({
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="Company 360"
-      subtitle="Everything your sales team needs before contacting a target account."
+      title="ملف الشركة 360°"
+      subtitle="كل ما يحتاجه فريق المبيعات قبل التواصل مع الحساب المستهدف."
     >
       <>
         {/* =====================================================
@@ -541,7 +541,7 @@ export default function Company360({
 
             <h2>
               {company.name ||
-                "Unnamed Company"}
+                "شركة بدون اسم"}
             </h2>
 
             <p>
@@ -560,7 +560,7 @@ export default function Company360({
           </div>
 
           <div className="account-score">
-            <span>AI Score</span>
+            <span>درجة الذكاء</span>
 
             <Score n={overallScore} />
           </div>
@@ -575,8 +575,8 @@ export default function Company360({
               disabled={converting}
             >
               {converting
-                ? "Converting..."
-                : "Convert to Lead"}
+                ? "جارٍ التحويل..."
+                : "تحويل إلى عميل محتمل"}
             </Btn>
           )}
         </div>
@@ -588,43 +588,43 @@ export default function Company360({
         <div className="mini-kpis">
           <Kpi
             type="companies"
-            title="Fit"
+            title="الملاءمة"
             value={
               scoreData?.fit_score ??
               scoreData?.fit ??
               0
             }
             delta=""
-            note="Account fit"
+            note="ملاءمة الحساب"
           />
 
           <Kpi
             type="leads"
-            title="Intent"
+            title="النية"
             value={
               scoreData?.intent_score ??
               scoreData?.intent ??
               0
             }
             delta=""
-            note="Buying intent"
+            note="نية الشراء"
           />
 
           <Kpi
             type="opportunities"
-            title="Timing"
+            title="التوقيت"
             value={
               scoreData?.timing_score ??
               scoreData?.timing ??
               0
             }
             delta=""
-            note="Buying timing"
+            note="توقيت الشراء"
           />
 
           <Kpi
             type="rate"
-            title="Confidence"
+            title="الثقة"
             value={
               scoreData?.confidence_score ??
               scoreData?.confidence ??
@@ -632,7 +632,7 @@ export default function Company360({
               0
             }
             delta=""
-            note="Data confidence"
+            note="موثوقية البيانات"
           />
         </div>
 
@@ -641,7 +641,7 @@ export default function Company360({
         ===================================================== */}
 
         <div className="workspace-3">
-          <Panel title="Account Signals">
+          <Panel title="إشارات الحساب">
             {signals.length ? (
               <div className="signal-list">
                 {signals.map(
@@ -667,7 +667,7 @@ export default function Company360({
             )}
           </Panel>
 
-          <Panel title="Recommended Products & Services">
+          <Panel title="المنتجات والخدمات المقترحة">
             {catalogMatches.length ? (
               <>
                 <div className="service-pills">
@@ -701,7 +701,7 @@ export default function Company360({
             )}
           </Panel>
 
-          <Panel title="Next Best Action">
+          <Panel title="أفضل إجراء تالٍ">
             {overallScore >= 85 ? (
               <>
                 <h2>
@@ -755,7 +755,7 @@ export default function Company360({
         ===================================================== */}
 
         <div className="workspace-2">
-          <Panel title="Opportunity Timeline">
+          <Panel title="الخط الزمني للفرصة">
             <div className="timeline">
               {activities.length ? (
                 activities.map(
@@ -771,7 +771,7 @@ export default function Company360({
                         <b>
                           {activity.title ??
                             activity.type ??
-                            "Activity"}
+                            "النشاط"}
                         </b>
 
                         <small>
@@ -820,10 +820,10 @@ export default function Company360({
             </div>
           </Panel>
 
-          <Panel title="Account Intelligence">
+          <Panel title="ذكاء الحساب">
             <div className="intel-grid">
               <span>
-                <small>Industry</small>
+                <small>القطاع</small>
 
                 <b>
                   {company.industry || "—"}
@@ -831,7 +831,7 @@ export default function Company360({
               </span>
 
               <span>
-                <small>Location</small>
+                <small>الموقع</small>
 
                 <b>
                   {[
@@ -866,7 +866,7 @@ export default function Company360({
               </span>
 
               <span>
-                <small>Status</small>
+                <small>الحالة</small>
 
                 <b
                   style={{
@@ -880,7 +880,7 @@ export default function Company360({
               </span>
 
               <span>
-                <small>Source</small>
+                <small>المصدر</small>
 
                 <b>
                   {company.source ||

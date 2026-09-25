@@ -29,24 +29,24 @@ export default function Companies({ onNavigate, activeView="ai-sales-companies" 
 
   function open(c){ if(!c?.id)return; sessionStorage.setItem("ai-sales-selected-company",JSON.stringify(c)); onNavigate?.("ai-sales-company"); }
 
-  return <Shell activeView={activeView} onNavigate={onNavigate} title="Company Intelligence" subtitle="A live target-account workspace with enrichment, signals and opportunity context.">
+  return <Shell activeView={activeView} onNavigate={onNavigate} title="ذكاء الشركات" subtitle="مساحة عمل مباشرة للحسابات المستهدفة تشمل الإثراء والإشارات وسياق الفرص.">
     <div className="mini-kpis">
-      <Kpi type="companies" title="Target Accounts" value={rows.length} note="Live company profiles"/>
-      <Kpi type="leads" title="Qualified Accounts" value={qualified} note="AI score ≥ 60"/>
-      <Kpi type="opportunities" title="High Intent" value={hot} note="AI score ≥ 85"/>
+      <Kpi type="companies" title="الحسابات المستهدفة" value={rows.length} note="ملفات الشركات المباشرة"/>
+      <Kpi type="leads" title="الحسابات المؤهلة" value={qualified} note="درجة الذكاء ≥ 60"/>
+      <Kpi type="opportunities" title="نية شراء مرتفعة" value={hot} note="درجة الذكاء ≥ 85"/>
     </div>
-    <Panel title="Target Companies" action={<button type="button" className="ai-text-action" onClick={load} disabled={loading}><RefreshCw size={13}/>{loading?"Refreshing...":"Refresh"}</button>}>
+    <Panel title="الشركات المستهدفة" action={<button type="button" className="ai-text-action" onClick={load} disabled={loading}><RefreshCw size={13}/>{loading?"جارٍ التحديث...":"تحديث"}</button>}>
       <div className="ai-filter-toolbar">
-        <div className="ai-search-field"><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search company, industry, city or region..."/>{search&&<button type="button" onClick={()=>setSearch("")}><X size={14}/></button>}</div>
-        <div className="ai-select-field"><SlidersHorizontal size={15}/><select value={minScore} onChange={e=>setMinScore(Number(e.target.value))}><option value="0">All Scores</option><option value="60">Qualified ≥ 60</option><option value="75">Strong ≥ 75</option><option value="85">Hot ≥ 85</option></select></div>
-        <Btn secondary onClick={load} disabled={loading}><RefreshCw size={14}/>Refresh</Btn>
+        <div className="ai-search-field"><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ابحث باسم الشركة أو القطاع أو المدينة أو المنطقة..."/>{search&&<button type="button" onClick={()=>setSearch("")}><X size={14}/></button>}</div>
+        <div className="ai-select-field"><SlidersHorizontal size={15}/><select value={minScore} onChange={e=>setMinScore(Number(e.target.value))}><option value="0">كل الدرجات</option><option value="60">Qualified ≥ 60</option><option value="75">Strong ≥ 75</option><option value="85">Hot ≥ 85</option></select></div>
+        <Btn secondary onClick={load} disabled={loading}><RefreshCw size={14}/>تحديث</Btn>
       </div>
       {error&&<div className="ai-error">{error}</div>}
       {loading?<div className="ai-table-skeleton">{[1,2,3,4,5].map(i=><i key={i}/>)}</div>:!filtered.length?<div className="ai-empty-state"><Building2 size={23}/><strong>No companies match the current filters</strong><span>Change the filters or run AI Discovery to add more accounts.</span></div>:
       <div className="data-table ai-company-table">
-        <div className="tr th"><span>Company</span><span>Industry</span><span>Location</span><span>AI Score</span><span>Status</span></div>
+        <div className="tr th"><span>الشركة</span><span>القطاع</span><span>الموقع</span><span>درجة الذكاء</span><span>الحالة</span></div>
         {filtered.map(c=><div className="tr" key={c.id} role="button" tabIndex={0} onClick={()=>open(c)} onKeyDown={e=>{if(e.key==="Enter"){open(c)}}}>
-          <b className="ai-company-name"><span><Building2 size={13}/></span>{c.name||"Unnamed Company"}</b>
+          <b className="ai-company-name"><span><Building2 size={13}/></span>{c.name||"شركة بدون اسم"}</b>
           <span>{c.industry||c.category||"—"}</span>
           <span className="ai-location-cell"><MapPin size={12}/>{[c.city,c.region].filter(Boolean).join(", ")||"—"}</span>
           <Score n={scoreOf(c)}/><span className="ai-status-chip">{c.status||"active"}</span>

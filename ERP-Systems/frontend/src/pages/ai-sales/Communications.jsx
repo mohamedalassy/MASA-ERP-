@@ -222,8 +222,8 @@ export default function Communications({
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="Communications Center"
-      subtitle="Real communication history and approved outbound records."
+      title="مركز الاتصالات"
+      subtitle="سجل اتصالات حقيقي وسجلات صادرة معتمدة."
     >
       {/* ================================================================
           TOP ACTIONS
@@ -299,7 +299,7 @@ export default function Communications({
         ============================================================== */}
 
         <Panel
-          title="Communication History"
+          title="سجل الاتصالات"
           action={
             <Btn
               secondary
@@ -324,7 +324,7 @@ export default function Communications({
                   event.target.value
                 )
               }
-              placeholder="Search company, subject or message..."
+              placeholder="ابحث عن شركة أو موضوع أو رسالة..."
             />
           </div>
 
@@ -358,17 +358,17 @@ export default function Communications({
                       <b>
                         {row.subject ||
                           row.channel ||
-                          "Communication"}
+                          "اتصال"}
                       </b>
 
                       <small>
                         {row.company?.name ||
-                          "No company"}
+                          "بدون شركة"}
 
                         {" • "}
 
                         {row.body ||
-                          "No message body"}
+                          "لا يوجد نص للرسالة"}
                       </small>
                     </div>
 
@@ -396,7 +396,7 @@ export default function Communications({
             LOG COMMUNICATION
         ============================================================== */}
 
-        <Panel title="Log Communication">
+        <Panel title="تسجيل اتصال">
           <form
             className="pro-form"
             onSubmit={save}
@@ -621,8 +621,8 @@ export default function Communications({
               <Send size={14} />
 
               {saving
-                ? "Saving..."
-                : "Save Draft"}
+                ? "جارٍ الحفظ..."
+                : "حفظ المسودة"}
             </button>
           </form>
         </Panel>

@@ -288,8 +288,8 @@ export default function Leads({
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="Lead Management"
-      subtitle="Prioritize, qualify and move AI-approved leads into the sales process."
+      title="إدارة العملاء المحتملين"
+      subtitle="رتّب العملاء المحتملين وأهّلهم وانقل المعتمدين إلى عملية المبيعات."
     >
       <>
         {/* =====================================================
@@ -320,31 +320,31 @@ export default function Leads({
         <div className="mini-kpis">
           <Kpi
             type="leads"
-            title="Total Leads"
+            title="إجمالي العملاء المحتملين"
             value={stats.total}
             delta=""
-            note="AI Sales leads"
+            note="عملاء المبيعات الذكية"
           />
 
           <Kpi
             type="companies"
-            title="New Leads"
+            title="عملاء جدد"
             value={stats.newLeads}
             delta=""
-            note="Awaiting qualification"
+            note="بانتظار التأهيل"
           />
 
           <Kpi
             type="opportunities"
-            title="Qualified"
+            title="مؤهل"
             value={stats.qualified}
             delta=""
-            note="Sales qualified"
+            note="مؤهل للمبيعات"
           />
 
           <Kpi
             type="rate"
-            title="Hot Leads"
+            title="عملاء ساخنون"
             value={stats.hot}
             delta=""
             note="Score ≥ 85 / urgent"
@@ -356,7 +356,7 @@ export default function Leads({
         ===================================================== */}
 
         <Panel
-          title="Lead Intelligence"
+          title="ذكاء العملاء المحتملين"
           action={
             <button
               type="button"
@@ -374,8 +374,8 @@ export default function Leads({
               }}
             >
               {loading
-                ? "Loading..."
-                : "Refresh"}
+                ? "جارٍ التحميل..."
+                : "تحديث"}
             </button>
           }
         >
@@ -414,7 +414,7 @@ export default function Leads({
 
               <input
                 type="text"
-                placeholder="Search companies, sectors, cities or contacts..."
+                placeholder="ابحث عن شركة أو قطاع أو مدينة أو جهة اتصال..."
                 value={search}
                 onChange={(e) =>
                   setSearch(
@@ -786,7 +786,7 @@ export default function Leads({
                                   }}
                                 >
                                   {company.name ||
-                                    "Unnamed Company"}
+                                    "شركة بدون اسم"}
                                 </button>
 
                                 <small
@@ -896,7 +896,7 @@ export default function Leads({
                             <div>
                               <b>
                                 {lead.contact_name ||
-                                  "Not identified"}
+                                  "غير محدد"}
                               </b>
 
                               <small

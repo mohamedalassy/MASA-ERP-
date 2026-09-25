@@ -23,16 +23,16 @@ export const companies = [
     score: 92,
     added: "2h ago",
     value: "SAR 980,000",
-    stage: "Proposal",
+    stage: "عرض",
   },
   {
     name: "Horizon Group",
     category: "Enterprise",
-    location: "Riyadh",
+    location: "الرياض",
     score: 88,
     added: "3h ago",
     value: "SAR 2,500,000",
-    stage: "Proposal",
+    stage: "عرض",
   },
   {
     name: "Future Ventures",
@@ -41,7 +41,7 @@ export const companies = [
     score: 85,
     added: "5h ago",
     value: "SAR 750,000",
-    stage: "Qualified",
+    stage: "مؤهل",
   },
   {
     name: "Golden Group",
@@ -50,16 +50,16 @@ export const companies = [
     score: 82,
     added: "6h ago",
     value: "SAR 1,200,000",
-    stage: "Qualified",
+    stage: "مؤهل",
   },
   {
     name: "National Trading Group",
     category: "Trading",
-    location: "Riyadh",
+    location: "الرياض",
     score: 78,
     added: "8h ago",
     value: "SAR 1,800,000",
-    stage: "Negotiation",
+    stage: "تفاوض",
   },
 ];
 
@@ -178,11 +178,7 @@ export function Score({ n }) {
     <b
       className={
         "score " +
-        (value >= 85
-          ? "green"
-          : value >= 80
-            ? "amber"
-            : "")
+        (value >= 85 ? "ai-score-high" : value >= 70 ? "ai-score-medium" : "ai-score-low")
       }
     >
       {value}
@@ -197,11 +193,11 @@ export function CompanyRows({
   return (
     <div className="data-table">
       <div className="tr th">
-        <span>Company</span>
-        <span>Category</span>
-        <span>Location</span>
-        <span>Score</span>
-        <span>Added</span>
+        <span>الشركة</span>
+        <span>الفئة</span>
+        <span>الموقع</span>
+        <span>الدرجة</span>
+        <span>تاريخ الإضافة</span>
       </div>
 
       {rows.map((company) => (

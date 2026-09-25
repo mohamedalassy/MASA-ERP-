@@ -19,20 +19,20 @@ import { aiSalesRequest } from "./aiSalesApi";
 const PURPLE = "#6657F5";
 
 const SIGNAL_TYPES = [
-  ["new_business", "New Business"],
-  ["expansion", "Expansion"],
-  ["new_branch", "New Branch"],
-  ["hiring", "Hiring"],
-  ["funding", "Funding"],
-  ["tender", "Tender"],
-  ["procurement", "Procurement"],
-  ["project", "Project"],
-  ["digital_activity", "Digital Activity"],
+  ["new_business", "نشاط جديد"],
+  ["expansion", "توسع"],
+  ["new_branch", "فرع جديد"],
+  ["hiring", "توظيف"],
+  ["funding", "تمويل"],
+  ["tender", "منافسة"],
+  ["procurement", "مشتريات"],
+  ["project", "مشروع"],
+  ["digital_activity", "نشاط رقمي"],
 ];
 
 const labelType = (type) =>
   SIGNAL_TYPES.find(([value]) => value === type)?.[1] ||
-  String(type || "Signal")
+  String(type || "إشارة")
     .replaceAll("_", " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -216,8 +216,8 @@ export default function SignalsRadar({
     <Shell
       activeView={activeView}
       onNavigate={onNavigate}
-      title="Buying Signals Radar"
-      subtitle="Detect and prioritize real market events that indicate upcoming demand."
+      title="رادار إشارات الشراء"
+      subtitle="اكتشف أحداث السوق الحقيقية التي تشير إلى طلب قادم ورتّبها حسب الأولوية."
     >
       <div style={styles.page}>
         <div style={styles.toolbar}>
@@ -231,7 +231,7 @@ export default function SignalsRadar({
           <div style={styles.actions}>
             <button style={styles.secondaryButton} onClick={load}>
               <RefreshCw size={15} />
-              {loading ? "Refreshing..." : "Refresh"}
+              {loading ? "جارٍ التحديث..." : "تحديث"}
             </button>
             <button
               style={styles.primaryButton}
@@ -248,33 +248,33 @@ export default function SignalsRadar({
         <div style={styles.kpis}>
           <Metric
             icon={Radar}
-            label="Active Signals"
+            label="الإشارات النشطة"
             value={summary.active_signals || 0}
-            hint="Not expired"
+            hint="غير منتهية"
           />
           <Metric
             icon={Sparkles}
-            label="High Intent"
+            label="نية شراء مرتفعة"
             value={summary.high_intent || 0}
-            hint="Strength ≥70 & confidence ≥60"
+            hint="القوة ≥70 والثقة ≥60"
           />
           <Metric
             icon={Building2}
-            label="Companies"
+            label="الشركات"
             value={summary.companies_with_signals || 0}
-            hint="Accounts with active signals"
+            hint="حسابات ذات إشارات نشطة"
           />
           <Metric
             icon={Gauge}
-            label="Avg Strength"
+            label="متوسط القوة"
             value={`${summary.average_strength || 0}/100`}
-            hint="Active signal intensity"
+            hint="شدة الإشارات النشطة"
           />
           <Metric
             icon={Target}
-            label="Avg Confidence"
+            label="متوسط الثقة"
             value={`${summary.average_confidence || 0}/100`}
-            hint="Evidence confidence"
+            hint="الثقة في الأدلة"
           />
         </div>
 
@@ -404,7 +404,7 @@ export default function SignalsRadar({
                     search: e.target.value,
                   }))
                 }
-                placeholder="Search signal, company or city"
+                placeholder="ابحث عن إشارة أو شركة أو مدينة"
               />
             </div>
 
@@ -480,7 +480,7 @@ export default function SignalsRadar({
 
           <div style={styles.signalList}>
             {loading ? (
-              <Empty text="Loading signals..." />
+              <Empty text="جارٍ تحميل الإشارات..." />
             ) : visibleSignals.length ? (
               visibleSignals.map((signal) => (
                 <article key={signal.id} style={styles.signalRow}>
@@ -503,7 +503,7 @@ export default function SignalsRadar({
 
                     <p>
                       {signal.description ||
-                        "No additional description was provided."}
+                        "لا يوجد وصف إضافي."}
                     </p>
 
                     <div style={styles.signalMeta}>
@@ -513,12 +513,12 @@ export default function SignalsRadar({
                           openCompany(signal.company?.id)
                         }
                       >
-                        {signal.company?.name || "Unknown company"}
+                        {signal.company?.name || "شركة غير معروفة"}
                       </button>
                       <span>
                         {[signal.company?.city, signal.company?.industry]
                           .filter(Boolean)
-                          .join(" • ") || "Company"}
+                          .join(" • ") || "الشركة"}
                       </span>
                       <span>Source: {signal.source || "—"}</span>
                     </div>
@@ -526,22 +526,22 @@ export default function SignalsRadar({
 
                   <div style={styles.scoreStack}>
                     <ScoreBox
-                      label="Strength"
+                      label="القوة"
                       value={signal.strength}
                     />
                     <ScoreBox
-                      label="Confidence"
+                      label="الثقة"
                       value={signal.confidence}
                     />
                     <ScoreBox
-                      label="AI Score"
+                      label="درجة الذكاء"
                       value={signal.company?.ai_score || 0}
                     />
                   </div>
                 </article>
               ))
             ) : (
-              <Empty text="No signals match the current filters." />
+              <Empty text="لا توجد إشارات تطابق عوامل التصفية." />
             )}
           </div>
         </section>
@@ -571,7 +571,7 @@ export default function SignalsRadar({
               </div>
 
               <div style={styles.formGrid}>
-                <Field label="Company *">
+                <Field label="الشركة *">
                   <select
                     required
                     value={form.company_id}
@@ -591,7 +591,7 @@ export default function SignalsRadar({
                   </select>
                 </Field>
 
-                <Field label="Signal Type *">
+                <Field label="نوع الإشارة *">
                   <select
                     required
                     value={form.type}
@@ -607,7 +607,7 @@ export default function SignalsRadar({
                   </select>
                 </Field>
 
-                <Field label="Title *" wide>
+                <Field label="العنوان *" wide>
                   <input
                     required
                     value={form.title}
@@ -618,7 +618,7 @@ export default function SignalsRadar({
                   />
                 </Field>
 
-                <Field label="Description" wide>
+                <Field label="الوصف" wide>
                   <textarea
                     rows="3"
                     value={form.description}
@@ -662,7 +662,7 @@ export default function SignalsRadar({
                   />
                 </Field>
 
-                <Field label="Source">
+                <Field label="المصدر">
                   <input
                     value={form.source}
                     onChange={(e) =>
@@ -672,7 +672,7 @@ export default function SignalsRadar({
                   />
                 </Field>
 
-                <Field label="Source URL">
+                <Field label="رابط المصدر">
                   <input
                     value={form.source_url}
                     onChange={(e) =>
@@ -685,7 +685,7 @@ export default function SignalsRadar({
                   />
                 </Field>
 
-                <Field label="Detected At">
+                <Field label="تاريخ الاكتشاف">
                   <input
                     type="datetime-local"
                     value={form.detected_at}
@@ -698,7 +698,7 @@ export default function SignalsRadar({
                   />
                 </Field>
 
-                <Field label="Expires At">
+                <Field label="تاريخ الانتهاء">
                   <input
                     type="datetime-local"
                     value={form.expires_at}
@@ -730,7 +730,7 @@ export default function SignalsRadar({
                   style={styles.primaryButton}
                   disabled={saving}
                 >
-                  {saving ? "Saving..." : "Create Signal"}
+                  {saving ? "جارٍ الحفظ..." : "إنشاء إشارة"}
                 </button>
               </div>
             </form>
