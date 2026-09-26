@@ -1,22 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Activity,
-  Building2,
-  Filter,
-  Gauge,
-  Plus,
-  Radar,
-  RefreshCw,
-  Search,
-  Sparkles,
-  Target,
-  TrendingUp,
-  X,
+  Activity, Building2, Filter, Gauge, Plus, Radar, RefreshCw,
+  Search, Sparkles, Target, TrendingUp, X,
 } from "lucide-react";
 import { Shell } from "./shared";
 import { aiSalesRequest } from "./aiSalesApi";
-
-const PURPLE = "#6657F5";
 
 const SIGNAL_TYPES = [
   ["new_business", "نشاط جديد"],
@@ -32,15 +20,13 @@ const SIGNAL_TYPES = [
 
 const labelType = (type) =>
   SIGNAL_TYPES.find(([value]) => value === type)?.[1] ||
-  String(type || "إشارة")
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  String(type || "إشارة").replaceAll("_", " ");
 
 const fmtDate = (value) => {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleString("en-GB", {
+  return d.toLocaleString("ar-SA", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -63,6 +49,7 @@ export default function SignalsRadar({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [composerOpen, setComposerOpen] = useState(false);
+  const inFlight = useRef(new Map());
 
   const [filters, setFilters] = useState({
     search: "",
@@ -85,23 +72,37 @@ export default function SignalsRadar({
     expires_at: "",
   });
 
-  const load = async () => {
+  const serverQuery = useMemo(() => {
+    const qs = new URLSearchParams();
+    if (filters.type) qs.set("type", filters.type);
+    if (filters.company_id) qs.set("company_id", filters.company_id);
+    if (Number(filters.min_strength) > 0) {
+      qs.set("min_strength", String(filters.min_strength));
+    }
+    if (filters.high_intent) qs.set("high_intent", "1");
+    return qs.toString();
+  }, [
+    filters.type,
+    filters.company_id,
+    filters.min_strength,
+    filters.high_intent,
+  ]);
+
+  const load = async ({ force = false } = {}) => {
+    const path = `/signals${serverQuery ? `?${serverQuery}` : ""}`;
+
+    if (!force && inFlight.current.has(path)) {
+      return inFlight.current.get(path);
+    }
+
     setLoading(true);
     setError("");
 
+    const request = aiSalesRequest(path);
+    if (!force) inFlight.current.set(path, request);
+
     try {
-      const qs = new URLSearchParams();
-      if (filters.type) qs.set("type", filters.type);
-      if (filters.company_id) qs.set("company_id", filters.company_id);
-      if (Number(filters.min_strength) > 0) {
-        qs.set("min_strength", String(filters.min_strength));
-      }
-      if (filters.high_intent) qs.set("high_intent", "1");
-
-      const result = await aiSalesRequest(
-        `/signals${qs.toString() ? `?${qs.toString()}` : ""}`
-      );
-
+      const result = await request;
       setPayload(
         result || {
           data: [],
@@ -110,21 +111,26 @@ export default function SignalsRadar({
           companies: [],
         }
       );
+      return result;
     } catch (err) {
-      setError(err?.message || "Unable to load buying signals.");
+      setError(err?.message || "تعذر تحميل إشارات الشراء.");
+      throw err;
     } finally {
+      if (inFlight.current.get(path) === request) {
+        inFlight.current.delete(path);
+      }
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    load();
-  }, [
-    filters.type,
-    filters.company_id,
-    filters.min_strength,
-    filters.high_intent,
-  ]);
+    const timer = window.setTimeout(() => {
+      load().catch(() => {});
+    }, 100);
+
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverQuery]);
 
   const visibleSignals = useMemo(() => {
     const needle = filters.search.trim().toLowerCase();
@@ -168,7 +174,7 @@ export default function SignalsRadar({
     event.preventDefault();
 
     if (!form.company_id) {
-      setError("Select a company first.");
+      setError("اختر الشركة أولًا.");
       return;
     }
 
@@ -204,9 +210,10 @@ export default function SignalsRadar({
         detected_at: "",
         expires_at: "",
       });
-      await load();
+
+      await load({ force: true });
     } catch (err) {
-      setError(err?.message || "Unable to create buying signal.");
+      setError(err?.message || "تعذر إنشاء إشارة الشراء.");
     } finally {
       setSaving(false);
     }
@@ -219,48 +226,50 @@ export default function SignalsRadar({
       title="رادار إشارات الشراء"
       subtitle="اكتشف أحداث السوق الحقيقية التي تشير إلى طلب قادم ورتّبها حسب الأولوية."
     >
-      <div style={styles.page}>
-        <div style={styles.toolbar}>
+      <div className="signals-page" dir="rtl">
+        <div className="signals-toolbar">
           <div>
-            <div style={styles.eyebrow}>MARKET INTELLIGENCE</div>
-            <div style={styles.heading}>
-              Live buying signals connected to AI Sales scoring
-            </div>
+            <div className="signals-eyebrow">ذكاء السوق</div>
+            <h2>إشارات شراء مباشرة مرتبطة بتقييم المبيعات الذكية</h2>
           </div>
 
-          <div style={styles.actions}>
-            <button style={styles.secondaryButton} onClick={load}>
-              <RefreshCw size={15} />
+          <div className="signals-actions">
+            <button
+              className="signals-btn secondary"
+              onClick={() => load({ force: true })}
+            >
+              <RefreshCw size={16} />
               {loading ? "جارٍ التحديث..." : "تحديث"}
             </button>
+
             <button
-              style={styles.primaryButton}
+              className="signals-btn primary"
               onClick={() => setComposerOpen(true)}
             >
-              <Plus size={15} />
-              Add Signal
+              <Plus size={16} />
+              إضافة إشارة
             </button>
           </div>
         </div>
 
-        {error && <div style={styles.error}>{error}</div>}
+        {error && <div className="signals-error">{error}</div>}
 
-        <div style={styles.kpis}>
+        <div className="signals-kpis">
           <Metric
             icon={Radar}
             label="الإشارات النشطة"
             value={summary.active_signals || 0}
-            hint="غير منتهية"
+            hint="إشارات غير منتهية"
           />
           <Metric
             icon={Sparkles}
             label="نية شراء مرتفعة"
             value={summary.high_intent || 0}
-            hint="القوة ≥70 والثقة ≥60"
+            hint="قوة ≥ 70 وثقة ≥ 60"
           />
           <Metric
             icon={Building2}
-            label="الشركات"
+            label="الشركات المغطاة"
             value={summary.companies_with_signals || 0}
             hint="حسابات ذات إشارات نشطة"
           />
@@ -274,31 +283,26 @@ export default function SignalsRadar({
             icon={Target}
             label="متوسط الثقة"
             value={`${summary.average_confidence || 0}/100`}
-            hint="الثقة في الأدلة"
+            hint="موثوقية الأدلة"
           />
         </div>
 
-        <div style={styles.radarGrid}>
-          <section style={styles.panel}>
-            <div style={styles.panelHeader}>
-              <div>
-                <b>Signal Distribution</b>
-                <span>Active signals grouped by market event</span>
-              </div>
-              <Activity size={18} />
-            </div>
+        <div className="signals-overview-grid">
+          <section className="signals-panel">
+            <PanelHead
+              title="توزيع الإشارات"
+              subtitle="الإشارات النشطة مجمعة حسب حدث السوق"
+              icon={Activity}
+            />
 
-            <div style={styles.typeGrid}>
+            <div className="signals-type-grid">
               {(payload.types || []).length ? (
                 payload.types.map((row) => (
                   <button
                     key={row.type}
-                    style={{
-                      ...styles.typeCard,
-                      ...(filters.type === row.type
-                        ? styles.typeCardActive
-                        : {}),
-                    }}
+                    className={`signals-type-card ${
+                      filters.type === row.type ? "active" : ""
+                    }`}
                     onClick={() =>
                       setFilters((current) => ({
                         ...current,
@@ -307,18 +311,19 @@ export default function SignalsRadar({
                       }))
                     }
                   >
-                    <div style={styles.typeTop}>
+                    <div className="signals-type-top">
                       <span>{labelType(row.type)}</span>
                       <strong>{row.count}</strong>
                     </div>
-                    <div style={styles.typeStats}>
-                      <span>Strength {row.average_strength}/100</span>
-                      <span>Confidence {row.average_confidence}/100</span>
+
+                    <div className="signals-type-stats">
+                      <span>القوة {row.average_strength}/100</span>
+                      <span>الثقة {row.average_confidence}/100</span>
                     </div>
-                    <div style={styles.track}>
+
+                    <div className="signals-track">
                       <i
                         style={{
-                          ...styles.fill,
                           width: `${Math.max(
                             0,
                             Math.min(100, row.average_strength || 0)
@@ -329,31 +334,29 @@ export default function SignalsRadar({
                   </button>
                 ))
               ) : (
-                <Empty text="No active signals yet. Add the first real market signal." />
+                <Empty text="لا توجد إشارات نشطة حتى الآن." />
               )}
             </div>
           </section>
 
-          <section style={styles.panel}>
-            <div style={styles.panelHeader}>
-              <div>
-                <b>Radar Health</b>
-                <span>Current intelligence coverage</span>
-              </div>
-              <TrendingUp size={18} />
-            </div>
+          <section className="signals-panel">
+            <PanelHead
+              title="صحة الرادار"
+              subtitle="تغطية الذكاء الحالية"
+              icon={TrendingUp}
+            />
 
-            <div style={styles.healthBody}>
-              <div style={styles.ring}>
+            <div className="signals-health">
+              <div className="signals-ring">
                 <div>
                   <strong>{summary.active_signals || 0}</strong>
-                  <span>ACTIVE</span>
+                  <span>نشطة</span>
                 </div>
               </div>
 
-              <div style={styles.healthRows}>
+              <div className="signals-health-rows">
                 <HealthRow
-                  label="High-intent share"
+                  label="نسبة النية المرتفعة"
                   value={
                     summary.active_signals
                       ? `${Math.round(
@@ -365,15 +368,15 @@ export default function SignalsRadar({
                   }
                 />
                 <HealthRow
-                  label="Companies covered"
+                  label="الشركات المغطاة"
                   value={summary.companies_with_signals || 0}
                 />
                 <HealthRow
-                  label="Avg strength"
+                  label="متوسط القوة"
                   value={`${summary.average_strength || 0}/100`}
                 />
                 <HealthRow
-                  label="Avg confidence"
+                  label="متوسط الثقة"
                   value={`${summary.average_confidence || 0}/100`}
                 />
               </div>
@@ -381,21 +384,16 @@ export default function SignalsRadar({
           </section>
         </div>
 
-        <section style={styles.feedPanel}>
-          <div style={styles.feedHeader}>
-            <div>
-              <b>Signal Feed</b>
-              <span>
-                {visibleSignals.length} signal
-                {visibleSignals.length === 1 ? "" : "s"} matching filters
-              </span>
-            </div>
-            <Filter size={17} />
-          </div>
+        <section className="signals-panel">
+          <PanelHead
+            title="سجل الإشارات"
+            subtitle={`${visibleSignals.length} إشارة مطابقة للفلاتر الحالية`}
+            icon={Filter}
+          />
 
-          <div style={styles.filters}>
-            <div style={styles.searchBox}>
-              <Search size={14} />
+          <div className="signals-filters">
+            <div className="signals-search">
+              <Search size={16} />
               <input
                 value={filters.search}
                 onChange={(e) =>
@@ -404,7 +402,7 @@ export default function SignalsRadar({
                     search: e.target.value,
                   }))
                 }
-                placeholder="ابحث عن إشارة أو شركة أو مدينة"
+                placeholder="ابحث عن إشارة أو شركة أو مدينة..."
               />
             </div>
 
@@ -417,7 +415,7 @@ export default function SignalsRadar({
                 }))
               }
             >
-              <option value="">All signal types</option>
+              <option value="">كل أنواع الإشارات</option>
               {SIGNAL_TYPES.map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}
@@ -434,7 +432,7 @@ export default function SignalsRadar({
                 }))
               }
             >
-              <option value="">All companies</option>
+              <option value="">كل الشركات</option>
               {(payload.companies || []).map((company) => (
                 <option key={company.id} value={company.id}>
                   {company.name}
@@ -442,8 +440,8 @@ export default function SignalsRadar({
               ))}
             </select>
 
-            <label style={styles.rangeFilter}>
-              <span>Strength ≥ {filters.min_strength}</span>
+            <label className="signals-range">
+              <span>القوة ≥ {filters.min_strength}</span>
               <input
                 type="range"
                 min="0"
@@ -459,7 +457,7 @@ export default function SignalsRadar({
               />
             </label>
 
-            <label style={styles.checkFilter}>
+            <label className="signals-check">
               <input
                 type="checkbox"
                 checked={filters.high_intent}
@@ -470,35 +468,40 @@ export default function SignalsRadar({
                   }))
                 }
               />
-              High intent
+              نية شراء مرتفعة
             </label>
 
-            <button style={styles.clearButton} onClick={resetFilters}>
-              Clear
+            <button
+              className="signals-clear"
+              onClick={resetFilters}
+            >
+              مسح الفلاتر
             </button>
           </div>
 
-          <div style={styles.signalList}>
+          <div className="signals-list">
             {loading ? (
               <Empty text="جارٍ تحميل الإشارات..." />
             ) : visibleSignals.length ? (
               visibleSignals.map((signal) => (
-                <article key={signal.id} style={styles.signalRow}>
-                  <div style={styles.signalIcon}>
-                    <Activity size={17} />
+                <article
+                  key={signal.id}
+                  className="signals-row"
+                >
+                  <div className="signals-row-icon">
+                    <Activity size={18} />
                   </div>
 
-                  <div style={styles.signalMain}>
-                    <div style={styles.signalTitleRow}>
+                  <div className="signals-row-main">
+                    <div className="signals-row-title">
                       <div>
                         <b>{signal.title}</b>
-                        <span style={styles.typeBadge}>
+                        <span className="signals-badge">
                           {labelType(signal.type)}
                         </span>
                       </div>
-                      <span style={styles.date}>
-                        {fmtDate(signal.detected_at)}
-                      </span>
+
+                      <time>{fmtDate(signal.detected_at)}</time>
                     </div>
 
                     <p>
@@ -506,25 +509,32 @@ export default function SignalsRadar({
                         "لا يوجد وصف إضافي."}
                     </p>
 
-                    <div style={styles.signalMeta}>
+                    <div className="signals-meta">
                       <button
-                        style={styles.companyLink}
                         onClick={() =>
                           openCompany(signal.company?.id)
                         }
                       >
-                        {signal.company?.name || "شركة غير معروفة"}
+                        {signal.company?.name ||
+                          "شركة غير معروفة"}
                       </button>
+
                       <span>
-                        {[signal.company?.city, signal.company?.industry]
+                        {[
+                          signal.company?.city,
+                          signal.company?.industry,
+                        ]
                           .filter(Boolean)
-                          .join(" • ") || "الشركة"}
+                          .join(" • ") || "—"}
                       </span>
-                      <span>Source: {signal.source || "—"}</span>
+
+                      <span>
+                        المصدر: {signal.source || "—"}
+                      </span>
                     </div>
                   </div>
 
-                  <div style={styles.scoreStack}>
+                  <div className="signals-scores">
                     <ScoreBox
                       label="القوة"
                       value={signal.strength}
@@ -548,29 +558,32 @@ export default function SignalsRadar({
 
         {composerOpen && (
           <div
-            style={styles.backdrop}
+            className="signals-backdrop"
             onMouseDown={() => setComposerOpen(false)}
           >
             <form
-              style={styles.modal}
+              className="signals-modal"
               onSubmit={submitSignal}
               onMouseDown={(e) => e.stopPropagation()}
             >
-              <div style={styles.modalHeader}>
+              <div className="signals-modal-head">
                 <div>
-                  <div style={styles.eyebrow}>BUYING SIGNAL</div>
-                  <h3>Add Market Signal</h3>
+                  <div className="signals-eyebrow">
+                    إشارة شراء
+                  </div>
+                  <h3>إضافة إشارة سوق</h3>
                 </div>
+
                 <button
                   type="button"
-                  style={styles.iconButton}
+                  className="signals-icon-btn"
                   onClick={() => setComposerOpen(false)}
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              <div style={styles.formGrid}>
+              <div className="signals-form">
                 <Field label="الشركة *">
                   <select
                     required
@@ -582,12 +595,17 @@ export default function SignalsRadar({
                       })
                     }
                   >
-                    <option value="">Select company</option>
-                    {(payload.companies || []).map((company) => (
-                      <option key={company.id} value={company.id}>
-                        {company.name}
-                      </option>
-                    ))}
+                    <option value="">اختر الشركة</option>
+                    {(payload.companies || []).map(
+                      (company) => (
+                        <option
+                          key={company.id}
+                          value={company.id}
+                        >
+                          {company.name}
+                        </option>
+                      )
+                    )}
                   </select>
                 </Field>
 
@@ -596,7 +614,10 @@ export default function SignalsRadar({
                     required
                     value={form.type}
                     onChange={(e) =>
-                      setForm({ ...form, type: e.target.value })
+                      setForm({
+                        ...form,
+                        type: e.target.value,
+                      })
                     }
                   >
                     {SIGNAL_TYPES.map(([value, label]) => (
@@ -612,9 +633,12 @@ export default function SignalsRadar({
                     required
                     value={form.title}
                     onChange={(e) =>
-                      setForm({ ...form, title: e.target.value })
+                      setForm({
+                        ...form,
+                        title: e.target.value,
+                      })
                     }
-                    placeholder="e.g. Company announced a new branch"
+                    placeholder="مثال: الشركة أعلنت عن افتتاح فرع جديد"
                   />
                 </Field>
 
@@ -628,11 +652,13 @@ export default function SignalsRadar({
                         description: e.target.value,
                       })
                     }
-                    placeholder="Evidence and context for this buying signal"
+                    placeholder="الأدلة والسياق المرتبط بإشارة الشراء"
                   />
                 </Field>
 
-                <Field label={`Strength: ${form.strength}/100`}>
+                <Field
+                  label={`القوة: ${form.strength}/100`}
+                >
                   <input
                     type="range"
                     min="0"
@@ -647,7 +673,9 @@ export default function SignalsRadar({
                   />
                 </Field>
 
-                <Field label={`Confidence: ${form.confidence}/100`}>
+                <Field
+                  label={`الثقة: ${form.confidence}/100`}
+                >
                   <input
                     type="range"
                     min="0"
@@ -666,9 +694,12 @@ export default function SignalsRadar({
                   <input
                     value={form.source}
                     onChange={(e) =>
-                      setForm({ ...form, source: e.target.value })
+                      setForm({
+                        ...form,
+                        source: e.target.value,
+                      })
                     }
-                    placeholder="manual, news, registry..."
+                    placeholder="يدوي، خبر، سجل..."
                   />
                 </Field>
 
@@ -681,7 +712,7 @@ export default function SignalsRadar({
                         source_url: e.target.value,
                       })
                     }
-                    placeholder="Optional evidence URL"
+                    placeholder="رابط الدليل — اختياري"
                   />
                 </Field>
 
@@ -712,25 +743,28 @@ export default function SignalsRadar({
                 </Field>
               </div>
 
-              <div style={styles.note}>
-                Creating a signal automatically recalculates the
-                company's Intent, Timing and Overall AI Score.
+              <div className="signals-note">
+                إنشاء الإشارة يعيد حساب درجات النية
+                والتوقيت والدرجة الإجمالية للشركة تلقائيًا.
               </div>
 
-              <div style={styles.modalFooter}>
+              <div className="signals-modal-foot">
                 <button
                   type="button"
-                  style={styles.secondaryButton}
+                  className="signals-btn secondary"
                   onClick={() => setComposerOpen(false)}
                 >
-                  Cancel
+                  إلغاء
                 </button>
+
                 <button
                   type="submit"
-                  style={styles.primaryButton}
+                  className="signals-btn primary"
                   disabled={saving}
                 >
-                  {saving ? "جارٍ الحفظ..." : "إنشاء إشارة"}
+                  {saving
+                    ? "جارٍ الحفظ..."
+                    : "إنشاء إشارة"}
                 </button>
               </div>
             </form>
@@ -743,10 +777,11 @@ export default function SignalsRadar({
 
 function Metric({ icon: Icon, label, value, hint }) {
   return (
-    <div style={styles.metric}>
-      <div style={styles.metricIcon}>
-        <Icon size={18} />
+    <div className="signals-metric">
+      <div className="signals-metric-icon">
+        <Icon size={19} />
       </div>
+
       <div>
         <span>{label}</span>
         <strong>{value}</strong>
@@ -756,9 +791,21 @@ function Metric({ icon: Icon, label, value, hint }) {
   );
 }
 
+function PanelHead({ title, subtitle, icon: Icon }) {
+  return (
+    <header className="signals-panel-head">
+      <div>
+        <b>{title}</b>
+        <span>{subtitle}</span>
+      </div>
+      <Icon size={18} />
+    </header>
+  );
+}
+
 function HealthRow({ label, value }) {
   return (
-    <div style={styles.healthRow}>
+    <div className="signals-health-row">
       <span>{label}</span>
       <b>{value}</b>
     </div>
@@ -767,15 +814,18 @@ function HealthRow({ label, value }) {
 
 function ScoreBox({ label, value }) {
   const score = Number(value || 0);
+
   return (
-    <div style={styles.scoreBox}>
+    <div className="signals-score">
       <span>{label}</span>
       <b>{score}/100</b>
-      <div style={styles.scoreTrack}>
+      <div>
         <i
           style={{
-            ...styles.scoreFill,
-            width: `${Math.max(0, Math.min(100, score))}%`,
+            width: `${Math.max(
+              0,
+              Math.min(100, score)
+            )}%`,
           }}
         />
       </div>
@@ -786,10 +836,9 @@ function ScoreBox({ label, value }) {
 function Field({ label, wide = false, children }) {
   return (
     <label
-      style={{
-        ...styles.field,
-        ...(wide ? styles.fieldWide : {}),
-      }}
+      className={`signals-field ${
+        wide ? "wide" : ""
+      }`}
     >
       <span>{label}</span>
       {children}
@@ -798,376 +847,5 @@ function Field({ label, wide = false, children }) {
 }
 
 function Empty({ text }) {
-  return <div style={styles.empty}>{text}</div>;
+  return <div className="signals-empty">{text}</div>;
 }
-
-const styles = {
-  page: { display: "grid", gap: 14 },
-  toolbar: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-  },
-  eyebrow: {
-    color: PURPLE,
-    fontSize: 10,
-    fontWeight: 900,
-    letterSpacing: 1.1,
-  },
-  heading: {
-    marginTop: 4,
-    color: "#17213b",
-    fontSize: 17,
-    fontWeight: 800,
-  },
-  actions: { display: "flex", gap: 8 },
-  primaryButton: {
-    height: 38,
-    padding: "0 14px",
-    border: `1px solid ${PURPLE}`,
-    borderRadius: 9,
-    background: PURPLE,
-    color: "#fff",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 7,
-    cursor: "pointer",
-    fontFamily: "inherit",
-    fontWeight: 800,
-  },
-  secondaryButton: {
-    height: 38,
-    padding: "0 14px",
-    border: "1px solid #dfe3eb",
-    borderRadius: 9,
-    background: "#fff",
-    color: "#475467",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 7,
-    cursor: "pointer",
-    fontFamily: "inherit",
-    fontWeight: 700,
-  },
-  error: {
-    padding: 11,
-    border: "1px solid #fecdd3",
-    borderRadius: 10,
-    background: "#fff1f2",
-    color: "#be123c",
-    fontSize: 12,
-  },
-  kpis: {
-    display: "grid",
-    gridTemplateColumns: "repeat(5, minmax(0,1fr))",
-    gap: 10,
-  },
-  metric: {
-    padding: 14,
-    border: "1px solid #e6e8f1",
-    borderRadius: 14,
-    background: "#fff",
-    display: "flex",
-    gap: 10,
-  },
-  metricIcon: {
-    width: 35,
-    height: 35,
-    borderRadius: 10,
-    background: "#f0edff",
-    color: PURPLE,
-    display: "grid",
-    placeItems: "center",
-  },
-  radarGrid: {
-    display: "grid",
-    gridTemplateColumns: "minmax(0,1.5fr) minmax(280px,.6fr)",
-    gap: 12,
-  },
-  panel: {
-    border: "1px solid #e6e8f1",
-    borderRadius: 14,
-    background: "#fff",
-    overflow: "hidden",
-  },
-  panelHeader: {
-    minHeight: 58,
-    padding: "0 15px",
-    borderBottom: "1px solid #eef0f5",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    color: PURPLE,
-  },
-  typeGrid: {
-    padding: 12,
-    display: "grid",
-    gridTemplateColumns: "repeat(3,minmax(0,1fr))",
-    gap: 8,
-  },
-  typeCard: {
-    padding: 11,
-    border: "1px solid #e7e9f0",
-    borderRadius: 11,
-    background: "#fff",
-    textAlign: "left",
-    cursor: "pointer",
-    fontFamily: "inherit",
-  },
-  typeCardActive: {
-    borderColor: "#d8d2ff",
-    background: "#faf9ff",
-  },
-  typeTop: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 8,
-    color: "#344054",
-  },
-  typeStats: {
-    marginTop: 8,
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 6,
-    color: "#8b93a5",
-    fontSize: 9,
-  },
-  track: {
-    marginTop: 8,
-    height: 5,
-    background: "#eff1f6",
-    borderRadius: 999,
-    overflow: "hidden",
-  },
-  fill: {
-    display: "block",
-    height: "100%",
-    borderRadius: 999,
-    background: PURPLE,
-  },
-  healthBody: { padding: 18, display: "grid", gap: 16 },
-  ring: {
-    width: 135,
-    height: 135,
-    margin: "4px auto",
-    borderRadius: "50%",
-    border: "13px solid #ece9ff",
-    outline: `5px solid ${PURPLE}`,
-    outlineOffset: -13,
-    display: "grid",
-    placeItems: "center",
-    textAlign: "center",
-  },
-  healthRows: { display: "grid", gap: 8 },
-  healthRow: {
-    padding: "9px 0",
-    borderBottom: "1px solid #f0f1f5",
-    display: "flex",
-    justifyContent: "space-between",
-    color: "#667085",
-    fontSize: 11,
-  },
-  feedPanel: {
-    border: "1px solid #e6e8f1",
-    borderRadius: 14,
-    background: "#fff",
-    overflow: "hidden",
-  },
-  feedHeader: {
-    minHeight: 58,
-    padding: "0 15px",
-    borderBottom: "1px solid #eef0f5",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    color: PURPLE,
-  },
-  filters: {
-    padding: 10,
-    borderBottom: "1px solid #eef0f5",
-    display: "flex",
-    alignItems: "center",
-    gap: 7,
-    flexWrap: "wrap",
-    background: "#fafbff",
-  },
-  searchBox: {
-    height: 35,
-    minWidth: 240,
-    padding: "0 10px",
-    border: "1px solid #dfe3eb",
-    borderRadius: 8,
-    background: "#fff",
-    display: "flex",
-    alignItems: "center",
-    gap: 7,
-  },
-  rangeFilter: {
-    display: "flex",
-    alignItems: "center",
-    gap: 7,
-    color: "#667085",
-    fontSize: 10,
-  },
-  checkFilter: {
-    height: 35,
-    padding: "0 9px",
-    border: "1px solid #e4e7ec",
-    borderRadius: 8,
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    fontSize: 10,
-  },
-  clearButton: {
-    height: 35,
-    padding: "0 10px",
-    border: "1px solid #e4e7ec",
-    borderRadius: 8,
-    background: "#fff",
-    cursor: "pointer",
-  },
-  signalList: { display: "grid" },
-  signalRow: {
-    padding: 14,
-    borderBottom: "1px solid #f0f1f5",
-    display: "grid",
-    gridTemplateColumns: "38px minmax(0,1fr) 300px",
-    gap: 12,
-    alignItems: "start",
-  },
-  signalIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    background: "#f0edff",
-    color: PURPLE,
-    display: "grid",
-    placeItems: "center",
-  },
-  signalMain: { minWidth: 0 },
-  signalTitleRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  typeBadge: {
-    marginLeft: 8,
-    padding: "3px 7px",
-    borderRadius: 999,
-    background: "#f0edff",
-    color: PURPLE,
-    fontSize: 9,
-    fontWeight: 800,
-  },
-  date: { color: "#98a2b3", fontSize: 9 },
-  signalMeta: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-    color: "#8b93a5",
-    fontSize: 9,
-  },
-  companyLink: {
-    padding: 0,
-    border: 0,
-    background: "transparent",
-    color: PURPLE,
-    cursor: "pointer",
-    fontWeight: 800,
-  },
-  scoreStack: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3,1fr)",
-    gap: 7,
-  },
-  scoreBox: {
-    padding: 8,
-    borderRadius: 9,
-    background: "#f8f9fc",
-  },
-  scoreTrack: {
-    marginTop: 5,
-    height: 4,
-    borderRadius: 999,
-    background: "#e9ebf1",
-    overflow: "hidden",
-  },
-  scoreFill: {
-    display: "block",
-    height: "100%",
-    background: PURPLE,
-  },
-  empty: {
-    padding: 28,
-    textAlign: "center",
-    color: "#9299aa",
-    fontSize: 12,
-  },
-  backdrop: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 1000,
-    background: "rgba(16,24,40,.38)",
-    display: "grid",
-    placeItems: "center",
-    padding: 20,
-  },
-  modal: {
-    width: "min(760px,96vw)",
-    maxHeight: "90vh",
-    overflowY: "auto",
-    borderRadius: 17,
-    background: "#fff",
-    boxShadow: "0 24px 70px rgba(16,24,40,.2)",
-  },
-  modalHeader: {
-    padding: "17px 20px",
-    borderBottom: "1px solid #eef0f5",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  iconButton: {
-    width: 34,
-    height: 34,
-    border: "1px solid #e4e7ec",
-    borderRadius: 9,
-    background: "#fff",
-    cursor: "pointer",
-    display: "grid",
-    placeItems: "center",
-  },
-  formGrid: {
-    padding: 20,
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 13,
-  },
-  field: {
-    display: "grid",
-    gap: 6,
-    color: "#475467",
-    fontSize: 11,
-    fontWeight: 700,
-  },
-  fieldWide: { gridColumn: "1 / -1" },
-  note: {
-    margin: "0 20px 17px",
-    padding: 11,
-    borderRadius: 9,
-    background: "#f7f5ff",
-    color: "#6257a8",
-    fontSize: 11,
-  },
-  modalFooter: {
-    padding: "13px 20px",
-    borderTop: "1px solid #eef0f5",
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: 8,
-  },
-};

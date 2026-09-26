@@ -7,7 +7,10 @@ import PricingRules from "./pages/PricingRules";
 import PriceHistory from "./pages/PriceHistory";
 import CostingEngine from "./pages/CostingEngine";
 import PricingReports from "./pages/PricingReports";
-
+import CreateProject from "./pages/CreateProject";
+import Customers from "./pages/customers/Customers";
+import CreateCustomer from "./pages/customers/CreateCustomer";
+import Customer360 from "./pages/customers/Customer360";
 import AISalesRouter from "./pages/ai-sales/AISalesRouter";
 
 /* =========================
@@ -63,6 +66,7 @@ function App() {
   const [activeWorkOrderSource, setActiveWorkOrderSource] = useState(null);
 
   const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState(null);
   const [selectedQuotationId, setSelectedQuotationId] = useState(null);
 
@@ -81,6 +85,12 @@ function App() {
 
   const [financeOptions, setFinanceOptions] = useState({});
 
+  /* =========================
+     Sales
+  ========================= */
+
+  const [selectedSalesLeadId, setSelectedSalesLeadId] = useState(null);
+
   const handleChangeView = (view, options = {}) => {
     /*
     |--------------------------------------------------------------------------
@@ -92,6 +102,41 @@ function App() {
       setWorkOrderStage(options.stage || "all");
       setActiveWorkOrderSource(options.source || null);
       setActiveView("work-orders");
+      return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Customers
+    |--------------------------------------------------------------------------
+    */
+
+    if (view === "customers") {
+      setActiveWorkOrderSource(null);
+      setActiveView("customers");
+      return;
+    }
+
+    if (view === "customer-create") {
+      setActiveWorkOrderSource(null);
+      setActiveView("customer-create");
+      return;
+    }
+
+    if (view === "customer-360") {
+      setSelectedCustomerId(options.customerId ?? options.id ?? null);
+      setActiveWorkOrderSource(null);
+      setActiveView("customer-360");
+      return;
+    }
+
+    if (view === "project-create") {
+      if (options.customerId) {
+        setSelectedCustomerId(options.customerId);
+      }
+      setSelectedProjectId(null);
+      setActiveWorkOrderSource(null);
+      setActiveView("project-create");
       return;
     }
 
@@ -151,6 +196,24 @@ function App() {
 
     /*
     |--------------------------------------------------------------------------
+    | Sales Records
+    |--------------------------------------------------------------------------
+    */
+
+    if (view === "sales-lead-details") {
+      setSelectedSalesLeadId(
+        options.leadId ??
+          options.id ??
+          null
+      );
+
+      setActiveWorkOrderSource(null);
+      setActiveView("sales-lead-details");
+      return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Navigation
     |--------------------------------------------------------------------------
     */
@@ -162,6 +225,27 @@ function App() {
   const handleOpenProject = (projectId) => {
     setSelectedProjectId(projectId);
     setActiveView("project");
+  };
+
+  const handleCreateProject = () => {
+    setSelectedProjectId(null);
+    setActiveView("project-create");
+  };
+
+  const handleProjectCreated = (project) => {
+    if (!project?.id) return;
+    setSelectedProjectId(project.id);
+    setActiveView("project");
+  };
+
+  const handleCustomerCreated = (customer) => {
+    if (!customer?.id) return;
+    setSelectedCustomerId(customer.id);
+    setActiveView("customer-360");
+  };
+
+  const handleBackToCustomers = () => {
+    setActiveView("customers");
   };
 
   const handleBackToWorkOrders = () => {
@@ -238,6 +322,7 @@ function App() {
             <SalesModule
               activeView={activeView}
               onNavigate={handleChangeView}
+              selectedLeadId={selectedSalesLeadId}
             />
           )}
 
@@ -342,6 +427,29 @@ function App() {
           )}
 
           {/* =========================
+              Customers
+          ========================= */}
+
+          {activeView === "customers" && (
+            <Customers onNavigate={handleChangeView} />
+          )}
+
+          {activeView === "customer-create" && (
+            <CreateCustomer
+              onBack={handleBackToCustomers}
+              onCreated={handleCustomerCreated}
+            />
+          )}
+
+          {activeView === "customer-360" && (
+            <Customer360
+              customerId={selectedCustomerId}
+              onBack={handleBackToCustomers}
+              onNavigate={handleChangeView}
+            />
+          )}
+
+          {/* =========================
               Work Orders
           ========================= */}
 
@@ -349,6 +457,7 @@ function App() {
             <WorkOrders
               stage={workOrderStage}
               onOpenProject={handleOpenProject}
+              onCreateProject={handleCreateProject}
             />
           )}
 
@@ -356,9 +465,16 @@ function App() {
               Project
           ========================= */}
 
+          {activeView === "project-create" && (
+            <CreateProject
+              onBack={handleBackToWorkOrders}
+              onCreated={handleProjectCreated}
+            />
+          )}
+
           {activeView === "project" && (
             <ProjectDetails
-              projectId={selectedProjectId || 1}
+              projectId={selectedProjectId}
               onBack={handleBackToWorkOrders}
               onOpenPurchases={handleOpenPurchases}
               onNavigate={handleChangeView}

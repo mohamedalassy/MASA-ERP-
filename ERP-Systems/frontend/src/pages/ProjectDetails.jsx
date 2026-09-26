@@ -1,3 +1,5 @@
+import ProjectTeamPanel from "../components/projects/ProjectTeamPanel";
+import ProjectNotesPanel from "../components/projects/ProjectNotesPanel";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -38,7 +40,52 @@ import {
 |--------------------------------------------------------------------------
 */
 
-const API_URL = "http://127.0.0.1:8000/api";
+const BACKEND_URL = "http://127.0.0.1:8000";
+const API_URL = `${BACKEND_URL}/api`;
+
+async function initializeCsrf() {
+  const response = await window.fetch(`${BACKEND_URL}/sanctum/csrf-cookie`, {
+    method: "GET",
+    credentials: "include",
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error("تعذر تهيئة الاتصال الآمن مع الخادم.");
+  }
+}
+
+function getXsrfToken() {
+  const cookie = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("XSRF-TOKEN="));
+
+  return cookie
+    ? decodeURIComponent(cookie.substring("XSRF-TOKEN=".length))
+    : "";
+}
+
+async function apiRequest(url, options = {}) {
+  const method = String(options.method || "GET").toUpperCase();
+  const isWrite = !["GET", "HEAD", "OPTIONS"].includes(method);
+
+  if (isWrite) {
+    await initializeCsrf();
+  }
+
+  const xsrfToken = isWrite ? getXsrfToken() : "";
+
+  return window.fetch(url, {
+    ...options,
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+      ...(isWrite ? { "Content-Type": "application/json" } : {}),
+      ...(xsrfToken ? { "X-XSRF-TOKEN": xsrfToken } : {}),
+      ...(options.headers || {}),
+    },
+  });
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -128,12 +175,13 @@ const getInitials = (name = "") => {
 */
 
 export default function ProjectDetails({
-  projectId = 1,
+  projectId,
   onBack,
   onOpenPurchases,
   onNavigate,
 }) {
   const [project, setProject] = useState(null);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const [loading, setLoading] = useState(true);
 
@@ -241,7 +289,7 @@ export default function ProjectDetails({
       setExecutionMessage("");
       setExecutionError("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/projects/${project.id}/${path}`,
         {
           method,
@@ -343,7 +391,7 @@ export default function ProjectDetails({
 
   const loadQuotationProducts = async () => {
     try {
-      const response = await fetch(`${API_URL}/products`, {
+      const response = await apiRequest(`${API_URL}/products`, {
         headers: { Accept: "application/json" },
       });
 
@@ -539,7 +587,7 @@ export default function ProjectDetails({
         ? `${API_URL}/projects/${project.id}/quotations/${editingQuotation.id}`
         : `${API_URL}/projects/${project.id}/quotations`;
 
-      const response = await fetch(url, {
+      const response = await apiRequest(url, {
         method: isEdit ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
@@ -607,7 +655,7 @@ export default function ProjectDetails({
       setQuotationError("");
       setQuotationMessage("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/projects/${project.id}/quotations/${quotationRow.id}/revision`,
         {
           method: "POST",
@@ -664,7 +712,7 @@ export default function ProjectDetails({
       setQuotationError("");
       setQuotationMessage("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/projects/${project.id}/quotations/${quotationRow.id}/approve`,
         {
           method: "POST",
@@ -701,7 +749,7 @@ export default function ProjectDetails({
       setMaterialsLoading(true);
       setMaterialsError("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/inventory-transactions?project_id=${projectId}&type=OUT`,
         {
           headers: {
@@ -745,7 +793,7 @@ export default function ProjectDetails({
       setExpensesLoading(true);
       setExpensesError("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/projects/${projectId}/expenses`,
         {
           headers: {
@@ -808,7 +856,7 @@ export default function ProjectDetails({
       setExpensesError("");
       setExpenseMessage("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/projects/${projectId}/expenses`,
         {
           method: "POST",
@@ -873,7 +921,7 @@ export default function ProjectDetails({
       setExpensesError("");
       setExpenseMessage("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/projects/${projectId}/expenses/${expenseId}`,
         {
           method: "DELETE",
@@ -909,6 +957,31 @@ export default function ProjectDetails({
     }
   };
 
+  const openProjectSection = (tab, sectionId) => {
+    setActiveTab(tab);
+
+    window.requestAnimationFrame(() => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    });
+  };
+
+  const openCustomer360 = () => {
+    if (project?.customer_id) {
+      onNavigate?.("customer-360", {
+        customerId: project.customer_id,
+      });
+      return;
+    }
+
+    openProjectSection("customer", "project-customer-section");
+  };
+
   /*
   |--------------------------------------------------------------------------
   | Load Project
@@ -920,7 +993,7 @@ export default function ProjectDetails({
       setLoading(true);
       setLoadError("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/projects/${projectId}`,
         {
           headers: {
@@ -955,6 +1028,13 @@ export default function ProjectDetails({
   };
 
   useEffect(() => {
+    if (!projectId) {
+      setProject(null);
+      setLoading(false);
+      setLoadError("لم يتم تحديد المشروع.");
+      return;
+    }
+
     loadProject();
     loadProjectMaterials();
     loadProjectExpenses();
@@ -985,7 +1065,7 @@ export default function ProjectDetails({
       setMoveMessage("");
       setMoveError("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/projects/${project.id}/next-stage`,
         {
           method: "POST",
@@ -1076,7 +1156,7 @@ export default function ProjectDetails({
       setMoveMessage("");
       setMoveError("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/projects/${project.id}/previous-stage`,
         {
           method: "POST",
@@ -1145,7 +1225,7 @@ export default function ProjectDetails({
       setPurchaseOrderMessage("");
       setPurchaseOrderError("");
 
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_URL}/projects/${project.id}/purchase-orders`,
         {
           method: "POST",
@@ -1262,9 +1342,6 @@ export default function ProjectDetails({
 
   const attachments =
     project?.attachments || [];
-
-  const projectNotes =
-    project?.notes || [];
 
   const workflowHistory =
     project?.workflow_history || [];
@@ -1433,6 +1510,50 @@ export default function ProjectDetails({
       className="project-file-page"
       dir="rtl"
     >
+      <style>{`
+        .project-file-page { font-size: 15px !important; line-height: 1.75; }
+        .project-file-page h1 { font-size: 30px !important; line-height: 1.35 !important; }
+        .project-file-page h2 { font-size: 22px !important; }
+        .project-file-page h3 { font-size: 17px !important; }
+        .project-file-page button,
+        .project-file-page input,
+        .project-file-page select,
+        .project-file-page textarea { font-size: 14px !important; }
+        .project-file-page small,
+        .project-file-page .module-label,
+        .project-file-page .module-description,
+        .project-file-page .project-summary-list span,
+        .project-file-page .project-info-item span,
+        .project-file-page .project-info-item small,
+        .project-file-page .workflow-step span,
+        .project-file-page .timeline-content span,
+        .project-file-page .project-note small { font-size: 13px !important; }
+        .project-file-page .module-value,
+        .project-file-page .project-info-item strong,
+        .project-file-page .project-summary-list strong { font-size: 16px !important; }
+        .project-file-page .project-tabs button { min-height: 48px; padding: 0 18px !important; font-weight: 800; }
+        .project-file-page .project-module-card { min-height: 270px; }
+        .project-file-page #project-customer-section,
+        .project-file-page #project-overview-section,
+        .project-file-page #project-team-section,
+        .project-file-page #project-quotation-section,
+        .project-file-page #project-purchases-section,
+        .project-file-page #project-finance-section,
+        .project-file-page #project-files-section,
+        .project-file-page #project-notes-section,
+        .project-file-page #project-activity-section { scroll-margin-top: 92px; }
+        @media (max-width: 900px) {
+          .project-file-page { font-size: 14px !important; }
+          .project-file-page h1 { font-size: 25px !important; }
+          .project-file-page .project-tabs { overflow-x: auto; }
+          .project-file-page .project-tabs button { white-space: nowrap; }
+        }
+        @media print {
+          .project-main-actions,
+          .project-tabs,
+          .project-back-to-orders { display: none !important; }
+        }
+      `}</style>
       {/* =====================================================
           TOP
       ====================================================== */}
@@ -1500,6 +1621,7 @@ export default function ProjectDetails({
               <button
                 type="button"
                 className="project-secondary-btn"
+                onClick={() => window.print()}
               >
                 <Printer size={16} />
                 طباعة / تصدير
@@ -1564,7 +1686,7 @@ export default function ProjectDetails({
           CUSTOMER + PROJECT INFORMATION
       ====================================================== */}
 
-      <section className="project-info-card">
+      <section id="project-customer-section" className="project-info-card">
         <div className="project-info-item">
           <div className="info-icon">
             <Building2 size={18} />
@@ -1758,44 +1880,37 @@ export default function ProjectDetails({
       ====================================================== */}
 
       <div className="project-tabs">
-        <button className="active">
-          نظرة عامة
-        </button>
-
-        <button>
-          بيانات العميل
-        </button>
-
-        <button>
-          عرض السعر
-        </button>
-
-        <button>
-          المشتريات
-        </button>
-
-        <button>
-          المالية
-        </button>
-
-        <button>
-          الملفات
-        </button>
-
-        <button>
-          الملاحظات
-        </button>
-
-        <button>
-          سجل الأنشطة
-        </button>
+        {[
+          ["overview", "نظرة عامة", "project-overview-section"],
+          ["team", "فريق المشروع", "project-team-section"],
+          ["customer", "بيانات العميل", "project-customer-section"],
+          ["quotation", "عرض السعر", "project-quotation-section"],
+          ["purchases", "المشتريات", "project-purchases-section"],
+          ["finance", "المالية", "project-finance-section"],
+          ["files", "الملفات", "project-files-section"],
+          ["notes", "الملاحظات", "project-notes-section"],
+          ["activity", "سجل الأنشطة", "project-activity-section"],
+        ].map(([key, label, sectionId]) => (
+          <button
+            key={key}
+            type="button"
+            className={activeTab === key ? "active" : ""}
+            onClick={() =>
+              key === "customer"
+                ? openCustomer360()
+                : openProjectSection(key, sectionId)
+            }
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* =====================================================
           CONTENT
       ====================================================== */}
 
-      <div className="project-content-grid">
+      <div id="project-overview-section" className="project-content-grid">
         {/* SIDE */}
 
         <aside className="project-side-column">
@@ -1952,6 +2067,7 @@ export default function ProjectDetails({
             {/* QUOTATION */}
 
             <article
+              id="project-quotation-section"
               className="project-module-card"
               style={{
                 position: "relative",
@@ -2404,8 +2520,7 @@ export default function ProjectDetails({
 
             {/* PURCHASES */}
 
-            <article className="project-module-card">
-              <div className="module-card-icon orange">
+            <article id="project-purchases-section" className="project-module-card">\n              <div className="module-card-icon orange">
                 <ShoppingCart size={22} />
               </div>
 
@@ -2513,8 +2628,7 @@ export default function ProjectDetails({
 
             {/* FINANCE */}
 
-            <article className="project-module-card">
-              <div className="module-card-icon green">
+            <article id="project-finance-section" className="project-module-card">\n              <div className="module-card-icon green">
                 <WalletCards size={22} />
               </div>
 
@@ -2550,15 +2664,19 @@ export default function ProjectDetails({
                 </div>
               </div>
 
-              <button type="button">
+              <button
+                type="button"
+                onClick={() =>
+                  openProjectSection("finance", "project-finance-section")
+                }
+              >
                 عرض التفاصيل
               </button>
             </article>
 
             {/* FILES */}
 
-            <article className="project-module-card">
-              <div className="module-card-icon blue">
+            <article id="project-files-section" className="project-module-card">\n              <div className="module-card-icon blue">
                 <FolderOpen size={22} />
               </div>
 
@@ -2582,7 +2700,12 @@ export default function ProjectDetails({
                   : "لا توجد مرفقات حتى الآن"}
               </span>
 
-              <button type="button">
+              <button
+                type="button"
+                onClick={() =>
+                  openProjectSection("files", "project-files-section")
+                }
+              >
                 عرض جميع الملفات
               </button>
             </article>
@@ -3862,78 +3985,28 @@ export default function ProjectDetails({
           </section>
 
           {/* =================================================
+              PROJECT TEAM + SITE ATTENDANCE
+          ================================================== */}
+
+          <div style={{ marginBottom: "18px" }}>
+            <ProjectTeamPanel
+              projectId={project.id}
+              project={project}
+            />
+          </div>
+
+          {/* =================================================
               NOTES + ACTIVITY
           ================================================== */}
 
           <div className="project-lower-grid">
             {/* NOTES */}
 
-            <section className="project-widget project-notes">
-              <div className="project-widget-header">
-                <h3>
-                  آخر الملاحظات
-                </h3>
-
-                <button type="button">
-                  <Plus size={14} />
-                  إضافة ملاحظة
-                </button>
-              </div>
-
-              <div className="project-note-list">
-                {projectNotes.length ? (
-                  projectNotes.map(
-                    (note) => (
-                      <div
-                        className="project-note"
-                        key={note.id}
-                      >
-                        <div className="note-avatar">
-                          {getInitials(
-                            note.user?.name ||
-                              "MA"
-                          )}
-                        </div>
-
-                        <div>
-                          <div className="note-top">
-                            <strong>
-                              {note.user
-                                ?.name ||
-                                "مستخدم النظام"}
-                            </strong>
-
-                            <span>
-                              ملاحظة
-                            </span>
-                          </div>
-
-                          <small>
-                            {formatDate(
-                              note.created_at
-                            )}
-                          </small>
-
-                          <p>
-                            {note.note}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  )
-                ) : (
-                  <div className="project-empty-state">
-                    لا توجد ملاحظات
-                    على المشروع حتى
-                    الآن.
-                  </div>
-                )}
-              </div>
-            </section>
+            <ProjectNotesPanel projectId={project.id} />
 
             {/* ACTIVITY */}
 
-            <section className="project-widget project-activity">
+            <section id="project-activity-section" className="project-widget project-activity">
               <div className="project-widget-header">
                 <h3>
                   سجل الأنشطة
@@ -4364,7 +4437,6 @@ export default function ProjectDetails({
                 />
               </label>
             </div>
-
             <div style={{ display: "grid", gap: "10px" }}>
               {quotationForm.items.map((item, index) => (
                 <div

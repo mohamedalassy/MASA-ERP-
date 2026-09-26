@@ -1,0 +1,6 @@
+
+.ai-icon-nav{display:flex;justify-content:center;align-items:stretch;gap:2px;background:#fff;border:1px solid #e6ebf3;border-radius:16px;padding:5px 8px;margin-bottom:15px;box-shadow:0 5px 20px rgba(20,45,85,.045);overflow:auto}
+.ai-icon-nav button{min-width:72px;border:0;background:transparent;color:#61708a;padding:7px 7px 6px;border-radius:11px;cursor:pointer;font-family:inherit;position:relative}
+.ai-icon-nav button span{height:25px;display:grid;place-items:center}.ai-icon-nav button small{font-size:9px;font-weight:800}
+.ai-icon-nav button:hover{background:#f7f5ff;color:#6657f5}.ai-icon-nav button.active{color:#6657f5;background:#f0edff}
+.ai-icon-nav button.active:after{content:"";position:absolute;bottom:-5px;left:18%;right:18%;height:2px;background:#6657f5;border-radius:4px}

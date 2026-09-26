@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\SupplierPriceHistoryController;
 use App\Http\Controllers\Api\PricingRuleController;
+// Import:
+use App\Http\Controllers\Api\ProjectTeamController;
 use App\Http\Controllers\Api\PricingPackageController;
 use App\Http\Controllers\Api\ProductAlternativeController;
 use App\Http\Controllers\Api\PricingCostingController;
@@ -23,6 +25,8 @@ use App\Http\Controllers\Api\BankReconciliationController;
 use App\Http\Controllers\Api\SuppliersCenterController;
 use App\Http\Controllers\Api\SupplierPriceController;
 use Illuminate\Support\Facades\Route;
+// Add with the other imports:
+use App\Http\Controllers\Api\ProjectNoteController;
 use App\Http\Controllers\Api\ProjectExpenseController;
 use App\Http\Controllers\Api\InventoryTransactionController;
 use App\Http\Controllers\Api\ProductController;
@@ -598,6 +602,10 @@ Route::prefix('hr')->name('hr.')->group(function () {
     ]);
 });
 
+
+Route::get('/projects', [ProjectController::class, 'index']);
+Route::post('/projects', [ProjectController::class, 'store']);
+Route::get('/projects/{project}', [ProjectController::class, 'show']);
 /*
 |--------------------------------------------------------------------------
 | Modular Routes
@@ -626,3 +634,18 @@ require __DIR__ . '/sales-health.php';
 
 /* الصلاحيات وسجل التدقيق — محمية بـ auth:sanctum */
 require __DIR__ . '/settings-routes.php';
+require __DIR__ . '/hr_v2_biometric.php';
+// Add with the other project routes:
+Route::get('/projects/{project}/notes', [ProjectNoteController::class, 'index']);
+Route::post('/projects/{project}/notes', [ProjectNoteController::class, 'store']);
+Route::put('/projects/{project}/notes/{note}', [ProjectNoteController::class, 'update']);
+Route::delete('/projects/{project}/notes/{note}', [ProjectNoteController::class, 'destroy']);
+Route::post('/projects/{project}/notes/{note}/attachments', [ProjectNoteController::class, 'upload']);
+Route::delete('/projects/{project}/notes/{note}/attachments/{attachment}', [ProjectNoteController::class, 'deleteAttachment']);
+
+// Routes:
+Route::get('/project-team/employees', [ProjectTeamController::class, 'employees']);
+Route::get('/projects/{project}/team', [ProjectTeamController::class, 'index']);
+Route::post('/projects/{project}/team', [ProjectTeamController::class, 'store']);
+Route::put('/projects/{project}/team/{member}', [ProjectTeamController::class, 'update']);
+Route::delete('/projects/{project}/team/{member}', [ProjectTeamController::class, 'destroy']);

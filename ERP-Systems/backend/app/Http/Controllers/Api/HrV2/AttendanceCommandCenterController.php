@@ -13,6 +13,14 @@ class AttendanceCommandCenterController extends Controller {
  public function index(Request $r){
   $date=$r->date('date')?->toDateString() ?? now()->toDateString();
   $q=HrAttendanceDailySummary::whereDate('work_date',$date);
+  $detail=$r->query('detail');
+  $rows=HrAttendanceDailySummary::with('employee:id,employee_number,first_name,last_name,department_id')->whereDate('work_date',$date);
+  if ($detail === 'present') $rows->whereIn('status',['present','late']);
+  elseif ($detail === 'late') $rows->where('late_minutes','>',0);
+  elseif ($detail === 'absent') $rows->where('status','absent');
+  elseif ($detail === 'incomplete') $rows->where('status','incomplete');
+  elseif ($detail === 'overtime') $rows->where('overtime_minutes','>',0);
+  elseif ($detail === 'leave') $rows->whereIn('status',['leave','on_leave']);
   return response()->json([
    'date'=>$date,
    'kpis'=>[
@@ -20,6 +28,7 @@ class AttendanceCommandCenterController extends Controller {
     'present'=>(clone $q)->whereIn('status',['present','late'])->count(),
     'late'=>(clone $q)->where('late_minutes','>',0)->count(),
     'absent'=>(clone $q)->where('status','absent')->count(),
+    'leave'=>(clone $q)->whereIn('status',['leave','on_leave'])->count(),
     'incomplete'=>(clone $q)->where('status','incomplete')->count(),
     'overtime_minutes'=>(clone $q)->sum('overtime_minutes'),
    ],
@@ -33,8 +42,7 @@ class AttendanceCommandCenterController extends Controller {
     'online'=>HrAttendanceDevice::where('is_active',true)->where('status','online')->count(),
     'errors'=>HrAttendanceDevice::where('is_active',true)->where('status','error')->count(),
    ],
-   'rows'=>HrAttendanceDailySummary::with('employee:id,employee_number,first_name,last_name,department_id')
-      ->whereDate('work_date',$date)->orderByDesc('late_minutes')->limit(100)->get()
+   'rows'=>$rows->orderByDesc('late_minutes')->when(!$detail, fn ($query) => $query->limit(100))->get()
   ]);
  }
 }

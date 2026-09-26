@@ -8,20 +8,23 @@ import {
   ArrowLeft,
   Filter,
   RefreshCcw,
+  Plus,
 } from "lucide-react";
 
 const API_URL = "http://127.0.0.1:8000/api";
 
 const stageNames = {
-  crm: "CRM",
+  crm: "CRM / المعاينة",
+  sales: "المبيعات",
   pricing: "التسعير",
   purchasing: "المشتريات",
   finance: "المالية",
   execution: "التنفيذ",
-  closed: "الإغلاق",
+  closed: "مكتملة",
 };
 
 const priorityNames = {
+  urgent: "عاجلة",
   high: "عالية",
   normal: "عادية",
   low: "منخفضة",
@@ -44,6 +47,7 @@ const formatDate = (value) => {
 export default function WorkOrders({
   stage = "all",
   onOpenProject,
+  onCreateProject,
 }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,17 +82,21 @@ export default function WorkOrders({
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.message || "تعذر تحميل أوامر العمل"
+          result.message ||
+            "تعذر تحميل المشاريع"
         );
       }
 
       setProjects(result.data || []);
     } catch (error) {
-      console.error("WorkOrders load error:", error);
+      console.error(
+        "Projects load error:",
+        error
+      );
 
       setError(
         error.message ||
-          "حدث خطأ أثناء تحميل أوامر العمل"
+          "حدث خطأ أثناء تحميل المشاريع"
       );
     } finally {
       setLoading(false);
@@ -114,23 +122,48 @@ export default function WorkOrders({
           .includes(normalizedSearch) ||
         project.customer_name
           ?.toLowerCase()
+          .includes(normalizedSearch) ||
+        project.customer_code
+          ?.toLowerCase()
+          .includes(normalizedSearch) ||
+        project.commercial_register
+          ?.toLowerCase()
+          .includes(normalizedSearch) ||
+        project.tax_number
+          ?.toLowerCase()
           .includes(normalizedSearch);
 
       const matchesPriority =
         priority === "all" ||
         project.priority === priority;
 
-      return matchesSearch && matchesPriority;
+      return (
+        matchesSearch &&
+        matchesPriority
+      );
     });
-  }, [projects, search, priority]);
+  }, [
+    projects,
+    search,
+    priority,
+  ]);
 
   const title =
     stage === "all"
-      ? "أوامر العمل"
-      : `أوامر عمل ${stageNames[stage] || stage}`;
+      ? "المشاريع"
+      : `مشاريع ${
+          stageNames[stage] || stage
+        }`;
 
   return (
-    <div className="work-orders-page" dir="rtl">
+    <div
+      className="work-orders-page"
+      dir="rtl"
+    >
+      {/* =========================
+          Header
+      ========================= */}
+
       <div className="work-orders-header">
         <div>
           <span className="work-orders-kicker">
@@ -140,23 +173,44 @@ export default function WorkOrders({
           <h1>{title}</h1>
 
           <p>
-            متابعة المشاريع الموجودة داخل القسم الحالي
-            وفتح ملف المشروع بالكامل.
+            إدارة ومتابعة جميع مشاريع الشركة
+            ومراحل سير العمل من المعاينة وحتى
+            التنفيذ والإغلاق.
           </p>
         </div>
 
-        <div className="work-orders-count-card">
-          <FolderKanban size={20} />
+        <div className="work-orders-header-actions">
+          <button
+            type="button"
+            className="work-orders-create"
+            onClick={() =>
+              onCreateProject?.()
+            }
+          >
+            <Plus size={18} />
 
-          <div>
-            <strong>
-              {filteredProjects.length}
-            </strong>
+            مشروع جديد
+          </button>
 
-            <span>أمر عمل</span>
+          <div className="work-orders-count-card">
+            <FolderKanban size={20} />
+
+            <div>
+              <strong>
+                {
+                  filteredProjects.length
+                }
+              </strong>
+
+              <span>مشروع</span>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* =========================
+          Toolbar
+      ========================= */}
 
       <div className="work-orders-toolbar">
         <div className="work-orders-search">
@@ -166,9 +220,11 @@ export default function WorkOrders({
             type="text"
             value={search}
             onChange={(event) =>
-              setSearch(event.target.value)
+              setSearch(
+                event.target.value
+              )
             }
-            placeholder="ابحث برقم المشروع أو الاسم أو العميل..."
+            placeholder="ابحث برقم المشروع أو الاسم أو العميل أو السجل التجاري..."
           />
         </div>
 
@@ -178,11 +234,17 @@ export default function WorkOrders({
           <select
             value={priority}
             onChange={(event) =>
-              setPriority(event.target.value)
+              setPriority(
+                event.target.value
+              )
             }
           >
             <option value="all">
               كل الأولويات
+            </option>
+
+            <option value="urgent">
+              عاجلة
             </option>
 
             <option value="high">
@@ -203,56 +265,115 @@ export default function WorkOrders({
           type="button"
           className="work-orders-refresh"
           onClick={loadProjects}
+          disabled={loading}
         >
-          <RefreshCcw size={17} />
+          <RefreshCcw
+            size={17}
+            className={
+              loading ? "spin" : ""
+            }
+          />
+
           تحديث
         </button>
       </div>
 
+      {/* =========================
+          Loading
+      ========================= */}
+
       {loading && (
         <div className="work-orders-state">
-          جاري تحميل أوامر العمل...
+          جاري تحميل المشاريع...
         </div>
       )}
+
+      {/* =========================
+          Error
+      ========================= */}
 
       {!loading && error && (
         <div className="work-orders-state error">
           <strong>
-            تعذر تحميل أوامر العمل
+            تعذر تحميل المشاريع
           </strong>
 
           <span>{error}</span>
+
+          <button
+            type="button"
+            onClick={loadProjects}
+          >
+            إعادة المحاولة
+          </button>
         </div>
       )}
 
+      {/* =========================
+          Empty
+      ========================= */}
+
       {!loading &&
         !error &&
-        filteredProjects.length === 0 && (
+        filteredProjects.length ===
+          0 && (
           <div className="work-orders-empty">
             <FolderKanban size={36} />
 
             <strong>
-              لا توجد أوامر عمل
+              لا توجد مشاريع
             </strong>
 
             <span>
-              لا توجد مشاريع في هذا القسم حاليًا.
+              {search ||
+              priority !== "all"
+                ? "لا توجد مشاريع مطابقة للفلاتر الحالية."
+                : "لا توجد مشاريع في هذا القسم حاليًا."}
             </span>
+
+            {!search &&
+              priority === "all" && (
+                <button
+                  type="button"
+                  className="work-orders-create"
+                  onClick={() =>
+                    onCreateProject?.()
+                  }
+                >
+                  <Plus size={17} />
+
+                  إنشاء أول مشروع
+                </button>
+              )}
           </div>
         )}
 
+      {/* =========================
+          Projects Table
+      ========================= */}
+
       {!loading &&
         !error &&
-        filteredProjects.length > 0 && (
+        filteredProjects.length >
+          0 && (
           <div className="work-orders-table-card">
             <div className="work-orders-table-head">
               <span>رقم المشروع</span>
+
               <span>المشروع</span>
+
               <span>العميل</span>
+
               <span>القسم الحالي</span>
+
               <span>الأولوية</span>
+
               <span>القيمة</span>
-              <span>تاريخ الإنشاء</span>
+
+              <span>
+                تاريخ الإنشاء
+              </span>
+
               <span></span>
             </div>
 
@@ -263,15 +384,23 @@ export default function WorkOrders({
                     className="work-orders-row"
                     key={project.id}
                   >
+                    {/* Project Code */}
+
                     <div>
                       <span className="work-order-code">
-                        {project.project_code}
+                        {
+                          project.project_code
+                        }
                       </span>
                     </div>
 
+                    {/* Project */}
+
                     <div className="work-order-project">
                       <div className="work-order-project-icon">
-                        <FolderKanban size={17} />
+                        <FolderKanban
+                          size={17}
+                        />
                       </div>
 
                       <div>
@@ -286,27 +415,56 @@ export default function WorkOrders({
                       </div>
                     </div>
 
-                    <div className="work-order-customer">
-                      <Building2 size={15} />
+                    {/* Customer */}
 
-                      <span>
-                        {project.customer_name}
-                      </span>
+                    <div className="work-order-customer">
+                      <Building2
+                        size={15}
+                      />
+
+                      <div>
+                        <span>
+                          {project.customer_name ||
+                            project
+                              .customer
+                              ?.name ||
+                            "-"}
+                        </span>
+
+                        {(project.customer_code ||
+                          project
+                            .customer
+                            ?.code) && (
+                          <small>
+                            {project.customer_code ||
+                              project
+                                .customer
+                                ?.code}
+                          </small>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Stage */}
 
                     <div>
                       <span className="work-order-stage">
                         {stageNames[
-                          project.current_stage
+                          project
+                            .current_stage
                         ] ||
-                          project.current_stage}
+                          project.current_stage ||
+                          "-"}
                       </span>
                     </div>
+
+                    {/* Priority */}
 
                     <div>
                       <span
                         className={`work-order-priority ${
-                          project.priority || "normal"
+                          project.priority ||
+                          "normal"
                         }`}
                       >
                         {priorityNames[
@@ -317,6 +475,8 @@ export default function WorkOrders({
                       </span>
                     </div>
 
+                    {/* Value */}
+
                     <div>
                       <strong className="work-order-value">
                         {formatMoney(
@@ -325,8 +485,12 @@ export default function WorkOrders({
                       </strong>
                     </div>
 
+                    {/* Date */}
+
                     <div className="work-order-date">
-                      <CalendarDays size={14} />
+                      <CalendarDays
+                        size={14}
+                      />
 
                       <span>
                         {formatDate(
@@ -334,6 +498,8 @@ export default function WorkOrders({
                         )}
                       </span>
                     </div>
+
+                    {/* Open */}
 
                     <div>
                       <button
@@ -346,7 +512,10 @@ export default function WorkOrders({
                         }
                       >
                         فتح
-                        <ArrowLeft size={15} />
+
+                        <ArrowLeft
+                          size={15}
+                        />
                       </button>
                     </div>
                   </div>

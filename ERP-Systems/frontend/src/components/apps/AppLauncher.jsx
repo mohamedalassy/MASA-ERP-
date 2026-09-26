@@ -21,13 +21,14 @@ import {
 
 const apps = [
   {
-    id: "crm",
-    name: "العملاء CRM",
-    description: "إدارة العملاء والفرص والمتابعات",
+    id: "customers",
+    name: "العملاء",
+    description:
+      "إدارة العملاء والشركات وجهات الاتصال وملف العميل 360",
     icon: Users,
     tone: "cyan",
-    stage: "crm",
   },
+
   {
     id: "sales",
     name: "المبيعات",
@@ -36,6 +37,7 @@ const apps = [
     icon: TrendingUp,
     tone: "purple",
   },
+
   {
     id: "ai-sales",
     name: "AI Sales",
@@ -44,32 +46,40 @@ const apps = [
     icon: BrainCircuit,
     tone: "purple",
   },
+
   {
     id: "pricing",
     name: "التسعير",
-    description: "طلبات التسعير والتكلفة وهوامش الربح",
+    description:
+      "طلبات التسعير والتكلفة وهوامش الربح",
     icon: BadgeDollarSign,
     tone: "orange",
   },
+
   {
     id: "invoices",
     name: "الفواتير",
-    description: "الفواتير والمدفوعات والمستحقات",
+    description:
+      "الفواتير والمدفوعات والمستحقات",
     icon: FileText,
     tone: "blue",
   },
+
   {
     id: "purchases",
     name: "المشتريات",
-    description: "الموردون وطلبات وأوامر الشراء",
+    description:
+      "الموردون وطلبات وأوامر الشراء",
     icon: ShoppingCart,
     tone: "violet",
     stage: "purchasing",
   },
+
   {
     id: "inventory",
     name: "المخزون",
-    description: "المنتجات والمخازن وحركة الأصناف",
+    description:
+      "المنتجات والمخازن وحركة الأصناف",
     icon: Package,
     tone: "green",
   },
@@ -77,10 +87,12 @@ const apps = [
   /* =========================
      MASA Finance
   ========================= */
+
   {
     id: "accounting",
     name: "المحاسبة",
-    description: "الحسابات والقيود والتقارير المالية",
+    description:
+      "الحسابات والقيود والتقارير المالية",
     icon: Calculator,
     tone: "teal",
   },
@@ -88,64 +100,81 @@ const apps = [
   {
     id: "projects",
     name: "المشاريع",
-    description: "المشاريع والمهام ونسب الإنجاز",
+    description:
+      "المشاريع والمهام ونسب الإنجاز",
     icon: FolderKanban,
     tone: "blue",
     stage: "all",
   },
+
   {
     id: "employees",
     name: "الموظفين",
-    description: "الموظفون والأقسام والصلاحيات",
+    description:
+      "الموظفون والأقسام والصلاحيات",
     icon: UserRound,
     tone: "red",
   },
+
   {
     id: "expenses",
     name: "المصروفات",
-    description: "طلبات المصروفات والموافقات",
+    description:
+      "طلبات المصروفات والموافقات",
     icon: WalletCards,
     tone: "orange",
   },
+
   {
     id: "reports",
     name: "التقارير",
-    description: "تقارير وتحليلات جميع الأقسام",
+    description:
+      "تقارير وتحليلات جميع الأقسام",
     icon: BarChart3,
     tone: "purple",
   },
+
   {
     id: "support",
     name: "الدعم الفني",
-    description: "التذاكر وخدمة العملاء",
+    description:
+      "التذاكر وخدمة العملاء",
     icon: Headphones,
     tone: "cyan",
   },
+
   {
     id: "assets",
     name: "الأصول",
-    description: "إدارة الأصول والعهد",
+    description:
+      "إدارة الأصول والعهد",
     icon: Boxes,
     tone: "green",
   },
+
   {
     id: "branches",
     name: "الفروع",
-    description: "إدارة الشركات والفروع",
+    description:
+      "إدارة الشركات والفروع",
     icon: Building2,
     tone: "blue",
   },
+
   {
     id: "maintenance",
     name: "الصيانة",
-    description: "أوامر الصيانة والزيارات",
+    description:
+      "أوامر الصيانة والزيارات",
     icon: Wrench,
     tone: "orange",
   },
+
   {
     id: "settings",
     name: "الإعدادات",
-    description: "إعدادات النظام والتخصيص",
+    description:
+      "إعدادات النظام والتخصيص",
     icon: Settings,
     tone: "gray",
   },
@@ -156,6 +185,15 @@ export default function AppLauncher({
 }) {
   const handleAppClick = (app) => {
     if (!onChangeView) {
+      return;
+    }
+
+    /* =========================
+       Customers
+    ========================= */
+
+    if (app.id === "customers") {
+      onChangeView("customers");
       return;
     }
 
@@ -192,6 +230,15 @@ export default function AppLauncher({
 
     if (app.id === "accounting") {
       onChangeView("finance");
+      return;
+    }
+
+    /* =========================
+       MASA People V2
+    ========================= */
+
+    if (app.id === "employees") {
+      onChangeView("hr-v2-command");
       return;
     }
 
@@ -263,7 +310,9 @@ export default function AppLauncher({
               </div>
 
               <div className="app-copy">
-                <strong>{app.name}</strong>
+                <strong>
+                  {app.name}
+                </strong>
 
                 <span>
                   {app.description}

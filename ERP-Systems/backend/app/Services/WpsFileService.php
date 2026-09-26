@@ -31,6 +31,19 @@ class WpsFileService
 
         $rows = $this->rowsFor($run);
 
+        if ($rows->isEmpty()) {
+            $errors[] = 'تشغيل الرواتب لا يحتوي على موظفين؛ لا يمكن توليد ملف WPS فارغ.';
+        }
+
+        if ($rows->count() !== (int) $run->employees_count) {
+            $errors[] = 'عدد بنود الرواتب لا يطابق عدد الموظفين المسجل في التشغيل.';
+        }
+
+        $netTotal = round($rows->sum(fn ($row) => (float) $row->net_salary), 2);
+        if (abs($netTotal - round((float) $run->total_net, 2)) >= 0.01) {
+            $errors[] = 'إجمالي صافي بنود الرواتب لا يطابق إجمالي التشغيل.';
+        }
+
         $hasGosiNumber = Schema::hasColumn('hr_employees', 'gosi_number');
         $hasQiwa = Schema::hasColumn('hr_employee_contracts', 'qiwa_authenticated_at');
 
@@ -223,12 +236,21 @@ class WpsFileService
             ->get();
     }
 
-    /** آيبان سعودي: SA + 22 خانة = 24 إجمالًا. */
+    /** آيبان سعودي: SA + 22 رقمًا، مع التحقق من رقم الفحص الدولي MOD 97. */
     private function isValidSaudiIban(string $iban): bool
     {
-        return (bool) preg_match(
-            '/^SA\d{22}$/',
-            strtoupper(preg_replace('/\s+/', '', $iban))
-        );
+        $iban = strtoupper(preg_replace('/\s+/', '', $iban));
+        if (!preg_match('/^SA[0-9]{22}$/', $iban)) {
+            return false;
+        }
+
+        // نقل أول أربع خانات للنهاية وتحويل SA إلى 28 و10.
+        $rearranged = substr($iban, 4) . '2810' . substr($iban, 2, 2);
+        $remainder = 0;
+        foreach (str_split($rearranged) as $digit) {
+            $remainder = ($remainder * 10 + (int) $digit) % 97;
+        }
+
+        return $remainder === 1;
     }
 }
