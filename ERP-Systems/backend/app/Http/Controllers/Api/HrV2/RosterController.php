@@ -6,6 +6,10 @@ use App\Models\HrLeaveRequest;
 use App\Models\HrRoster;
 use App\Models\HrEmployee;
 use App\Models\HrShift;
+use App\Models\HrAttendanceDaily;
+use App\Models\HrAttendanceDailySummary;
+use App\Models\HrAttendanceEvent;
+use App\Services\Hr\AttendanceProcessor;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -27,16 +31,46 @@ class RosterController extends Controller
         return response()->json($query->orderBy('work_date')->orderBy('employee_id')->paginate($filters['per_page'] ?? 100));
     }
 
-    public function store(Request $request)
+    public function calendar(Request $request)
+    {
+        $data = $request->validate([
+            'employee_id' => 'required|integer|exists:hr_employees,id',
+            'from' => 'required|date_format:Y-m-d',
+            'to' => 'required|date_format:Y-m-d|after_or_equal:from',
+        ]);
+        $from = CarbonImmutable::createFromFormat('!Y-m-d', $data['from']);
+        $to = CarbonImmutable::createFromFormat('!Y-m-d', $data['to']);
+        if ($from->diffInDays($to) > 61)
+            throw ValidationException::withMessages(['to' => ['عرض التقويم لا يتجاوز 62 يومًا.']]);
+
+        return response()->json([
+            'rosters' => HrRoster::with('shift:id,code,name,start_time,end_time')
+                ->where('employee_id', $data['employee_id'])
+                ->whereBetween('work_date', [$data['from'], $data['to']])
+                ->orderBy('work_date')->get(),
+            'leaves' => HrLeaveRequest::where('employee_id', $data['employee_id'])
+                ->where('status', 'approved')
+                ->whereDate('start_date', '<=', $data['to'])
+                ->whereDate('end_date', '>=', $data['from'])
+                ->get(['id', 'start_date', 'end_date', 'leave_type']),
+        ]);
+    }
+
+    public function store(Request $request, AttendanceProcessor $processor)
     {
         $data = $this->data($request);
         $this->checkLeave($data['employee_id'], $data['work_date'], $data['status']);
         if (HrRoster::where('employee_id', $data['employee_id'])->whereDate('work_date', $data['work_date'])->exists())
             throw ValidationException::withMessages(['work_date' => ['يوجد جدول لهذا الموظف في نفس اليوم؛ افتحه وعدّل السجل الموجود.']]);
-        return response()->json(HrRoster::create($data)->load(['employee', 'shift']), 201);
+        $roster = DB::transaction(function () use ($data, $request, $processor) {
+            $roster = HrRoster::create($data);
+            $this->rebuildRecordedDay($data['employee_id'], $data['work_date'], $processor, $request->user()?->id);
+            return $roster;
+        });
+        return response()->json($roster->load(['employee', 'shift']), 201);
     }
 
-    public function bulkStore(Request $request)
+    public function bulkStore(Request $request, AttendanceProcessor $processor)
     {
         $data = $request->validate([
             'employee_id' => 'required|integer|exists:hr_employees,id',
@@ -55,7 +89,7 @@ class RosterController extends Controller
             throw ValidationException::withMessages(['shift_id' => ['اختر وردية نشطة وحدد أيام عملها أولًا.']]);
         $workingDays = array_map('intval', $shift->working_days);
 
-        $counts = DB::transaction(function () use ($data, $from, $to, $shift, $workingDays) {
+        $counts = DB::transaction(function () use ($data, $from, $to, $shift, $workingDays, $processor, $request) {
             // Serialize schedules for one employee so concurrent bulk requests cannot double book a day.
             HrEmployee::whereKey($data['employee_id'])->lockForUpdate()->firstOrFail();
             $existing = HrRoster::where('employee_id', $data['employee_id'])
@@ -79,6 +113,7 @@ class RosterController extends Controller
                     'planned_end' => substr($shift->end_time, 0, 5),
                     'notes' => $data['notes'] ?? null,
                 ]);
+                $this->rebuildRecordedDay($data['employee_id'], $date, $processor, $request->user()?->id);
                 $result['created']++;
             }
             return $result;
@@ -86,18 +121,36 @@ class RosterController extends Controller
         return response()->json($counts, 201);
     }
 
-    public function update(Request $request, HrRoster $roster)
+    public function update(Request $request, HrRoster $roster, AttendanceProcessor $processor)
     {
         $data = $this->data($request, true);
         $this->checkLeave($roster->employee_id, $roster->work_date->toDateString(), $data['status']);
-        $roster->update($data);
+        DB::transaction(function () use ($roster, $data, $processor, $request) {
+            $roster->update($data);
+            $this->rebuildRecordedDay($roster->employee_id, $roster->work_date->toDateString(), $processor, $request->user()?->id);
+        });
         return response()->json($roster->fresh(['employee', 'shift']));
     }
 
-    public function destroy(HrRoster $roster)
+    public function destroy(Request $request, HrRoster $roster, AttendanceProcessor $processor)
     {
-        $roster->delete();
+        DB::transaction(function () use ($request, $roster, $processor) {
+            $employeeId = $roster->employee_id;
+            $date = $roster->work_date->toDateString();
+            $roster->delete();
+            $this->rebuildRecordedDay($employeeId, $date, $processor, $request->user()?->id);
+        });
         return response()->json(['success' => true]);
+    }
+
+    private function rebuildRecordedDay(int $employeeId, string $date, AttendanceProcessor $processor, ?int $userId): void
+    {
+        $recorded = HrAttendanceDaily::where('employee_id', $employeeId)->whereDate('attendance_date', $date)->exists()
+            || HrAttendanceDailySummary::where('employee_id', $employeeId)->whereDate('work_date', $date)->exists()
+            || HrAttendanceEvent::where('employee_id', $employeeId)
+                ->where('event_at', '>=', $date.' 00:00:00')
+                ->where('event_at', '<', CarbonImmutable::parse($date)->addDay()->toDateString().' 00:00:00')->exists();
+        if ($recorded) $processor->rebuildDay(HrEmployee::findOrFail($employeeId), $date, $userId);
     }
 
     private function checkLeave(int $employeeId, string $day, string $status): void

@@ -29,6 +29,9 @@ export default function RosterPlanner() {
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [rows, setRows] = useState([]);
+  const [calendarEmployee, setCalendarEmployee] = useState("");
+  const [calendarData, setCalendarData] = useState({ rosters: [], leaves: [] });
+  const [calendarRevision, setCalendarRevision] = useState(0);
   const [employees, setEmployees] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [form, setForm] = useState(formInitial);
@@ -68,6 +71,29 @@ export default function RosterPlanner() {
     hrGet("/hr/employees?per_page=100").then(people => setEmployees(unwrap(people))).catch(e => setError(`تعذر تحميل الموظفين: ${e.message}`));
     hrGet("/hr/shifts?per_page=100").then(shiftList => setShifts(unwrap(shiftList))).catch(e => setError(`تعذر تحميل أنواع الورديات: ${e.message}`));
   }, []);
+
+  useEffect(() => {
+    if (!calendarEmployee) { setCalendarData({ rosters: [], leaves: [] }); return; }
+    let active = true;
+    const { from, to } = monthRange(month);
+    hrGet(`/hr/v2/rosters/calendar?employee_id=${calendarEmployee}&from=${from}&to=${to}`)
+      .then(result => { if (active) setCalendarData({ rosters: result.rosters || [], leaves: result.leaves || [] }); })
+      .catch(e => { if (active) setError(`تعذر عرض التقويم: ${e.message}`); });
+    return () => { active = false; };
+  }, [calendarEmployee, month, calendarRevision]);
+  const refreshCalendar = () => setCalendarRevision(previous => previous + 1);
+  const openCalendarDay = (date, item, leave) => {
+    if (leave) { setNotice("هذا اليوم عليه إجازة معتمدة. لإضافة وردية، ألغِ الإجازة أولًا."); return; }
+    if (item) { startEdit(item); return; }
+    setEditing(null);
+    setForm({ ...formInitial(), employee_id: calendarEmployee, work_date: date });
+    setShowBulkForm(false); setShowForm(true); setShowShiftForm(!shifts.length);
+    reveal(shifts.length ? rosterFormRef : shiftFormRef);
+  };
+  const [year, part] = month.split("-").map(Number);
+  const calendarDates = Array.from({ length: new Date(year, part, 0).getDate() }, (_, index) => `${month}-${String(index + 1).padStart(2, "0")}`);
+  const calendarRosters = new Map(calendarData.rosters.map(item => [item.work_date.slice(0, 10), item]));
+  const leaveForDay = date => calendarData.leaves.find(leave => leave.start_date.slice(0, 10) <= date && leave.end_date.slice(0, 10) >= date);
 
   const reveal = ref => requestAnimationFrame(() => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   const update = (key, value) => setForm(previous => ({ ...previous, [key]: value }));
@@ -128,6 +154,7 @@ export default function RosterPlanner() {
       setShowForm(false); setEditing(null); setNotice(editing ? "تم تحديث الجدول." : "تمت إضافة الجدول.");
       if (form.work_date.slice(0, 7) !== month) { setMonth(form.work_date.slice(0, 7)); setPage(1); }
       else await load();
+      refreshCalendar();
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
   const startBulk = () => {
@@ -146,6 +173,7 @@ export default function RosterPlanner() {
       setShowBulkForm(false);
       if (bulk.from.slice(0, 7) !== month) { setMonth(bulk.from.slice(0, 7)); setPage(1); }
       else { setPage(1); if (page === 1) await load(); }
+      refreshCalendar();
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
   const remove = async item => {
@@ -156,11 +184,13 @@ export default function RosterPlanner() {
       setNotice("تم حذف السجل من الجدول.");
       if (rows.length === 1 && page > 1) setPage(page - 1);
       else await load();
+      refreshCalendar();
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
 
   return <section className="pv2-page masa-roster" dir="rtl">
     <style>{`.masa-roster{--masa-purple:#6652ed;--masa-deep:#211d50}.masa-roster .roster-btn{border:1px solid #dcd9f6;border-radius:10px;background:#fff;color:#282254;padding:9px 13px;display:inline-flex;align-items:center;justify-content:center;gap:7px;font:inherit;font-weight:650;cursor:pointer}.masa-roster .roster-btn:hover{border-color:var(--masa-purple);color:var(--masa-purple)}.masa-roster .roster-btn.primary{background:var(--masa-purple);border-color:var(--masa-purple);color:#fff}.masa-roster .roster-btn.primary:hover{background:#5542d8;color:#fff}.masa-roster .roster-btn.danger{color:#ba3545;background:#fff5f5;border-color:#f5d9dc}.masa-roster .roster-btn:disabled{opacity:.55;cursor:not-allowed}.masa-roster .roster-label{display:grid;gap:6px;font-weight:650;color:#302953}.masa-roster .roster-panel{box-shadow:0 6px 24px rgba(28,25,70,.04)}.masa-roster .roster-weekdays{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}.masa-roster .roster-weekdays label{padding:8px 12px;border:1px solid #e2dff2;border-radius:10px;background:#f8f7ff;cursor:pointer}.masa-roster .roster-empty{padding:13px;border-radius:10px;background:#f4f2ff;color:#5542d8}@media(max-width:750px){.masa-roster .att-row{grid-template-columns:repeat(2,minmax(0,1fr))}.masa-roster .att-actions{flex-wrap:wrap}}`}</style>
+    <style>{`.masa-roster .roster-calendar{overflow-x:auto;margin-top:16px}.masa-roster .roster-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(95px,1fr));gap:6px;min-width:700px}.masa-roster .roster-calendar-heading{text-align:center;color:#5a5578;padding:9px 3px}.masa-roster .roster-calendar-day{min-height:88px;text-align:right;display:flex;flex-direction:column;gap:5px;padding:10px;border:1px solid #e5e1f5;border-radius:11px;background:#fbfaff;color:#292251;font:inherit;cursor:pointer}.masa-roster .roster-calendar-day:hover{border-color:#6652ed;box-shadow:0 2px 9px #6652ed22}.masa-roster .roster-calendar-day strong{font-size:17px}.masa-roster .roster-calendar-day span{font-size:12px}.masa-roster .roster-calendar-day small{color:#625c82;direction:ltr;text-align:right}.masa-roster .roster-calendar-day.empty span{color:#817aa2}.masa-roster .roster-calendar-day.scheduled{background:#eeeaff;border-color:#cdc4ff}.masa-roster .roster-calendar-day.leave{background:#e9f7ee;border-color:#a6dfb8}.masa-roster .roster-calendar-day.day_off{background:#eff2f7}.masa-roster .roster-calendar-day.holiday{background:#fff4dc}.masa-roster .roster-calendar-day.cancelled{background:#fff0f0}`}</style>
     <header className="pv2-hero"><div><small>WORKFORCE SCHEDULING</small><h1>جدول الورديات</h1><p>حدّد مواعيد الوردية أولًا، وبعدها وزّعها على الموظف ليوم أو لفترة تختارها.</p></div><div className="att-actions"><CalendarDays size={28} /><button className="roster-btn" type="button" onClick={startShift}><Clock3 size={16} /> إنشاء نوع وردية</button><button className="roster-btn" type="button" onClick={startBulk}><CalendarDays size={16} /> توزيع لفترة</button><button className="roster-btn primary" type="button" onClick={startNew}><Plus size={16} /> إضافة ليوم واحد</button></div></header>
     {error && <div ref={feedbackRef} className="pv2-error" role="alert">{error}</div>}
     {notice && <div className="pv2-panel" role="status" style={{ color: "#187449", marginBottom: 12 }}>{notice}</div>}
@@ -168,7 +198,7 @@ export default function RosterPlanner() {
       {!shifts.length && <div className="roster-empty" style={{ marginTop: 14 }}>لا توجد ورديات مسجلة. اضغط «نوع وردية جديد» لتحديد الاسم والمواعيد بنفسك.</div>}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginTop: 14 }}>{shifts.map(item => <div key={item.id} style={{ border: "1px solid #e5e1f5", borderRadius: 12, padding: 14, background: "#fbfaff" }}><div className="att-actions" style={{ justifyContent: "space-between", alignItems: "center" }}><b>{item.name}</b><button className="roster-btn" type="button" onClick={() => editShift(item)}><Pencil size={15} /> تعديل</button></div><div style={{ marginTop: 8, color: "#575277" }} dir="ltr">{item.start_time?.slice(0, 5)} – {item.end_time?.slice(0, 5)}{item.crosses_midnight ? " (+1)" : ""}</div><small>{item.code} · استراحة {item.break_minutes ?? 0} دقيقة</small></div>)}</div>
     </article>
-    <div className="att-actions" style={{ marginBottom: 16 }}><label className="roster-label">الشهر <input type="month" style={field} value={month} onChange={e => { setMonth(e.target.value); setPage(1); }} /></label><button className="roster-btn" type="button" onClick={load}><RefreshCw size={16} /> تحديث</button></div>
+    <div className="att-actions" style={{ marginBottom: 16 }}><label className="roster-label">الشهر <input type="month" style={field} value={month} onChange={e => { setMonth(e.target.value); setPage(1); }} /></label><button className="roster-btn" type="button" onClick={() => { load(); refreshCalendar(); }}><RefreshCw size={16} /> تحديث</button></div>
     {showBulkForm && <form ref={bulkFormRef} className="pv2-panel roster-panel" onSubmit={schedulePeriod} style={{ marginBottom: 16 }}><h2>توزيع وردية لفترة</h2><p>تُجدول أيام عمل الوردية فقط. الإجازات المعتمدة والأيام ذات الجدول الموجود تُترك كما هي.</p><div style={formGrid}>
       <label className="roster-label">الموظف<select required style={field} value={bulk.employee_id} onChange={e => setBulk(previous => ({ ...previous, employee_id: e.target.value }))}><option value="">اختر موظفًا</option>{employees.map(e => <option key={e.id} value={e.id}>{e.employee_number} — {e.first_name} {e.last_name}</option>)}</select></label>
       <label className="roster-label">الوردية<select required style={field} value={bulk.shift_id} onChange={e => setBulk(previous => ({ ...previous, shift_id: e.target.value }))}><option value="">اختر وردية</option>{shifts.filter(s => s.is_active !== false).map(s => <option key={s.id} value={s.id}>{s.name} ({s.start_time?.slice(0, 5)} – {s.end_time?.slice(0, 5)})</option>)}</select></label>
@@ -198,6 +228,9 @@ export default function RosterPlanner() {
         <label className="roster-label">نهاية الدوام<input type="time" style={field} value={form.planned_end} onChange={e => update("planned_end", e.target.value)} /></label></>}
       <label className="roster-label">ملاحظات<input style={field} maxLength={1000} value={form.notes} onChange={e => update("notes", e.target.value)} /></label>
     </div><div className="att-actions"><button className="roster-btn primary" disabled={busy || (form.status === "scheduled" && !form.shift_id)} type="submit"><Save size={16} /> {editing ? "حفظ التعديل" : "إضافة للجدول"}</button><button className="roster-btn" type="button" onClick={() => setShowForm(false)}><X size={16} /> إلغاء</button></div></form>}
+    <article className="pv2-panel roster-panel" style={{ marginBottom: 16 }}><div className="att-actions" style={{ justifyContent: "space-between", alignItems: "end" }}><div><h2>تقويم الورديات · {month}</h2><small>اختَر موظفًا، ثم اضغط على يوم لتضيف وردية أو تعدّل الجدول الموجود.</small></div><label className="roster-label">الموظف<select style={field} value={calendarEmployee} onChange={e => setCalendarEmployee(e.target.value)}><option value="">اختر موظفًا لعرض التقويم</option>{employees.map(employee => <option key={employee.id} value={employee.id}>{employee.employee_number} — {employee.first_name} {employee.last_name}</option>)}</select></label></div>
+      {calendarEmployee && <div className="roster-calendar"><div className="roster-calendar-grid">{weekdays.map(day => <b className="roster-calendar-heading" key={day}>{day}</b>)}{Array.from({ length: new Date(year, part - 1, 1).getDay() }, (_, index) => <span className="roster-calendar-blank" key={`blank-${index}`} />)}{calendarDates.map(date => { const item = calendarRosters.get(date); const leave = leaveForDay(date); const status = leave ? "leave" : item?.status || "empty"; return <button type="button" className={`roster-calendar-day ${status}`} key={date} onClick={() => openCalendarDay(date, item, leave)} aria-label={`${date}، ${leave ? "إجازة معتمدة" : item ? `${statuses[item.status] || item.status} ${item.shift?.name || ""}` : "إضافة وردية"}`}><strong>{Number(date.slice(-2))}</strong><span>{leave ? "إجازة معتمدة" : item ? item.shift?.name || statuses[item.status] || item.status : "+ إضافة"}</span>{!leave && item?.status === "scheduled" && <small>{item.planned_start?.slice(0, 5) || item.shift?.start_time?.slice(0, 5)} – {item.planned_end?.slice(0, 5) || item.shift?.end_time?.slice(0, 5)}</small>}</button>; })}</div></div>}
+    </article>
     <article className="pv2-panel"><h2>جدول {month}</h2>{!rows.length && <p>لا توجد ورديات لهذا الشهر.</p>}{rows.map(item => <div className="att-row" key={item.id}><b>{item.employee ? `${item.employee.first_name} ${item.employee.last_name}` : "—"}</b><span>{item.work_date?.slice(0, 10)}</span><span>{item.shift?.name || "—"}</span><span>{item.status === "scheduled" ? `${item.planned_start?.slice(0, 5) || item.shift?.start_time?.slice(0, 5) || "—"} – ${item.planned_end?.slice(0, 5) || item.shift?.end_time?.slice(0, 5) || "—"}` : "—"}</span><span className="att-actions"><span>{statuses[item.status] || item.status}</span><button className="roster-btn" type="button" disabled={busy} title="تعديل" onClick={() => startEdit(item)}><Pencil size={16} /></button><button className="roster-btn danger" type="button" disabled={busy} title="حذف" onClick={() => remove(item)}><Trash2 size={16} /></button></span></div>)}
       {lastPage > 1 && <div className="att-actions" style={{ marginTop: 14, alignItems: "center" }}><button className="roster-btn" type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>السابق</button><span>صفحة {page} من {lastPage}</span><button className="roster-btn" type="button" disabled={page >= lastPage} onClick={() => setPage(page + 1)}>التالي</button></div>}
     </article>

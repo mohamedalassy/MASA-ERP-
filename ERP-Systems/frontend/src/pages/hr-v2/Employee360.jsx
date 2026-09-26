@@ -1,10 +1,427 @@
-import{useEffect,useMemo,useState}from"react";import{hrGet}from"./hrApi";import"./hr-v2.css";import"./employee360.css";
-const money=n=>new Intl.NumberFormat("ar-SA",{style:"currency",currency:"SAR"}).format(Number(n||0));
-export default function Employee360({employeeId}){const[data,setData]=useState(null),[tab,setTab]=useState("overview"),[err,setErr]=useState("");useEffect(()=>{if(employeeId)hrGet(`/hr/v2/employees/${employeeId}/360`).then(setData).catch(e=>setErr(e.message))},[employeeId]);const e=data?.employee,s=data?.summary||{};const a=useMemo(()=>{const x=s.attendance_30d||[];return{worked:x.reduce((n,r)=>n+(r.worked_minutes||0),0),late:x.reduce((n,r)=>n+(r.late_minutes||0),0),ot:x.reduce((n,r)=>n+(r.overtime_minutes||0),0)}},[s.attendance_30d]);if(!employeeId)return <div className="pv2-coming">اختر موظفًا من دليل الموظفين.</div>;if(err)return <div className="pv2-error">{err}</div>;if(!e)return <div className="pv2-coming">جاري التحميل...</div>;
-const tabs=[["overview","نظرة عامة"],["contracts","العقود"],["documents","المستندات"],["attendance","الحضور"],["talent","الأداء والمهارات"]];
-return <section className="pv2-page e360" dir="rtl"><header className="pv2-hero"><div><small>EMPLOYEE 360</small><h1>{e.full_name}</h1><p>{e.job_title?.name||"—"} • {e.department?.name||"—"} • {e.branch?.name||"—"}</p></div><span className={"status "+e.status}>{e.status}</span></header><div className="pv2-kpis"><button><small>رقم الموظف</small><strong>{e.employee_number}</strong></button><button><small>العقود</small><strong>{s.contracts||0}</strong></button><button><small>مستندات تنتهي ≤60 يوم</small><strong>{s.expiring_documents||0}</strong></button><button><small>طلبات معلقة</small><strong>{(s.pending_leaves||0)+(s.pending_overtime||0)}</strong></button></div><nav className="e360-tabs">{tabs.map(([id,n])=><button key={id} className={tab===id?"active":""} onClick={()=>setTab(id)}>{n}</button>)}</nav>
-{tab==="overview"&&<div className="pv2-grid"><article><h2>البيانات الوظيفية</h2><p>نوع التوظيف: {e.employment_type}</p><p>تاريخ التعيين: {e.hire_date||"—"}</p><p>المدير: {e.manager?.full_name||"—"}</p><p>الوردية: {e.shift?.name||"—"}</p></article><article><h2>السعودية والامتثال</h2><p>GOSI: {e.gosi_number||"—"}</p><p>Qiwa: {e.contracts?.[0]?.qiwa_contract_number||"—"}</p><p>الإقامة: {e.iqama_number||"—"}</p><p>انتهاء الإقامة: {e.iqama_expiry||"—"}</p></article><article><h2>البنك</h2><p>{e.bank_name||"—"}</p><p>{e.iban||"—"}</p></article></div>}
-{tab==="contracts"&&<article className="pv2-panel">{(e.contracts||[]).map(c=><div className="e360-row" key={c.id}><b>{c.contract_number||c.qiwa_contract_number||`#${c.id}`}</b><span>{c.start_date} → {c.end_date||"مفتوح"}</span><span>{money(c.gross_salary)}</span><span className={"status "+c.status}>{c.status}</span></div>)}</article>}
-{tab==="documents"&&<article className="pv2-panel">{(e.documents||[]).map(d=><div className="e360-row" key={d.id}><b>{d.document_type}</b><span>{d.document_number||"—"}</span><span>انتهاء: {d.expiry_date||"—"}</span><span className={"status "+d.status}>{d.status}</span></div>)}</article>}
-{tab==="attendance"&&<div className="pv2-grid"><article><h2>آخر 30 يوم</h2><p>ساعات العمل: {(a.worked/60).toFixed(1)}</p><p>التأخير: {a.late} دقيقة</p><p>الإضافي: {a.ot} دقيقة</p></article><article><h2>الطلبات</h2><p>إجازات معلقة: {s.pending_leaves||0}</p><p>إضافي معلق: {s.pending_overtime||0}</p></article></div>}
-{tab==="talent"&&<div className="pv2-grid"><article><h2>المهارات</h2><p>{e.skills?.length||0} مهارة مسجلة</p></article><article><h2>التعلم</h2><p>{e.learning_enrollments?.length||0} تسجيل تدريبي</p></article><article><h2>التقييمات</h2><p>{e.performance_reviews?.length||0} تقييم</p></article></div>}</section>}
+import { useEffect, useMemo, useState } from "react";
+import { hrGet } from "./hrApi";
+import EmployeeUserLink from "../../components/hr/EmployeeUserLink";
+import "./hr-v2.css";
+import "./employee360.css";
+
+const money = (n) =>
+  new Intl.NumberFormat("ar-SA", {
+    style: "currency",
+    currency: "SAR",
+  }).format(Number(n || 0));
+
+export default function Employee360({ employeeId }) {
+  const [data, setData] = useState(null);
+  const [tab, setTab] = useState("overview");
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    if (!employeeId) return;
+
+    setErr("");
+
+    hrGet(`/hr/v2/employees/${employeeId}/360`)
+      .then(setData)
+      .catch((e) => setErr(e.message));
+  }, [employeeId]);
+
+  const e = data?.employee;
+  const s = data?.summary || {};
+
+  const a = useMemo(() => {
+    const x = s.attendance_30d || [];
+
+    return {
+      worked: x.reduce(
+        (n, r) => n + (r.worked_minutes || 0),
+        0
+      ),
+      late: x.reduce(
+        (n, r) => n + (r.late_minutes || 0),
+        0
+      ),
+      ot: x.reduce(
+        (n, r) => n + (r.overtime_minutes || 0),
+        0
+      ),
+    };
+  }, [s.attendance_30d]);
+
+  if (!employeeId) {
+    return (
+      <div className="pv2-coming">
+        اختر موظفًا من دليل الموظفين.
+      </div>
+    );
+  }
+
+  if (err) {
+    return <div className="pv2-error">{err}</div>;
+  }
+
+  if (!e) {
+    return (
+      <div className="pv2-coming">
+        جاري التحميل...
+      </div>
+    );
+  }
+
+  const tabs = [
+    ["overview", "نظرة عامة"],
+    ["contracts", "العقود"],
+    ["documents", "المستندات"],
+    ["attendance", "الحضور"],
+    ["talent", "الأداء والمهارات"],
+    ["system-account", "حساب النظام"],
+  ];
+
+  const handleUserChanged = (updatedEmployee) => {
+    setData((current) => ({
+      ...current,
+      employee: {
+        ...current.employee,
+        ...updatedEmployee,
+      },
+    }));
+  };
+
+  return (
+    <section className="pv2-page e360" dir="rtl">
+      {/* =========================
+          HERO
+      ========================= */}
+
+      <header className="pv2-hero">
+        <div>
+          <small>EMPLOYEE 360</small>
+
+          <h1>{e.full_name}</h1>
+
+          <p>
+            {e.job_title?.name || "—"} •{" "}
+            {e.department?.name || "—"} •{" "}
+            {e.branch?.name || "—"}
+          </p>
+        </div>
+
+        <span className={"status " + e.status}>
+          {e.status}
+        </span>
+      </header>
+
+      {/* =========================
+          KPIs
+      ========================= */}
+
+      <div className="pv2-kpis">
+        <button type="button">
+          <small>رقم الموظف</small>
+          <strong>{e.employee_number}</strong>
+        </button>
+
+        <button type="button">
+          <small>العقود</small>
+          <strong>{s.contracts || 0}</strong>
+        </button>
+
+        <button type="button">
+          <small>مستندات تنتهي ≤60 يوم</small>
+          <strong>{s.expiring_documents || 0}</strong>
+        </button>
+
+        <button type="button">
+          <small>طلبات معلقة</small>
+
+          <strong>
+            {(s.pending_leaves || 0) +
+              (s.pending_overtime || 0)}
+          </strong>
+        </button>
+      </div>
+
+      {/* =========================
+          TABS
+      ========================= */}
+
+      <nav className="e360-tabs">
+        {tabs.map(([id, name]) => (
+          <button
+            key={id}
+            type="button"
+            className={tab === id ? "active" : ""}
+            onClick={() => setTab(id)}
+          >
+            {name}
+          </button>
+        ))}
+      </nav>
+
+      {/* =========================
+          OVERVIEW
+      ========================= */}
+
+      {tab === "overview" && (
+        <div className="pv2-grid">
+          <article>
+            <h2>البيانات الوظيفية</h2>
+
+            <p>
+              نوع التوظيف:{" "}
+              {e.employment_type || "—"}
+            </p>
+
+            <p>
+              تاريخ التعيين:{" "}
+              {e.hire_date || "—"}
+            </p>
+
+            <p>
+              المدير:{" "}
+              {e.manager?.full_name || "—"}
+            </p>
+
+            <p>
+              الوردية:{" "}
+              {e.shift?.name || "—"}
+            </p>
+          </article>
+
+          <article>
+            <h2>السعودة والامتثال</h2>
+
+            <p>
+              GOSI:{" "}
+              {e.gosi_number || "—"}
+            </p>
+
+            <p>
+              Qiwa:{" "}
+              {e.contracts?.[0]
+                ?.qiwa_contract_number || "—"}
+            </p>
+
+            <p>
+              الإقامة:{" "}
+              {e.iqama_number || "—"}
+            </p>
+
+            <p>
+              انتهاء الإقامة:{" "}
+              {e.iqama_expiry || "—"}
+            </p>
+          </article>
+
+          <article>
+            <h2>البنك</h2>
+
+            <p>
+              {e.bank_name || "—"}
+            </p>
+
+            <p>
+              {e.iban || "—"}
+            </p>
+          </article>
+        </div>
+      )}
+
+      {/* =========================
+          CONTRACTS
+      ========================= */}
+
+      {tab === "contracts" && (
+        <article className="pv2-panel">
+          {(e.contracts || []).length === 0 && (
+            <div className="pv2-coming">
+              لا توجد عقود مسجلة.
+            </div>
+          )}
+
+          {(e.contracts || []).map((c) => (
+            <div
+              className="e360-row"
+              key={c.id}
+            >
+              <b>
+                {c.contract_number ||
+                  c.qiwa_contract_number ||
+                  `#${c.id}`}
+              </b>
+
+              <span>
+                {c.start_date || "—"} →{" "}
+                {c.end_date || "مفتوح"}
+              </span>
+
+              <span>
+                {money(c.gross_salary)}
+              </span>
+
+              <span
+                className={"status " + c.status}
+              >
+                {c.status}
+              </span>
+            </div>
+          ))}
+        </article>
+      )}
+
+      {/* =========================
+          DOCUMENTS
+      ========================= */}
+
+      {tab === "documents" && (
+        <article className="pv2-panel">
+          {(e.documents || []).length === 0 && (
+            <div className="pv2-coming">
+              لا توجد مستندات مسجلة.
+            </div>
+          )}
+
+          {(e.documents || []).map((d) => (
+            <div
+              className="e360-row"
+              key={d.id}
+            >
+              <b>
+                {d.document_type}
+              </b>
+
+              <span>
+                {d.document_number || "—"}
+              </span>
+
+              <span>
+                انتهاء:{" "}
+                {d.expiry_date || "—"}
+              </span>
+
+              <span
+                className={"status " + d.status}
+              >
+                {d.status}
+              </span>
+            </div>
+          ))}
+        </article>
+      )}
+
+      {/* =========================
+          ATTENDANCE
+      ========================= */}
+
+      {tab === "attendance" && (
+        <div className="pv2-grid">
+          <article>
+            <h2>آخر 30 يوم</h2>
+
+            <p>
+              ساعات العمل:{" "}
+              {(a.worked / 60).toFixed(1)}
+            </p>
+
+            <p>
+              التأخير:{" "}
+              {a.late} دقيقة
+            </p>
+
+            <p>
+              الإضافي:{" "}
+              {a.ot} دقيقة
+            </p>
+          </article>
+
+          <article>
+            <h2>الطلبات</h2>
+
+            <p>
+              إجازات معلقة:{" "}
+              {s.pending_leaves || 0}
+            </p>
+
+            <p>
+              إضافي معلق:{" "}
+              {s.pending_overtime || 0}
+            </p>
+          </article>
+        </div>
+      )}
+
+      {/* =========================
+          TALENT
+      ========================= */}
+
+      {tab === "talent" && (
+        <div className="pv2-grid">
+          <article>
+            <h2>المهارات</h2>
+
+            <p>
+              {e.skills?.length || 0}{" "}
+              مهارة مسجلة
+            </p>
+          </article>
+
+          <article>
+            <h2>التعلم</h2>
+
+            <p>
+              {e.learning_enrollments?.length || 0}{" "}
+              تسجيل تدريبي
+            </p>
+          </article>
+
+          <article>
+            <h2>التقييمات</h2>
+
+            <p>
+              {e.performance_reviews?.length || 0}{" "}
+              تقييم
+            </p>
+          </article>
+        </div>
+      )}
+
+      {/* =========================
+          SYSTEM ACCOUNT
+      ========================= */}
+
+      {tab === "system-account" && (
+        <article className="pv2-panel">
+          <div
+            style={{
+              marginBottom: 18,
+            }}
+          >
+            <h2
+              style={{
+                margin: "0 0 6px",
+              }}
+            >
+              حساب الدخول إلى MASA ERP
+            </h2>
+
+            <p
+              style={{
+                margin: 0,
+                color: "#7b8399",
+                lineHeight: 1.8,
+              }}
+            >
+              اربط الموظف بحساب المستخدم الخاص به
+              داخل النظام. هذا الحساب فقط يستطيع
+              تسجيل حضور وانصراف الموظف في المشاريع.
+            </p>
+          </div>
+
+          <EmployeeUserLink
+            employee={e}
+            onChanged={handleUserChanged}
+          />
+        </article>
+      )}
+    </section>
+  );
+}
