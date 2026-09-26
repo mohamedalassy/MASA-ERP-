@@ -12,6 +12,7 @@ const initialLeave = () => ({ employee_id: "", leave_type: "annual", start_date:
 const leaveTypes = { annual: "سنوية", sick: "مرضية", emergency: "طارئة", unpaid: "بدون راتب", other: "أخرى" };
 const dateTime = value => value ? `${value.replace("T", " ")}:00` : null;
 const shortDate = value => typeof value === "string" ? value.slice(0, 10) : "—";
+const riyadhToday = () => { const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()).map(part => [part.type, part.value])); return `${parts.year}-${parts.month}-${parts.day}`; };
 const recordedTime = value => value ? new Date(value).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Riyadh" }) : "—";
 const fieldStyle = { width: "100%", boxSizing: "border-box", border: "1px solid #dfe3ef", borderRadius: 10, padding: "10px 12px", font: "inherit" };
 const formStyle = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginBottom: 18 };
@@ -115,6 +116,15 @@ export default function AttendanceRequests({ onNavigate }) {
       setNotice(action === "approve" ? "تم اعتماد الطلب." : "تم رفض الطلب.");
     } catch (e) { setErr(e.message); } finally { setBusy(false); }
   }
+  async function cancelLeave(item) {
+    if (!window.confirm(item.status === "approved" ? "إلغاء الإجازة المعتمدة وإرجاع أيامها للرصيد؟" : "إلغاء طلب الإجازة المعلق؟")) return;
+    setBusy(true); setErr(""); setNotice("");
+    try {
+      await hrPost(`/hr/v2/leaves/${item.id}/cancel`);
+      await load();
+      setNotice("تم إلغاء الإجازة وتحديث رصيد الأيام المعتمدة.");
+    } catch (e) { setErr(e.message); } finally { setBusy(false); }
+  }
   const update = (key, value) => setForm(previous => ({ ...previous, [key]: value }));
   const updateOvertime = (key, value) => setOvertimeForm(previous => ({ ...previous, [key]: value }));
   const updateLeave = (key, value) => setLeaveForm(previous => ({ ...previous, [key]: value }));
@@ -144,7 +154,7 @@ export default function AttendanceRequests({ onNavigate }) {
       <label>من تاريخ<input required type="date" style={fieldStyle} value={leaveForm.start_date} onChange={e => updateLeave("start_date", e.target.value)} /></label>
       <label>إلى تاريخ<input required type="date" min={leaveForm.start_date} style={fieldStyle} value={leaveForm.end_date} onChange={e => updateLeave("end_date", e.target.value)} /></label>
       <label style={{ gridColumn: "1/-1" }}>السبب<input required maxLength={1000} style={fieldStyle} value={leaveForm.reason} onChange={e => updateLeave("reason", e.target.value)} placeholder="سبب الإجازة" /></label>
-    </div><div className="att-actions"><button type="submit" disabled={busy}>إرسال للمراجعة</button><button type="button" onClick={() => setShowLeaveForm(false)}>إلغاء</button></div></form>}
+    </div>{leaveForm.leave_type === "annual" && <p>قبل اعتماد الإجازة السنوية، حدّد استحقاق الموظف في تبويب الإجازات لكل سنة يشملها الطلب. لن يتم الاعتماد إذا تجاوزت الأيام المتبقية.</p>}<div className="att-actions"><button type="submit" disabled={busy}>إرسال للمراجعة</button><button type="button" onClick={() => setShowLeaveForm(false)}>إلغاء</button></div></form>}
     <div className="att-tabs">{tabs.map(([id, name]) => <button type="button" className={tab === id ? "active" : ""} onClick={() => setTab(id)} key={id}>{name}</button>)}<button type="button" onClick={load}><RefreshCw size={15} /> تحديث</button></div>
     {tab === "leaves" && <div className="pv2-panel" style={{ marginBottom: 16 }}><h2>الأيام المعتمدة حسب نوع الإجازة</h2><div style={formStyle}>
       <label>الموظف<select style={fieldStyle} value={summaryEmployee} onChange={e => setSummaryEmployee(e.target.value)}><option value="">اختر موظفًا لعرض ملخصه</option>{employees.map(employee => <option key={employee.id} value={employee.id}>{employee.employee_number} — {employee.first_name} {employee.last_name}</option>)}</select></label>
@@ -158,8 +168,8 @@ export default function AttendanceRequests({ onNavigate }) {
       <small>المتبقي = استحقاق السنة − أيام الإجازات السنوية المعتمدة خلال السنة. تُعرض الأنواع الأخرى بصورة مستقلة، ولا يُحتسب ترحيل من سنوات سابقة.</small>
     </div>}
     <article className="pv2-panel">{!rows.length && <p>لا توجد طلبات في هذا القسم.</p>}{rows.map(item => <div className="att-row" key={item.id}>
-      <b>{item.employee ? `${item.employee.first_name} ${item.employee.last_name}` : "—"}</b><span>{tab === "leaves" ? `${shortDate(item.start_date)} ← ${shortDate(item.end_date)}` : shortDate(item.work_date)}</span><span>{tab === "corrections" ? `دخول: ${recordedTime(item.requested_check_in)} · خروج: ${recordedTime(item.requested_check_out)}${item.reason ? ` · ${item.reason}` : ""}` : tab === "overtime" ? `المطلوب: ${item.requested_minutes} دقيقة${item.status === "approved" ? ` · المعتمد: ${item.approved_minutes} دقيقة` : ""}${item.reason ? ` · ${item.reason}` : ""}` : `${leaveTypes[item.leave_type] || item.leave_type} · ${item.days} يوم${item.reason ? ` · ${item.reason}` : ""}`}</span><span className={`status ${item.status}`}>{item.status === "pending" ? "بانتظار المراجعة" : item.status === "approved" ? "معتمد" : item.status === "rejected" ? "مرفوض" : item.status}</span>
-      <div className="att-actions">{item.status === "pending" && <><button type="button" disabled={busy} onClick={() => review(item, "approve")} title="اعتماد طلب التصحيح" style={{ ...reviewButton, color: "#187449", background: "#eaf8f0", borderColor: "#b5e6c7" }}><Check size={17} strokeWidth={2.5} /> اعتماد</button><button type="button" disabled={busy} onClick={() => review(item, "reject")} title="رفض طلب التصحيح" style={{ ...reviewButton, color: "#b42332", background: "#fff0f1", borderColor: "#f4c4ca" }}><X size={17} strokeWidth={2.5} /> رفض</button></>}</div>
+      <b>{item.employee ? `${item.employee.first_name} ${item.employee.last_name}` : "—"}</b><span>{tab === "leaves" ? `${shortDate(item.start_date)} ← ${shortDate(item.end_date)}` : shortDate(item.work_date)}</span><span>{tab === "corrections" ? `دخول: ${recordedTime(item.requested_check_in)} · خروج: ${recordedTime(item.requested_check_out)}${item.reason ? ` · ${item.reason}` : ""}` : tab === "overtime" ? `المطلوب: ${item.requested_minutes} دقيقة${item.status === "approved" ? ` · المعتمد: ${item.approved_minutes} دقيقة` : ""}${item.reason ? ` · ${item.reason}` : ""}` : `${leaveTypes[item.leave_type] || item.leave_type} · ${item.days} يوم${item.reason ? ` · ${item.reason}` : ""}`}</span><span className={`status ${item.status}`}>{item.status === "pending" ? "بانتظار المراجعة" : item.status === "approved" ? "معتمد" : item.status === "rejected" ? "مرفوض" : item.status === "cancelled" ? "ملغي" : item.status}</span>
+      <div className="att-actions">{item.status === "pending" && <><button type="button" disabled={busy} onClick={() => review(item, "approve")} title="اعتماد الطلب" style={{ ...reviewButton, color: "#187449", background: "#eaf8f0", borderColor: "#b5e6c7" }}><Check size={17} strokeWidth={2.5} /> اعتماد</button><button type="button" disabled={busy} onClick={() => review(item, "reject")} title="رفض الطلب" style={{ ...reviewButton, color: "#b42332", background: "#fff0f1", borderColor: "#f4c4ca" }}><X size={17} strokeWidth={2.5} /> رفض</button></>}{tab === "leaves" && (item.status === "pending" || (item.status === "approved" && shortDate(item.start_date) >= riyadhToday())) && <button type="button" disabled={busy} onClick={() => cancelLeave(item)} style={{ ...reviewButton, color: "#b42332", background: "#fff0f1", borderColor: "#f4c4ca" }}><X size={17} /> إلغاء الإجازة</button>}</div>
     </div>)}</article>
   </section>;
 }

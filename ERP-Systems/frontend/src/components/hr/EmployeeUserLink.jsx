@@ -1,0 +1,12 @@
+import{useEffect,useState}from"react";import{Link2,Unlink,UserRound}from"lucide-react";
+const A=import.meta.env.VITE_API_URL||"http://127.0.0.1:8000/api";
+function token(){return localStorage.getItem("token")||localStorage.getItem("auth_token")||""}
+async function api(path,o={}){let t=token(),r=await fetch(`${A}${path}`,{credentials:"include",...o,headers:{Accept:"application/json",...(o.body?{"Content-Type":"application/json"}:{}),...(t?{Authorization:`Bearer ${t}`}:{}) ,...(o.headers||{})}}),x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.message||Object.values(x.errors||{}).flat()[0]||"تعذر تنفيذ العملية");return x}
+export default function EmployeeUserLink({employee,onChanged}){const[users,setUsers]=useState([]),[uid,setUid]=useState(employee?.user_id||""),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[msg,setMsg]=useState("");
+useEffect(()=>{api("/hr/users-for-linking").then(x=>setUsers(x.data||[])).catch(e=>setErr(e.message))},[]);
+useEffect(()=>setUid(employee?.user_id||""),[employee?.user_id]);
+const save=async()=>{try{setBusy(true);setErr("");setMsg("");let x=await api(`/hr/employees/${employee.id}/user-link`,{method:"PUT",body:JSON.stringify({user_id:uid?+uid:null})});setMsg(x.message);onChanged?.(x.data)}catch(e){setErr(e.message)}finally{setBusy(false)}};
+return <div dir="rtl" style={{border:"1px solid #e8e8f1",borderRadius:14,padding:14,background:"#fafafe"}}>
+<div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10}}><UserRound size={18}/><div><b>حساب الدخول للنظام</b><div style={{fontSize:12,color:"#7b8399"}}>هذا الحساب فقط يستطيع تسجيل حضور هذا الموظف في المشاريع.</div></div></div>
+<div style={{display:"flex",gap:8,flexWrap:"wrap"}}><select value={uid} onChange={e=>setUid(e.target.value)} style={{minWidth:260,padding:10,border:"1px solid #ddd",borderRadius:9}}><option value="">غير مرتبط بحساب</option>{users.map(u=><option key={u.id} value={u.id}>{u.name} — {u.email}</option>)}</select><button onClick={save} disabled={busy} style={{border:0,borderRadius:9,padding:"10px 14px",background:"#6657F5",color:"#fff",fontWeight:800}}>{uid?<Link2 size={15}/>:<Unlink size={15}/>} {busy?"جاري الحفظ...":"حفظ الربط"}</button></div>
+{employee?.user&&<div style={{marginTop:8,fontSize:12}}>مرتبط حاليًا: <b>{employee.user.name}</b> — {employee.user.email}</div>}{err&&<div style={{marginTop:8,color:"#be123c"}}>{err}</div>}{msg&&<div style={{marginTop:8,color:"#047857"}}>{msg}</div>}</div>}

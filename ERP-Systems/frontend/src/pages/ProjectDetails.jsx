@@ -33,7 +33,7 @@ import {
   RotateCcw,
   Activity,
 } from "lucide-react";
-
+import ProjectAttendancePanel from "../components/projects/ProjectAttendancePanel";
 /*
 |--------------------------------------------------------------------------
 | API
@@ -3993,6 +3993,10 @@ export default function ProjectDetails({
               projectId={project.id}
               project={project}
             />
+            <ProjectAttendancePanel
+                projectId={project.id}
+                project={project}
+              />
           </div>
 
           {/* =================================================

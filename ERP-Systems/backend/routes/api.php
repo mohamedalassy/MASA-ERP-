@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\Api\ProjectAttendanceController;
 use App\Http\Controllers\Api\SupplierPriceHistoryController;
 use App\Http\Controllers\Api\PricingRuleController;
 // Import:
@@ -54,6 +54,8 @@ use App\Http\Controllers\Api\HrShiftController;
 use App\Http\Controllers\Api\HrAttendanceDeviceController;
 use App\Http\Controllers\Api\HrAttendanceSummaryController;
 
+
+use App\Http\Controllers\Api\HrEmployeeUserController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -649,3 +651,18 @@ Route::get('/projects/{project}/team', [ProjectTeamController::class, 'index']);
 Route::post('/projects/{project}/team', [ProjectTeamController::class, 'store']);
 Route::put('/projects/{project}/team/{member}', [ProjectTeamController::class, 'update']);
 Route::delete('/projects/{project}/team/{member}', [ProjectTeamController::class, 'destroy']);
+Route::get('/projects/{project}/attendance',[ProjectAttendanceController::class,'index']);
+Route::get('/projects/{project}/attendance/onsite',[ProjectAttendanceController::class,'onsite']);
+Route::post('/projects/{project}/attendance/punch',[ProjectAttendanceController::class,'punch']);
+
+/* Employee <-> User linking */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/hr/users-for-linking', [HrEmployeeUserController::class, 'users']);
+    Route::put('/hr/employees/{hrEmployee}/user-link', [HrEmployeeUserController::class, 'link']);
+
+    /* Project GPS attendance: employee identity always comes from authenticated User */
+    Route::get('/projects/{project}/attendance/me', [ProjectAttendanceController::class, 'me']);
+    Route::get('/projects/{project}/attendance', [ProjectAttendanceController::class, 'index']);
+    Route::get('/projects/{project}/attendance/onsite', [ProjectAttendanceController::class, 'onsite']);
+    Route::post('/projects/{project}/attendance/punch', [ProjectAttendanceController::class, 'punch']);
+});
